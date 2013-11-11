@@ -40,7 +40,7 @@ def _GenericLabelAdpater(obj):
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(nti_interfaces.IEntity)
 def _EntityLabelAdpater(entity):
-	return (entity.__class__.__name__,)
+	return (entity.__class__.__name__.lower(),)
 
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(nti_interfaces.IDynamicSharingTargetFriendsList)
@@ -67,7 +67,7 @@ def _CommentLabelAdpater(obj):
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(frm_interfaces.ITopic)
 def _TopicLabelAdpater(topic):
-	result = {'Topic'}
+	result = {'topic'}
 	result.update(topic.tags or ())
 	headline = getattr(topic, 'headline', None)
 	if headline is not None:
@@ -103,7 +103,7 @@ def _EntityPropertyAdpater(entity):
 	for key, value in (('alias', alias), ('name', name)):
 		if value:
 			result[key] = unicode(value)
-	result['OID'] = externalization.to_external_ntiid_oid(entity)
+	result['oid'] = externalization.to_external_ntiid_oid(entity)
 	return result
 
 @component.adapter(nti_interfaces.ICommunity)
@@ -129,8 +129,8 @@ def _DFLPropertyAdpater(dfl):
 def _ModeledContentPropertyAdpater(modeled):
 	result = CaseInsensitiveDict({'type':modeled.__class__.__name__})
 	result['creator'] = modeled.creator.username
-	result['createdTime'] = _to_isoformat(modeled.createdTime)
-	result['OID'] = externalization.to_external_ntiid_oid(modeled)
+	result['created'] = _to_isoformat(modeled.createdTime)
+	result['oid'] = externalization.to_external_ntiid_oid(modeled)
 	return result
 
 @component.adapter(nti_interfaces.INote)
@@ -145,8 +145,8 @@ def _TopicPropertyAdpater(topic):
 	result = CaseInsensitiveDict({'type':'Topic'})
 	result['author'] = topic.creator.username
 	result['title'] = unicode(topic.title)
-	result['NTIID'] = topic.NTIID
-	result['OID'] = externalization.to_external_ntiid_oid(topic)
+	result['ntiid'] = topic.NTIID
+	result['oid'] = externalization.to_external_ntiid_oid(topic)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -158,23 +158,23 @@ def _CommentPropertyAdpater(post):
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(_from, _post, _rel):
-	result = CaseInsensitiveDict({'createdTime': _to_isoformat(_post.createdTime)})
-	result['OID'] = externalization.to_external_ntiid_oid(_post)
-	result['TopicNTIID'] = _post.__parent__.NTIID
+	result = CaseInsensitiveDict({'created': _to_isoformat(_post.createdTime)})
+	result['oid'] = externalization.to_external_ntiid_oid(_post)
+	result['topic'] = _post.__parent__.NTIID
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(asm_interfaces.IQAssessedQuestionSet)
 def _QuestionSetPropertyAdpater(obj):
 	result = CaseInsensitiveDict({'type':'QuestionSet'})
-	result['ID'] = obj.questionSetId
+	result['id'] = obj.questionSetId
 	return result
 	
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(asm_interfaces.IQAssessedQuestion)
 def _QuestionPropertyAdpater(obj):
 	result = CaseInsensitiveDict({'type':'Question'})
-	result['ID'] = obj.questionId
+	result['id'] = obj.questionId
 	return result
 
 def _question_stats(question):
@@ -191,7 +191,7 @@ def _question_stats(question):
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 def _CreatedTimePropertyAdpater(_from, _to, _rel):
-	result = CaseInsensitiveDict({'createdTime':_to_isoformat(time.time())})
+	result = CaseInsensitiveDict({'created':_to_isoformat(time.time())})
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -199,8 +199,8 @@ def _CreatedTimePropertyAdpater(_from, _to, _rel):
 				   graph_interfaces.ITakeAssessment)
 def AssessedQuestionRelationshipPropertyAdpater(_from, _question, _rel):
 	result = CaseInsensitiveDict({'taker' : _from.username})
-	result['createdTime'] = _to_isoformat(_question.createdTime)
-	result['OID'] = externalization.to_external_ntiid_oid(_question)
+	result['created'] = _to_isoformat(_question.createdTime)
+	result['oid'] = externalization.to_external_ntiid_oid(_question)
 	is_correct, is_incorrect, partial = _question_stats(_question)
 	result['correct'] = is_correct
 	result['incorrect'] = is_incorrect
@@ -212,8 +212,8 @@ def AssessedQuestionRelationshipPropertyAdpater(_from, _question, _rel):
 				  graph_interfaces.ITakeAssessment)
 def AssessedQuestionSetRelationshipPropertyAdpater(_from, _qset, _rel):
 	result = CaseInsensitiveDict({'taker' : _from.username})
-	result['createdTime'] = _to_isoformat(_qset.createdTime)
-	result['OID'] = externalization.to_external_ntiid_oid(_qset)
+	result['created'] = _to_isoformat(_qset.createdTime)
+	result['oid'] = externalization.to_external_ntiid_oid(_qset)
 	correct = incorrect = 0
 	questions = _qset.questions
 	for question in questions:
@@ -244,7 +244,7 @@ class _GenericUniqueAttributeAdpater(object):
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _OIDUniqueAttributeAdpater(object):
 
-	key = "OID"
+	key = "oid"
 
 	def __init__(self, obj):
 		self.obj = obj
@@ -283,7 +283,7 @@ class _ModeledContentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 @component.adapter(frm_interfaces.ITopic)
 class _TopicUniqueAttributeAdpater(object):
 
-	key = "NTIID"
+	key = "ntiid"
 
 	def __init__(self, obj):
 		self.obj = obj
@@ -339,7 +339,7 @@ _TargetMembershipUniqueAttributeAdpater = _RelationshipUniqueAttributeAdpater
 @component.adapter(asm_interfaces.IQAssessedQuestionSet)
 class _QuestionSetUniqueAttributeAdpater(object):
 
-	key = "ID"
+	key = "id"
 
 	def __init__(self, obj):
 		self.obj = obj
@@ -352,7 +352,7 @@ class _QuestionSetUniqueAttributeAdpater(object):
 @component.adapter(asm_interfaces.IQAssessedQuestion)
 class _QuestionUniqueAttributeAdpater(object):
 
-	key = "ID"
+	key = "id"
 
 	def __init__(self, obj):
 		self.obj = obj
