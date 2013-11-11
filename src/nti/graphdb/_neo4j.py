@@ -401,8 +401,8 @@ class Neo4jDB(object):
 			end = rel[2] # end node
 			for n in (start, end):
 				assert isinstance(n, (neo4j.Node, Neo4jNode))
-			start = start if isinstance(start, neo4j.Node) else start._node
-			end = end if isinstance(end, neo4j.Node) else end._node
+			start = start if isinstance(start, neo4j.Node) else start._neo
+			end = end if isinstance(end, neo4j.Node) else end._neo
 
 			# get properties
 			properties = {} if len(rel) < 4 or rel[3] is None  else rel[3]
@@ -412,18 +412,18 @@ class Neo4jDB(object):
 			key = None if len(rel) < 5 or rel[4] is None else rel[4]
 			value = None if len(rel) < 6 or rel[5] is None else rel[5]
 
+			abstract = rel4j(start, str(type_), end, **properties)
 			if key and value:
-				abstract = [start, str(type_), end, properties]
 				wb.get_or_create_in_index(neo4j.Relationship,
 										  "PKIndex",
 										   key,
 										   value,
 										   abstract)
 			else:
-				abstract = rel4j(start, str(type_), end, **properties)
 				wb.create(abstract)
 
-		wb.submit()
+		result = wb.submit()
+		return result
 
 	def _do_get_relationship(self, obj, props=True):
 		result = None
