@@ -13,7 +13,7 @@ from nti.dataserver.users import User
 
 from nti.dataserver.contenttypes import Note
 
-from nti.graphdb import _modeled as modeled
+from nti.graphdb import modeled
 from nti.graphdb import _neo4j as neo4j
 
 from nti.ntiids.ntiids import make_ntiid

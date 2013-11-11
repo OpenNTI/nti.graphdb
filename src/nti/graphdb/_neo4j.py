@@ -355,7 +355,8 @@ class Neo4jDB(object):
 		return result or {}
 	
 	def _get_rel_keyvalue(self, start, end, rel_type, key=None, value=None):
-		adapted = component.queryMultiAdapter((start, end, rel_type), graph_interfaces.IUniqueAttributeAdapter)
+		adapted = component.queryMultiAdapter((start, end, rel_type),
+											  graph_interfaces.IUniqueAttributeAdapter)
 		if adapted is not None:
 			key = adapted.key if not key else key
 			value = adapted.value if value is None else value

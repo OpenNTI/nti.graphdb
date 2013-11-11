@@ -23,8 +23,8 @@ from nti.externalization import externalization
 
 from nti.ntiids import ntiids
 
+from . import get_graph_db
 from . import relationships
-from . import get_possible_site_names
 from . import interfaces as graph_interfaces
 
 def to_external_ntiid_oid(obj):
@@ -55,10 +55,9 @@ def _get_inReplyTo_PK(obj):
 	return key, value
 
 def _proces_note_removed(note, event):
-	site = get_possible_site_names()[0]
+	db = get_graph_db()
 	irt_key, irt_value = _get_inReplyTo_PK(note)
 	adapted = graph_interfaces.IUniqueAttributeAdapter(note)
-	db = component.getUtility(graph_interfaces.IGraphDB, name=site)
 	func = functools.partial(remove_note, db=db, key=adapted.key, value=adapted.value,
 							 inReplyTo_key=irt_key, inReplyTo_value=irt_value)
 	transaction.get().addAfterCommitHook(lambda success: success and gevent.spawn(func))
@@ -86,12 +85,11 @@ def add_inReplyTo_relationship(db, oid):
 		logger.debug("replyTo relationship %s retrived/created" % result)
 
 def _process_note_inReplyTo(note):
-	site = get_possible_site_names()[0]
+	db = get_graph_db()
 	oid = to_external_ntiid_oid(note)
 	def _process_event():
 		transaction_runner = \
 			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-		db = component.getUtility(graph_interfaces.IGraphDB, name=site)
 		func = functools.partial(add_inReplyTo_relationship, db=db, oid=oid)
 		transaction_runner(func)
 	transaction.get().addAfterCommitHook(
@@ -137,10 +135,10 @@ def install(db):
 		rels = []
 		for i, n in enumerate(nodes[1:]):
 			note = objs[i + 1]
-			adapted = component.getMultiAdapter((user, note, rel_type),
-												graph_interfaces.IPropertyAdapter)
+			properties = component.getMultiAdapter((user, note, rel_type),
+													graph_interfaces.IPropertyAdapter)
 			key, value = _get_inReplyTo_PK(note)
-			rels.append((nodes[0], rel_type, n, adapted.properties(), key, value))
+			rels.append((nodes[0], rel_type, n, properties, key, value))
 
 		# create relationships in batch
 		rels = db.create_relationships(*rels)
