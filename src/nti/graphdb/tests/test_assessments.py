@@ -1,8 +1,11 @@
 #!/usr/bin/env python
-from __future__ import print_function, unicode_literals
+# -*- coding: utf-8 -*-
 
-#disable: accessing protected members, too many methods
-#pylint: disable=W0212,R0904
+from __future__ import print_function, unicode_literals, absolute_import, division
+__docformat__ = "restructuredtext en"
+
+# disable: accessing protected members, too many methods
+# pylint: disable=W0212,R0904
 
 import os
 
@@ -19,9 +22,9 @@ from nti.externalization.externalization import toExternalObject
 from nti.ntiids import ntiids
 
 from nti import graphdb
+from nti.graphdb import assessments
 from nti.graphdb import relationships
 from nti.graphdb import _neo4j as neo4j
-from nti.graphdb import _assessments as assessments
 
 from nti.graphdb.tests import ApplicationTestBase, WithSharedApplicationMockDSWithChanges
 
@@ -40,7 +43,8 @@ class TestAssessments(ApplicationTestBase):
 	def setUpClass(cls):
 		super(TestAssessments, cls).setUpClass()
 		cls.db = neo4j.Neo4jDB(cls.DEFAULT_URI)
-		cls.configuration_context = xmlconfig.file("configure.zcml", graphdb, cls.configuration_context)
+		cls.configuration_context = \
+			xmlconfig.file("configure.zcml", graphdb, cls.configuration_context)
 		
 	@classmethod
 	def _setup_library( cls, *args, **kwargs ):
@@ -57,12 +61,14 @@ class TestAssessments(ApplicationTestBase):
 			user = self._create_random_user()
 			username = user.username
 
-		question = asm_submission.QuestionSubmission(questionId=self.child_ntiid, parts=('correct',))
+		question = asm_submission.QuestionSubmission(
+										questionId=self.child_ntiid, parts=('correct',))
 		ext_obj = toExternalObject(question)
 		ext_obj['ContainerId'] = 'tag:nextthought.com,2011-10:mathcounts-HTML-MN.2012.0'
 		ext_obj.pop('Class')
 
-		testapp = TestApp(self.app, extra_environ=self._make_extra_environ(user=username))
+		testapp = TestApp(self.app,
+						  extra_environ=self._make_extra_environ(user=username))
 		path = '/dataserver2/users/%s' % username
 		res = testapp.post_json(path, ext_obj)
 		oid = res.json_body[u'NTIID']
@@ -74,5 +80,6 @@ class TestAssessments(ApplicationTestBase):
 
 			user = User.get_user(username)
 			qa = ntiids.find_object_with_ntiid(oid)
-			rels = self.db.match(start=user, end=qa, rel_type=relationships.TakeAssessment())
+			rels = self.db.match(start=user, end=qa,
+								 rel_type=relationships.TakeAssessment())
 			assert_that(rels, has_length(greater_than_or_equal_to(1)))

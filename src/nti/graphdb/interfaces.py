@@ -11,6 +11,9 @@ __docformat__ = "restructuredtext en"
 from zope import schema
 from zope import interface
 
+from dolmen.builtins import IDict
+from dolmen.builtins import ITuple
+
 from nti.utils import schema as nti_schema
 
 NEO4J = u"neo4j"
@@ -90,8 +93,10 @@ class IGraphDB(interface.Interface):
 class IGraphNode(interface.Interface):
 	id = nti_schema.ValidTextLine(title="node id")
 	uri = nti_schema.ValidTextLine(title="uri identifier", required=False)
-	labels = schema.Set(value_type=nti_schema.ValidTextLine(title="label"), required=False)
-	properties = schema.Dict(nti_schema.ValidTextLine(title="key"), nti_schema.ValidTextLine(title="value"), required=False)
+	labels = schema.Tuple(value_type=nti_schema.ValidTextLine(title="label"), required=False)
+	properties = schema.Dict(nti_schema.ValidTextLine(title="key"),
+							 nti_schema.ValidTextLine(title="value"),
+							 required=False)
 
 class IRelationshipType(interface.Interface):
 	"""
@@ -102,6 +107,7 @@ class IRelationshipType(interface.Interface):
 		pass
 
 class IGraphRelationship(interface.Interface):
+
 	id = nti_schema.ValidTextLine(title="relationship id")
 
 	uri = nti_schema.ValidTextLine(title="uri identifier", required=False)
@@ -127,19 +133,15 @@ class IGraphRelationship(interface.Interface):
 												 schema.List(title="value list"))),
 							 required=False)
 
-class IPropertyAdapter(interface.Interface):
+class IPropertyAdapter(IDict):
+	"""
+	return a dict of properties
+	"""
 
-	def properties():
-		"""
-		return a dict of properties
-		"""
-
-class ILabelAdapter(interface.Interface):
-
-	def labels():
-		"""
-		returns a set with labels
-		"""
+class ILabelAdapter(ITuple):
+	"""
+	returns a set with labels
+	"""
 
 class IUniqueAttributeAdapter(interface.Interface):
 	"""

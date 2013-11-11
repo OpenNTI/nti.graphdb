@@ -18,215 +18,215 @@
 	<!-- label adapter -->
 	
 	<adapter for=""
-			 factory="._adapters.GenericLabelAdpater"
+			 factory=".adapters._GenericLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 			
 	<adapter for="*"
-			 factory="._adapters.GenericLabelAdpater"
+			 factory=".adapters._GenericLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity"
-			 factory="._adapters.EntityLabelAdpater"
+			 factory=".adapters._EntityLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IDynamicSharingTargetFriendsList"
-			 factory="._adapters.DFLLabelAdpater"
+			 factory=".adapters._DFLLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 		 	 
 	<adapter for="nti.dataserver.interfaces.IModeledContent"
-			 factory="._adapters.ModeledContentLabelAdpater"
+			 factory=".adapters._ModeledContentLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.INote"
-			 factory="._adapters.NoteLabelAdpater"
+			 factory=".adapters._NoteLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.ITopic"
-			 factory="._adapters.TopicLabelAdpater"
+			 factory=".adapters._TopicLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 		 
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment"
-			 factory="._adapters.CommentLabelAdpater"
+			 factory=".adapters._CommentLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 	
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IPersonalBlogComment"
-			 factory="._adapters.CommentLabelAdpater"
+			 factory=".adapters._CommentLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 
 	<adapter for="nti.assessment.interfaces.IQAssessedQuestionSet"
-			 factory="._adapters.QuestionSetLabelAdpater"
+			 factory=".adapters._QuestionSetLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 
 	<adapter for="nti.assessment.interfaces.IQAssessedQuestion"
-			 factory="._adapters.QuestionLabelAdpater"
+			 factory=".adapters._QuestionLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 
 	<!-- property adapter -->
 	
 	<adapter for=""
-			 factory="._adapters.GenericPropertyAdpater"
+			 factory=".adapters._GenericPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			  
 	<adapter for="*"
-			 factory="._adapters.GenericPropertyAdpater"
+			 factory=".adapters._GenericPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 			 
 	<adapter for="nti.dataserver.interfaces.IEntity"
-			 factory="._adapters.EntityPropertyAdpater"
+			 factory=".adapters._EntityPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			
 	<adapter for="nti.dataserver.interfaces.ICommunity"
-			 factory="._adapters.CommunityPropertyAdpater"
+			 factory=".adapters._CommunityPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IDynamicSharingTargetFriendsList"
-			 factory="._adapters.DFLPropertyAdpater"
+			 factory=".adapters._DFLPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IUser"
-			 factory="._adapters.UserPropertyAdpater"
+			 factory=".adapters._UserPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			
 	<adapter for="nti.dataserver.interfaces.IModeledContent"
-			 factory="._adapters.ModeledContentPropertyAdpater"
+			 factory=".adapters._ModeledContentPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.INote"
-			 factory="._adapters.NotePropertyAdpater"
+			 factory=".adapters._NotePropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.ITopic"
-			 factory="._adapters.TopicPropertyAdpater"
+			 factory=".adapters._TopicPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment"
-			 factory="._adapters.CommentPropertyAdpater"
+			 factory=".adapters._CommentPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 	
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IPersonalBlogComment"
-			 factory="._adapters.CommentPropertyAdpater"
+			 factory=".adapters._CommentPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 	
 	<adapter for="* * .interfaces.IRelationshipType"
-			 factory="._adapters.CreatedTimePropertyAdpater"
+			 factory=".adapters._CreatedTimePropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IEntity .interfaces.IFollow"
-			 factory="._adapters.FollowRelationshipPropertyAdpater"
+			 factory=".adapters._FollowRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.ITopic .interfaces.IAuthor"
-			 factory="._adapters.AuthorshipRelationshipPropertyAdpater"
+			 factory=".adapters._AuthorshipRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.IPersonalBlogComment .interfaces.ICommentOn"
-			 factory="._adapters.CommentRelationshipPropertyAdpater"
+			 factory=".adapters._CommentRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment .interfaces.ICommentOn"
-			 factory="._adapters.CommentRelationshipPropertyAdpater"
+			 factory=".adapters._CommentRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			
 	<adapter for="nti.assessment.interfaces.IQAssessedQuestionSet"
-			 factory="._adapters.QuestionSetPropertyAdpater"
+			 factory=".adapters._QuestionSetPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 		
 	<adapter for="nti.assessment.interfaces.IQAssessedQuestion"
-			 factory="._adapters.QuestionPropertyAdpater"
+			 factory=".adapters._QuestionPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 	 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.ITakeAssessment"
-			 factory="._adapters.AssessedQuestionSetRelationshipPropertyAdpater"
+			 factory=".adapters._AssessedQuestionSetRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssessedQuestion .interfaces.ITakeAssessment"
-			 factory="._adapters.AssessedQuestionRelationshipPropertyAdpater"
+			 factory=".adapters._AssessedQuestionRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 		 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.ILikeable .interfaces.ILike"
-			 factory="._adapters.LikeRelationshipPropertyAdpater"
+			 factory=".adapters._LikeRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<!-- unique attribute adapter -->
 	
 	<adapter for=""
-			 factory="._adapters.GenericUniqueAttributeAdpater"
+			 factory=".adapters._GenericUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="*"
-			 factory="._adapters.GenericUniqueAttributeAdpater"
+			 factory=".adapters._GenericUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			   
 	<adapter for="nti.dataserver.interfaces.IEntity"
-			 factory="._adapters.EntityUniqueAttributeAdpater"
+			 factory=".adapters._EntityUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IEntity .interfaces.IFriendOf"
-			 factory="._adapters.FriendshipUniqueAttributeAdpater"
+			 factory=".adapters._FriendshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IDynamicSharingTarget .interfaces.IMemberOf"
-			 factory="._adapters.TargetMembershipUniqueAttributeAdpater"
+			 factory=".adapters._TargetMembershipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IEntity .interfaces.IFollow"
-			 factory="._adapters.FollowUniqueAttributeAdpater"
+			 factory=".adapters._FollowUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IModeledContent"
-			 factory="._adapters.ModeledContentUniqueAttributeAdpater"
+			 factory=".adapters._ModeledContentUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.ITopic"
-			 factory="._adapters.TopicUniqueAttributeAdpater"
+			 factory=".adapters._TopicUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IPersonalBlogComment"
-			 factory="._adapters.CommentUniqueAttributeAdpater"
+			 factory=".adapters._CommentUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 	
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment"
-			 factory="._adapters.CommentUniqueAttributeAdpater"
+			 factory=".adapters._CommentUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.ITopic .interfaces.IAuthor"
-			 factory="._adapters.AuthorshipUniqueAttributeAdpater"
+			 factory=".adapters._AuthorshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.IPersonalBlogComment .interfaces.ICommentOn"
-			 factory="._adapters.CommentRelationshipUniqueAttributeAdpater"
+			 factory=".adapters._CommentRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment .interfaces.ICommentOn"
-			 factory="._adapters.CommentRelationshipUniqueAttributeAdpater"
+			 factory=".adapters._CommentRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.assessment.interfaces.IQAssessedQuestionSet"
-			 factory="._adapters.QuestionSetUniqueAttributeAdpater"
+			 factory=".adapters._QuestionSetUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 		
 	<adapter for="nti.assessment.interfaces.IQAssessedQuestion"
-			 factory="._adapters.QuestionUniqueAttributeAdpater"
+			 factory=".adapters._QuestionUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.ITakeAssessment"
-			 factory="._adapters.AssessedRelationshipUniqueAttributeAdpater"
+			 factory=".adapters._AssessedRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
 	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssessedQuestion .interfaces.ITakeAssessment"
-			 factory="._adapters.AssessedRelationshipUniqueAttributeAdpater"
+			 factory=".adapters._AssessedRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			  
 	<adapter for="nti.assessment.interfaces.IQAssessedQuestion nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.IMemberOf"
-			 factory="._adapters.QuestionMembershipUniqueAttributeAdpater"
+			 factory=".adapters._QuestionMembershipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.ILikeable .interfaces.ILike"
-			 factory="._adapters.LikeUniqueAttributeAdpater"
+			 factory=".adapters._LikeUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IThreadable .interfaces.IReply"
-			 factory="._adapters.InReplyToUniqueAttributeAdpater"
+			 factory=".adapters._InReplyToUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			  
 	<!-- subscribers -->
@@ -252,8 +252,8 @@
 	<subscriber handler="._discussions._modify_personal_blog_comment" />
 	<subscriber handler="._discussions._modify_general_forum_comment" />
 	
-	<subscriber handler="._assessments._question_assessed" />
-	<subscriber handler="._assessments._questionset_assessed" />
+	<subscriber handler=".assessments._question_assessed" />
+	<subscriber handler=".assessments._questionset_assessed" />
 	
 	<subscriber handler="._ratings._object_rated" />
 	<subscriber handler="._ratings._topic_rated" />

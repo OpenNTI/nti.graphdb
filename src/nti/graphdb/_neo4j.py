@@ -69,11 +69,11 @@ class Neo4jNode(SchemaConfigured):
 			result = node
 		elif graph_interfaces.IGraphNode.providedBy(node):
 			result = Neo4jNode(id=node.id, uri=node.uri,
-							   labels=set(node.labels),
+							   labels=tuple(node.labels),
 							   properties=dict(node.properties))
 		elif node is not None:
 			result = Neo4jNode(id=unicode(node._id), uri=unicode(node.__uri__))
-			result.labels = set(getattr(node, '_labels', ()))
+			result.labels = tuple(getattr(node, '_labels', ()))
 			result.properties = dict(node._properties)
 			result._neo = node
 		else:
@@ -165,13 +165,14 @@ class Neo4jDB(object):
 			if not _is_404(e):
 				raise e
 
-	def _do_create_node(self, obj, key=None, value=None, labels=None, properties=None, props=True):
+	def _do_create_node(self, obj, key=None, value=None, labels=None,
+						properties=None, props=True):
 		labels = labels or ()
 		properties = properties or dict()
 
 		# create node
-		properties.update(graph_interfaces.IPropertyAdapter(obj).properties())
-		labels = list(set(labels).union(graph_interfaces.ILabelAdapter(obj).labels()))
+		properties.update(graph_interfaces.IPropertyAdapter(obj))
+		labels = tuple(set(labels).union(graph_interfaces.ILabelAdapter(obj)))
 		node = node4j(**properties)
 
 		index = self.db.get_or_create_index(neo4j.Node, "PKIndex")
@@ -200,9 +201,9 @@ class Neo4jDB(object):
 		label_set = []
 		wb = neo4j.WriteBatch(self.db)
 		for o in objs:
-			labels = list(graph_interfaces.ILabelAdapter(o).labels())
+			labels = graph_interfaces.ILabelAdapter(o)
 			label_set.append(labels)
-			properties = graph_interfaces.IPropertyAdapter(o).properties()
+			properties = graph_interfaces.IPropertyAdapter(o)
 			abstract = node4j(**properties)
 			adapted = graph_interfaces.IUniqueAttributeAdapter(o)
 			if adapted.key and adapted.value:
@@ -349,8 +350,8 @@ class Neo4jDB(object):
 	# relationships
 
 	def _get_rel_properties(self, start, end, rel_type):
-		adapted = component.queryMultiAdapter((start, end, rel_type), graph_interfaces.IPropertyAdapter)
-		result = adapted.properties() if adapted is not None else None
+		result = component.queryMultiAdapter((start, end, rel_type),
+											 graph_interfaces.IPropertyAdapter)
 		return result or {}
 	
 	def _get_rel_keyvalue(self, start, end, rel_type, key=None, value=None):

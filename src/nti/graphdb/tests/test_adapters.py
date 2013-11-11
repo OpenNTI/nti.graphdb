@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals, absolute_import
+from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 # disable: accessing protected members, too many methods
@@ -19,7 +19,8 @@ from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
 from nti.graphdb.tests import ConfiguringTestBase
 
-from hamcrest import (assert_that, has_length, has_entry, has_property, is_, is_in, none, is_not)
+from hamcrest import (assert_that, has_length, has_entry, has_property,
+					  is_, is_in, none, is_not)
 
 class TestAdapters(ConfiguringTestBase):
 
@@ -29,17 +30,17 @@ class TestAdapters(ConfiguringTestBase):
 
 	@WithMockDSTrans
 	def test_entity_adapter(self):
-		user = self._create_user("owner@bar", external_value={u'alias':u"owner", u'realname':'na marsh'})
+		user = self._create_user(
+						"owner@bar",
+						 external_value={u'alias':u"owner", u'realname':'na marsh'})
 
-		adapted = graph_interfaces.ILabelAdapter(user, None)
-		assert_that(adapted, is_not(none()))
-		labels = adapted.labels()
+		labels = graph_interfaces.ILabelAdapter(user, None)
+		assert_that(labels, is_not(none()))
 		assert_that(labels, has_length(1))
-		assert_that('User', is_in(labels))
+		assert_that('user', is_in(labels))
 
-		adapted = graph_interfaces.IPropertyAdapter(user, None)
-		assert_that(adapted, is_not(none()))
-		props = adapted.properties()
+		props = graph_interfaces.IPropertyAdapter(user, None)
+		assert_that(props, is_not(none()))
 		assert_that(props, has_length(5))
 		assert_that(props, has_entry('username', 'owner@bar'))
 		assert_that(props, has_entry('alias', 'owner'))
@@ -48,17 +49,17 @@ class TestAdapters(ConfiguringTestBase):
 
 	@WithMockDSTrans
 	def test_community_adapter(self):
-		comm = Community.create_community(username='cs', external_value={u'alias':u"ComSci", u'realname':'OUCS'})
+		comm = Community.create_community(
+							username='cs',
+							external_value={u'alias':u"ComSci", u'realname':'OUCS'})
 
-		adapted = graph_interfaces.ILabelAdapter(comm, None)
-		assert_that(adapted, is_not(none()))
-		labels = adapted.labels()
+		labels = graph_interfaces.ILabelAdapter(comm, None)
+		assert_that(labels, is_not(none()))
 		assert_that(labels, has_length(1))
-		assert_that('Community', is_in(labels))
+		assert_that('community', is_in(labels))
 
-		adapted = graph_interfaces.IPropertyAdapter(comm, None)
-		assert_that(adapted, is_not(none()))
-		props = adapted.properties()
+		props = graph_interfaces.IPropertyAdapter(comm, None)
+		assert_that(props, is_not(none()))
 		assert_that(props, has_length(5))
 		assert_that(props, has_entry('username', 'cs'))
 		assert_that(props, has_entry('alias', 'ComSci'))
@@ -68,19 +69,19 @@ class TestAdapters(ConfiguringTestBase):
 	@WithMockDSTrans
 	def test_generic_adapter(self):
 		obj = object()
-		adapted = graph_interfaces.ILabelAdapter(obj, None)
-		assert_that(adapted, is_not(none()))
-		labels = adapted.labels()
+		labels = graph_interfaces.ILabelAdapter(obj, None)
+		assert_that(labels, is_not(none()))
 		assert_that(labels, has_length(0))
 
-		adapted = graph_interfaces.IPropertyAdapter(obj, None)
-		assert_that(adapted, is_not(none()))
-		props = adapted.properties()
+		props = graph_interfaces.IPropertyAdapter(obj, None)
+		assert_that(props, is_not(none()))
 		assert_that(props, has_length(0))
 
 	@WithMockDSTrans
 	def test_unique_entity_attr_adapter(self):
-		user = self._create_user("owner@bar", external_value={u'alias':u"owner", u'realname':'na marsh'})
+		user = self._create_user(
+						"owner@bar",
+						external_value={u'alias':u"owner", u'realname':'na marsh'})
 		adapted = graph_interfaces.IUniqueAttributeAdapter(user, None)
 		assert_that(adapted, is_not(none()))
 		assert_that(adapted, has_property('key', 'username'))

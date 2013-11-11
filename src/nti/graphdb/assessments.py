@@ -58,8 +58,10 @@ add_question_set_node = add_assessment_node
 
 def create_question_membership(db, question, questionset):
 	rel_type = relationships.MemberOf()
-	adapter = component.queryMultiAdapter((question, questionset, rel_type), graph_interfaces.IUniqueAttributeAdapter)
-	if adapter is not None and db.get_indexed_relationship(adapter.key, adapter.value) is None:
+	adapter = component.queryMultiAdapter((question, questionset, rel_type),
+										  graph_interfaces.IUniqueAttributeAdapter)
+	if 	adapter is not None and \
+		db.get_indexed_relationship(adapter.key, adapter.value) is None:
 		db.create_relationship(question, questionset, rel_type)
 		logger.debug("question-questionset membership relationship created")
 		return True
@@ -85,15 +87,19 @@ def process_assessed_question(db, oid):
 def _queue_question_event(oid, event, is_questionset=True):
 	site = get_possible_site_names()[0]
 	def _process_event():
-		transaction_runner = component.getUtility(nti_interfaces.IDataserverTransactionRunner)
+		transaction_runner = \
+			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
 		db = component.getUtility(graph_interfaces.IGraphDB, name=site)
 		if event == graph_interfaces.ADD_EVENT:
-			func = process_assessed_question_set if is_questionset else process_assessed_question
+			func = process_assessed_question_set if is_questionset \
+												 else process_assessed_question
 			func = functools.partial(func, db=db, oid=oid)
 			transaction_runner(func)
-	transaction.get().addAfterCommitHook(lambda success: success and gevent.spawn(_process_event))
+	transaction.get().addAfterCommitHook(
+					lambda success: success and gevent.spawn(_process_event))
 
-@component.adapter(asm_interfaces.IQAssessedQuestionSet, lce_interfaces.IObjectAddedEvent)
+@component.adapter(asm_interfaces.IQAssessedQuestionSet,
+				   lce_interfaces.IObjectAddedEvent)
 def _questionset_assessed(question_set, event):
 	oid = externalization.to_external_ntiid_oid(question_set)
 	_queue_question_event(oid, graph_interfaces.ADD_EVENT)
