@@ -13,6 +13,7 @@ logger = __import__('logging').getLogger(__name__)
 import six
 import numbers
 import urlparse
+import collections
 
 from zope import component
 from zope import interface
@@ -68,7 +69,8 @@ class Neo4jNode(SchemaConfigured):
 			result = node
 		elif graph_interfaces.IGraphNode.providedBy(node):
 			result = Neo4jNode(id=node.id, uri=node.uri,
-							   labels=set(node.labels), properties=dict(node.properties))
+							   labels=set(node.labels),
+							   properties=dict(node.properties))
 		elif node is not None:
 			result = Neo4jNode(id=unicode(node._id), uri=unicode(node.__uri__))
 			result.labels = set(getattr(node, '_labels', ()))
@@ -106,7 +108,8 @@ class Neo4jRelationship(SchemaConfigured):
 		if isinstance(rel, Neo4jRelationship):
 			result = rel
 		elif graph_interfaces.IGraphRelationship.providedBy(rel):
-			result = Neo4jRelationship(id=rel.id, uri=rel.uri, type=rel.type, start=rel.start, end=rel.end,
+			result = Neo4jRelationship(id=rel.id, uri=rel.uri, type=rel.type,
+									   start=rel.start, end=rel.end,
 									   properties=dict(rel.properties))
 		elif rel is not None:
 			result = Neo4jRelationship(id=unicode(rel._id),
@@ -188,7 +191,8 @@ class Neo4jDB(object):
 
 		return result
 
-	def create_node(self, obj, labels=None, properties=None, key=None, value=None, raw=False, props=True):
+	def create_node(self, obj, labels=None, properties=None, key=None,
+					value=None, raw=False, props=True):
 		result = self._do_create_node(obj, labels, properties, key, value, props=props)
 		return Neo4jNode.create(result) if not raw else result
 
@@ -202,7 +206,8 @@ class Neo4jDB(object):
 			abstract = node4j(**properties)
 			adapted = graph_interfaces.IUniqueAttributeAdapter(o)
 			if adapted.key and adapted.value:
-				wb.get_or_create_in_index(neo4j.Node, "PKIndex", adapted.key, adapted.value, abstract)
+				wb.get_or_create_in_index(neo4j.Node, "PKIndex", adapted.key,
+										  adapted.value, abstract)
 			else:
 				wb.create(abstract)
 		created = wb.submit()
@@ -211,9 +216,10 @@ class Neo4jDB(object):
 		wb = neo4j.WriteBatch(self.db)
 		for i, n in enumerate(created):
 			labels = label_set[i]
-			if isinstance(n, neo4j.Node) and labels:
-				wb.set_labels(n, *labels)
+			if isinstance(n, neo4j.Node):
 				result.append(Neo4jNode.create(n))
+				if labels:
+					wb.set_labels(n, *labels)
 		wb.submit()
 		return result
 				
@@ -376,9 +382,48 @@ class Neo4jDB(object):
 
 		return result
 
-	def create_relationship(self, start, end, rel_type, properties=None, key=None, value=None, raw=False):
+	def create_relationship(self, start, end, rel_type, properties=None,
+							key=None, value=None, raw=False):
 		result = self._do_create_relationship(start, end, rel_type, properties, key, value)
 		return Neo4jRelationship.create(result) if not raw else result
+
+	def create_relationships(self, *rels):
+		wb = neo4j.WriteBatch(self.db)
+		for rel in rels:
+			assert isinstance(rel, (tuple, list)) and len(rel) >= 3, 'invalid tuple'
+
+			# get relationship type
+			type_ = rel[1]
+			assert type_, 'invalid relationship type'
+			
+			# get nodes
+			start = rel[0]  # start node
+			end = rel[2] # end node
+			for n in (start, end):
+				assert isinstance(n, (neo4j.Node, Neo4jNode))
+			start = start if isinstance(start, neo4j.Node) else start._node
+			end = end if isinstance(end, neo4j.Node) else end._node
+
+			# get properties
+			properties = {} if len(rel) < 4 or rel[3] is None  else rel[3]
+			assert isinstance(properties, collections.Mapping)
+
+			# get key,value
+			key = None if len(rel) < 5 or rel[4] is None else rel[4]
+			value = None if len(rel) < 6 or rel[5] is None else rel[5]
+
+			if key and value:
+				abstract = [start, str(type_), end, properties]
+				wb.get_or_create_in_index(neo4j.Relationship,
+										  "PKIndex",
+										   key,
+										   value,
+										   abstract)
+			else:
+				abstract = rel4j(start, str(type_), end, **properties)
+				wb.create(abstract)
+
+		wb.submit()
 
 	def _do_get_relationship(self, obj, props=True):
 		result = None
@@ -411,14 +456,16 @@ class Neo4jDB(object):
 			result.get_properties()
 		return Neo4jRelationship.create(result) if result is not None and not raw else result
 	
-	def _do_match(self, start_node=None, end_node=None, rel_type=None, bidirectional=False, limit=None):
+	def _do_match(self, start_node=None, end_node=None, rel_type=None,
+				  bidirectional=False, limit=None):
 		n4j_end = self._do_get_node(end_node) if end_node is not None else None
 		n4j_start = self._do_get_node(start_node) if start_node is not None else None
 		n4j_type = str(rel_type) if rel_type is not None else None
 		result = self.db.match(n4j_start, n4j_type, n4j_end, bidirectional, limit)
 		return result
 
-	def match(self, start=None, end=None, rel_type=None, bidirectional=False, limit=None, raw=False):
+	def match(self, start=None, end=None, rel_type=None, bidirectional=False,
+			  limit=None, raw=False):
 		result = self._do_match(start, end, rel_type, bidirectional, limit)
 		result = [Neo4jRelationship.create(x) for x in result or ()] if not raw else result
 		return result or ()
