@@ -34,8 +34,9 @@ from . import interfaces as graph_interfaces
 def _add_authorship_relationship(db, topic):
 	creator = topic.creator
 	rel_type = relationships.Author()
-	properties = component.getMultiAdapter((creator, topic, rel_type),
-											graph_interfaces.IPropertyAdapter)
+	properties = component.getMultiAdapter(
+								(creator, topic, rel_type),
+								graph_interfaces.IPropertyAdapter)
 	result = db.create_relationship(creator, topic, rel_type, properties=properties)
 	logger.debug("authorship relationship %s created" % result)
 	return result
@@ -71,15 +72,18 @@ def _process_topic_add_mod_event(key, value, event):
 	db = get_graph_db()
 	def _process_event():
 		transaction_runner = \
-			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
+				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
 
-		func = add_topic_node if event == graph_interfaces.ADD_EVENT \
-							  else modify_topic_node
+		if event == graph_interfaces.ADD_EVENT:
+			func = add_topic_node
+		else:
+			func = modify_topic_node
 
 		func = functools.partial(func, db=db, key=key, value=value)
 		transaction_runner(func)
+
 	transaction.get().addAfterCommitHook(
-					lambda success: success and gevent.spawn(_process_event))
+							lambda success: success and gevent.spawn(_process_event))
 
 @component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectAddedEvent)
 def _topic_added(topic, event):
@@ -88,9 +92,8 @@ def _topic_added(topic, event):
 
 @component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectModifiedEvent)
 def _topic_modified(topic, event):
-	adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
-	_process_topic_add_mod_event(adapted.key, adapted.value,
-								 graph_interfaces.MODIFY_EVENT)
+	uua = graph_interfaces.IUniqueAttributeAdapter(topic)
+	_process_topic_add_mod_event(uua.key, uua.value, graph_interfaces.MODIFY_EVENT)
 
 def _process_topic_remove_event(key, value, comments=()):
 	db = get_graph_db()
@@ -124,8 +127,9 @@ def add_comment_relationship(db, key, value):
 		author = comment.creator
 		topic = comment.__parent__
 		rel_type = relationships.CommentOn()
-		properties = component.getMultiAdapter((author, comment, rel_type),
-												graph_interfaces.IPropertyAdapter)
+		properties = component.getMultiAdapter(
+									(author, comment, rel_type),
+									graph_interfaces.IPropertyAdapter)
 		result = db.create_relationship(author, topic, rel_type,
 										properties=properties, key=key, value=value)
 		logger.debug("comment-on relationship %s created" % result)
@@ -146,7 +150,7 @@ def _process_comment_event(key, value, event):
 	def _process_event():
 		func = None
 		transaction_runner = \
-			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
+				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
 
 		if event == graph_interfaces.ADD_EVENT:
 			func = functools.partial(add_comment_relationship,
@@ -154,8 +158,9 @@ def _process_comment_event(key, value, event):
 		elif event == graph_interfaces.REMOVE_EVENT:
 			func = functools.partial(delete_comment, db=db, key=key, value=value)
 
-		if func:
+		if func is not None:
 			transaction_runner(func)
+
 	transaction.get().addAfterCommitHook(
 					lambda success: success and gevent.spawn(_process_event))
 
@@ -164,8 +169,9 @@ def _get_comment_rel_PK(comment):
 	if comment is not None:
 		author = comment.creator
 		rel_type = relationships.CommentOn()
-		adapted = component.queryMultiAdapter((author, comment, rel_type),
-											  graph_interfaces.IUniqueAttributeAdapter)
+		adapted = component.queryMultiAdapter(
+									(author, comment, rel_type),
+									graph_interfaces.IUniqueAttributeAdapter)
 		key = adapted.key if adapted is not None else None
 		value = adapted.value if adapted is not None else None
 	return key, value
