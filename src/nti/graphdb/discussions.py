@@ -12,6 +12,7 @@ logger = __import__('logging').getLogger(__name__)
 
 import gevent
 import functools
+import collections
 import transaction
 
 from zope import component
@@ -22,12 +23,17 @@ from nti.appserver import interfaces as app_interfaces
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
+from nti.externalization import externalization
+
 from nti.ntiids import ntiids
 
 from . import utils
 from . import get_graph_db
 from . import relationships
 from . import interfaces as graph_interfaces
+
+def to_external_ntiid_oid(obj):
+	return externalization.to_external_ntiid_oid(obj)
 
 # topics
 
@@ -72,7 +78,7 @@ def _process_topic_add_mod_event(key, value, event):
 	db = get_graph_db()
 	def _process_event():
 		transaction_runner = \
-				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
+			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
 
 		if event == graph_interfaces.ADD_EVENT:
 			func = add_topic_node
@@ -148,7 +154,6 @@ def delete_comment(db, key, value):
 def _process_comment_event(key, value, event):
 	db = get_graph_db()
 	def _process_event():
-		func = None
 		transaction_runner = \
 				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
 
@@ -157,6 +162,8 @@ def _process_comment_event(key, value, event):
 									 db=db, key=key, value=value)
 		elif event == graph_interfaces.REMOVE_EVENT:
 			func = functools.partial(delete_comment, db=db, key=key, value=value)
+		else:
+			func = None
 
 		if func is not None:
 			transaction_runner(func)
@@ -202,28 +209,58 @@ def _modify_general_forum_comment(comment, event):
 
 def install(db):
 
-	def _build_graph_forum(db, forum):
-		result = 0
-		for topic in forum.values():
-			adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
-			# add create/node
-			add_topic_node(db, adapted.key, adapted.value)
-			# add comments
-			for comment in topic.values():
-				key, value = _get_comment_rel_PK(comment)
-				rel = db.get_indexed_relationship(key, value)
-				if rel is None:
-					add_comment_relationship(db, adapted.key, adapted.value)
-					result += 1
+	author_records = collections.defaultdict(list)
+	comment_records = collections.defaultdict(list)
+
+	dataserver = component.getUtility(nti_interfaces.IDataserver)
+	_users = nti_interfaces.IShardLayout(dataserver).users_folder
+	author_rel_type = relationships.Author()
+
+	def _record_author(records, obj):
+		records[obj.creator].append(obj)
+
+	def _record_comment(records, obj):
+		records[obj.creator].append(obj)
+
+	for entity in _users.itervalues():
+		if nti_interfaces.IUser.providedBy(entity):
+			blog = frm_interfaces.IPersonalBlog(entity)
+			for topic in blog.values():
+				_record_author(author_records, topic)
+				for comment in topic.values():
+					_record_comment(comment_records, comment)
+
+		elif nti_interfaces.ICommunity.providedBy(entity):
+			board = frm_interfaces.ICommunityBoard(entity)
+			for forum in board.values():
+				for topic in forum.values():
+					_record_author(author_records, topic)
+					for comment in topic.values():
+						_record_comment(comment_records, comment)
+
+	def _create_authorship_rels(records):
+		result = collections.defaultdict(list)
+		for user, items in records.items():
+			objs = [user] + items
+			nodes = db.create_nodes(*objs)
+			assert len(nodes) == len(objs)
+
+			rels=[]
+			for i, n in enumerate(nodes[1:]):
+				obj = objs[i+1]
+				properties = component.getMultiAdapter(
+									(user, obj, author_rel_type),
+									graph_interfaces.IPropertyAdapter)
+				adapted = component.getMultiAdapter(
+										(user, obj, author_rel_type),
+										graph_interfaces.IUniqueAttributeAdapter)
+				rels.append((nodes[0], author_rel_type, n,
+							 properties, adapted.key, adapted.value))
+
+			rels = db.create_relationships(*rels)
+			result += len(rels)
 		return result
 
-	def build_graph_community(db, community):
-		result = 0
-		board = frm_interfaces.IBoard(community, None) or {}
-		for forum in board.values():
-			result += _build_graph_forum(db, forum)
-		return result
+	result = _create_authorship_rels(author_records)
+	return result
 
-	def build_graph_user(db, user):
-		forum = frm_interfaces.IPersonalBlog(user, None) or {}
-		return _build_graph_forum(db, forum)

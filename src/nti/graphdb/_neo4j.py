@@ -62,6 +62,7 @@ class Neo4jNode(SchemaConfigured):
 	def __hash__(self):
 		xhash = 47
 		xhash ^= hash(self.id)
+		return xhash
 
 	@classmethod
 	def create(cls, node):
