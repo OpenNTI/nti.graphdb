@@ -231,17 +231,17 @@
 			  
 	<!-- subscribers -->
 	 
-	<subscriber handler="._relationship._friendslist_added" />
-	<subscriber handler="._relationship._friendslist_modified" />
-	<subscriber handler="._relationship._friendslist_deleted" />
+	<subscriber handler=".connections._friendslist_added" />
+	<subscriber handler=".connections._friendslist_modified" />
+	<subscriber handler=".connections._friendslist_deleted" />
 	
-	<subscriber handler="._relationship._dfl_deleted" />
+	<subscriber handler=".connections._dfl_deleted" />
 	
-	<subscriber handler="._relationship._start_following_event" />
-	<subscriber handler="._relationship._stop_following_event" />
+	<subscriber handler=".connections._start_following_event" />
+	<subscriber handler=".connections._stop_following_event" />
 	
-	<subscriber handler="._relationship._start_dynamic_membership_event" />
-	<subscriber handler="._relationship._stop_dynamic_membership_event" />
+	<subscriber handler=".connections._start_dynamic_membership_event" />
+	<subscriber handler=".connections._stop_dynamic_membership_event" />
 	
 	<subscriber handler=".discussions._topic_added" />
 	<subscriber handler=".discussions._topic_modified" />

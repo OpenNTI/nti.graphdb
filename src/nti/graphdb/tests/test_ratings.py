@@ -58,6 +58,3 @@ class TestRatings(ConfiguringTestBase):
 		cnt_rels = ratings.install(self.db)
 		assert_that(cnt_rels, is_(1))
 
-if __name__ == '__main__':
-	import unittest
-	unittest.main()
