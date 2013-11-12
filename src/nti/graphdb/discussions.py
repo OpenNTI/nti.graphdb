@@ -23,17 +23,12 @@ from nti.appserver import interfaces as app_interfaces
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
-from nti.externalization import externalization
-
 from nti.ntiids import ntiids
 
 from . import utils
 from . import get_graph_db
 from . import relationships
 from . import interfaces as graph_interfaces
-
-def to_external_ntiid_oid(obj):
-	return externalization.to_external_ntiid_oid(obj)
 
 # topics
 
@@ -215,7 +210,8 @@ def install(db):
 	dataserver = component.getUtility(nti_interfaces.IDataserver)
 	_users = nti_interfaces.IShardLayout(dataserver).users_folder
 	author_rel_type = relationships.Author()
-
+	comment_rel_type = relationships.CommentOn()
+	
 	def _record_author(records, obj):
 		records[obj.creator].append(obj)
 
@@ -239,7 +235,7 @@ def install(db):
 						_record_comment(comment_records, comment)
 
 	def _create_authorship_rels(records):
-		result = collections.defaultdict(list)
+		result = 0
 		for user, items in records.items():
 			objs = [user] + items
 			nodes = db.create_nodes(*objs)
@@ -261,6 +257,41 @@ def install(db):
 			result += len(rels)
 		return result
 
+	def _create_comment_rels(records):
+		result = 0
+		cache = {}
+		for user, comments in records.items():
+			objs = [user] + list({c.__parent__ for c in comments})
+			nodes = db.create_nodes(*objs)
+			assert len(nodes) == len(objs)
+
+			# save in cache
+			for i, n in enumerate(nodes):
+				cache[objs[i]] = n
+
+		for author, comments in records.items():
+			rels = []
+			author_node = cache[author]
+			for comment in comments:
+				topic = comment.__parent__
+				properties = component.getMultiAdapter(
+ 									(author, comment, comment_rel_type),
+ 									graph_interfaces.IPropertyAdapter)
+
+				adapted = component.getMultiAdapter(
+									(author, comment, comment_rel_type),
+									graph_interfaces.IUniqueAttributeAdapter)
+
+				node = cache[topic]
+				rels.append((author_node, comment_rel_type, node,
+							 properties, adapted.key, adapted.value))
+
+			rels = db.create_relationships(*rels)
+			result += len(rels)
+		return result
+
 	result = _create_authorship_rels(author_records)
+	result += _create_comment_rels(comment_records)
+
 	return result
 

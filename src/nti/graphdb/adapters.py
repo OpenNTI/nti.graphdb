@@ -197,7 +197,7 @@ def _CreatedTimePropertyAdpater(_from, _to, _rel):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssessedQuestion,
 				   graph_interfaces.ITakeAssessment)
-def AssessedQuestionRelationshipPropertyAdpater(_from, _question, _rel):
+def _AssessedQuestionRelationshipPropertyAdpater(_from, _question, _rel):
 	result = CaseInsensitiveDict({'taker' : _from.username})
 	result['created'] = _to_isoformat(_question.createdTime)
 	result['oid'] = externalization.to_external_ntiid_oid(_question)
@@ -210,7 +210,7 @@ def AssessedQuestionRelationshipPropertyAdpater(_from, _question, _rel):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssessedQuestionSet,
 				  graph_interfaces.ITakeAssessment)
-def AssessedQuestionSetRelationshipPropertyAdpater(_from, _qset, _rel):
+def _AssessedQuestionSetRelationshipPropertyAdpater(_from, _qset, _rel):
 	result = CaseInsensitiveDict({'taker' : _from.username})
 	result['created'] = _to_isoformat(_qset.createdTime)
 	result['oid'] = externalization.to_external_ntiid_oid(_qset)

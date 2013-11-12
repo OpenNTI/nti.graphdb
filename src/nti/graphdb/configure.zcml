@@ -243,23 +243,23 @@
 	<subscriber handler="._relationship._start_dynamic_membership_event" />
 	<subscriber handler="._relationship._stop_dynamic_membership_event" />
 	
-	<subscriber handler="._discussions._topic_added" />
-	<subscriber handler="._discussions._topic_modified" />
-	<subscriber handler="._discussions._topic_removed" />
+	<subscriber handler=".discussions._topic_added" />
+	<subscriber handler=".discussions._topic_modified" />
+	<subscriber handler=".discussions._topic_removed" />
 	
-	<subscriber handler="._discussions._add_personal_blog_comment" />
-	<subscriber handler="._discussions._add_general_forum_comment" />
-	<subscriber handler="._discussions._modify_personal_blog_comment" />
-	<subscriber handler="._discussions._modify_general_forum_comment" />
+	<subscriber handler=".discussions._add_personal_blog_comment" />
+	<subscriber handler=".discussions._add_general_forum_comment" />
+	<subscriber handler=".discussions._modify_personal_blog_comment" />
+	<subscriber handler=".discussions._modify_general_forum_comment" />
 	
 	<subscriber handler=".assessments._question_assessed" />
 	<subscriber handler=".assessments._questionset_assessed" />
 	
-	<subscriber handler="._ratings._object_rated" />
-	<subscriber handler="._ratings._topic_rated" />
+	<subscriber handler=".ratings._object_rated" />
+	<subscriber handler=".ratings._topic_rated" />
 	
-	<subscriber handler="._modeled._note_added" />
-	<subscriber handler="._modeled._note_removed" />
+	<subscriber handler=".modeled._note_added" />
+	<subscriber handler=".modeled._note_removed" />
 	
 	<include package="." file="meta.zcml" />
 		
