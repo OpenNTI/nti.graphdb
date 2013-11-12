@@ -94,7 +94,7 @@ def install(db):
 	from contentratings.category import BASE_KEY
 	from contentratings.storage import UserRatingStorage
 
-	rels = collections.defaultdict(list)
+	records = collections.defaultdict(list)
 
 	dataserver = component.getUtility(nti_interfaces.IDataserver)
 	_users = nti_interfaces.IShardLayout(dataserver).users_folder
@@ -107,38 +107,38 @@ def install(db):
 		storage = annotations.get(key)
 		return storage
 
-	def _record_likeable(rels, obj):
+	def _record_likeable(records, obj):
 		storage = _lookup_like_rating_for_read(obj) if obj is not None else None
 		if storage is not None:
 			oid = externalization.to_external_ntiid_oid(obj)
 			for rating in storage.all_user_ratings():
 				if rating.userid and rating.userid in _users:
-					rels[rating.userid].append(oid)
+					records[rating.userid].append(oid)
 
 	for entity in _users.itervalues():
 		if nti_interfaces.IUser.providedBy(entity):
 
 			# get all likeable objects
 			for likeable in findObjectsProviding(entity, nti_interfaces.ILikeable):
-				_record_likeable(rels, likeable)
+				_record_likeable(records, likeable)
 
 			# check blogs
 			blog = frm_interfaces.IPersonalBlog(entity)
 			for topic in blog.values():
-				_record_likeable(rels, topic)
+				_record_likeable(records, topic)
 				for comment in topic.values():
-					_record_likeable(rels, comment)
+					_record_likeable(records, comment)
 
 		elif nti_interfaces.ICommunity.providedBy(entity):
 			board = frm_interfaces.ICommunityBoard(entity)
 			for forum in board.values():
 				for topic in forum.values():
-					_record_likeable(rels, topic)
+					_record_likeable(records, topic)
 					for comment in topic.values():
-						_record_likeable(rels, comment)
+						_record_likeable(records, comment)
 
 	result = 0
-	for username,likes in rels.items():
+	for username, likes in records.items():
 		# create nodes
 		user = users.User.get_user(username)
 		objs = [user]
@@ -152,8 +152,9 @@ def install(db):
 			likeable = objs[i + 1]
 			properties = component.getMultiAdapter((user, likeable, rel_type),
 													graph_interfaces.IPropertyAdapter)
-			adapted = component.getMultiAdapter((user, likeable, rel_type),
-											 	 graph_interfaces.IUniqueAttributeAdapter)
+			adapted = component.getMultiAdapter(
+										(user, likeable, rel_type),
+										graph_interfaces.IUniqueAttributeAdapter)
 			rels.append((nodes[0], rel_type, n, properties, adapted.key, adapted.value))
 
 		# create relationships in batch
