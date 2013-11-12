@@ -25,8 +25,8 @@ from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 from nti.ntiids import ntiids
 
 from . import utils
+from . import get_graph_db
 from . import relationships
-from . import get_possible_site_names
 from . import interfaces as graph_interfaces
 
 # topics
@@ -34,8 +34,9 @@ from . import interfaces as graph_interfaces
 def _add_authorship_relationship(db, topic):
 	creator = topic.creator
 	rel_type = relationships.Author()
-	adapted = component.getMultiAdapter((creator, topic, rel_type), graph_interfaces.IPropertyAdapter)
-	result = db.create_relationship(creator, topic, rel_type, properties=adapted.properties())
+	properties = component.getMultiAdapter((creator, topic, rel_type),
+											graph_interfaces.IPropertyAdapter)
+	result = db.create_relationship(creator, topic, rel_type, properties=properties)
 	logger.debug("authorship relationship %s created" % result)
 	return result
 
@@ -52,8 +53,8 @@ def add_topic_node(db, key, value):
 def modify_topic_node(db, key, value):
 	node, topic = add_topic_node(db, key, value)
 	if topic is not None:
-		labels = graph_interfaces.ILabelAdapter(topic).labels()
-		properties = graph_interfaces.IPropertyAdapter(topic).properties()
+		labels = graph_interfaces.ILabelAdapter(topic)
+		properties = graph_interfaces.IPropertyAdapter(topic)
 		db.update_node(node, labels, properties)
 		logger.debug("properties updated for node %s" % node)
 	return node, topic
@@ -67,14 +68,18 @@ def delete_topic_node(db, key, value):
 	return False
 
 def _process_topic_add_mod_event(key, value, event):
-	site = get_possible_site_names()[0]
+	db = get_graph_db()
 	def _process_event():
-		transaction_runner = component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-		db = component.getUtility(graph_interfaces.IGraphDB, name=site)
-		func = add_topic_node if event == graph_interfaces.ADD_EVENT else modify_topic_node
+		transaction_runner = \
+			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
+
+		func = add_topic_node if event == graph_interfaces.ADD_EVENT \
+							  else modify_topic_node
+
 		func = functools.partial(func, db=db, key=key, value=value)
 		transaction_runner(func)
-	transaction.get().addAfterCommitHook(lambda success: success and gevent.spawn(_process_event))
+	transaction.get().addAfterCommitHook(
+					lambda success: success and gevent.spawn(_process_event))
 
 @component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectAddedEvent)
 def _topic_added(topic, event):
@@ -84,18 +89,19 @@ def _topic_added(topic, event):
 @component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectModifiedEvent)
 def _topic_modified(topic, event):
 	adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
-	_process_topic_add_mod_event(adapted.key, adapted.value, graph_interfaces.MODIFY_EVENT)
+	_process_topic_add_mod_event(adapted.key, adapted.value,
+								 graph_interfaces.MODIFY_EVENT)
 
 def _process_topic_remove_event(key, value, comments=()):
-	site = get_possible_site_names()[0]
+	db = get_graph_db()
 	def _process_event():
 		nodes = []
 		nodes.append(utils.UniqueAttribute(key, value))
 		for _key, _value in comments:
 			nodes.append(utils.UniqueAttribute(_key, _value))
-		db = component.getUtility(graph_interfaces.IGraphDB, name=site)
 		db.delete_nodes(*nodes)
-	transaction.get().addAfterCommitHook(lambda success: success and gevent.spawn(_process_event))
+	transaction.get().addAfterCommitHook(
+				lambda success: success and gevent.spawn(_process_event))
 	
 @component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectRemovedEvent)
 def _topic_removed(topic, event):
@@ -118,8 +124,10 @@ def add_comment_relationship(db, key, value):
 		author = comment.creator
 		topic = comment.__parent__
 		rel_type = relationships.CommentOn()
-		adapted = component.getMultiAdapter((author, comment, rel_type), graph_interfaces.IPropertyAdapter)
-		result = db.create_relationship(author, topic, rel_type, properties=adapted.properties(), key=key, value=value)
+		properties = component.getMultiAdapter((author, comment, rel_type),
+												graph_interfaces.IPropertyAdapter)
+		result = db.create_relationship(author, topic, rel_type,
+										properties=properties, key=key, value=value)
 		logger.debug("comment-on relationship %s created" % result)
 	return result
 
@@ -134,25 +142,30 @@ def delete_comment(db, key, value):
 	return False
 
 def _process_comment_event(key, value, event):
-	site = get_possible_site_names()[0]
+	db = get_graph_db()
 	def _process_event():
 		func = None
-		transaction_runner = component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-		db = component.getUtility(graph_interfaces.IGraphDB, name=site)
+		transaction_runner = \
+			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
+
 		if event == graph_interfaces.ADD_EVENT:
-			func = functools.partial(add_comment_relationship, db=db, key=key, value=value)
+			func = functools.partial(add_comment_relationship,
+									 db=db, key=key, value=value)
 		elif event == graph_interfaces.REMOVE_EVENT:
 			func = functools.partial(delete_comment, db=db, key=key, value=value)
+
 		if func:
 			transaction_runner(func)
-	transaction.get().addAfterCommitHook(lambda success: success and gevent.spawn(_process_event))
+	transaction.get().addAfterCommitHook(
+					lambda success: success and gevent.spawn(_process_event))
 
 def _get_comment_rel_PK(comment):
 	key, value = (None, None)
 	if comment is not None:
 		author = comment.creator
 		rel_type = relationships.CommentOn()
-		adapted = component.getMultiAdapter((author, comment, rel_type), graph_interfaces.IUniqueAttributeAdapter)
+		adapted = component.queryMultiAdapter((author, comment, rel_type),
+											  graph_interfaces.IUniqueAttributeAdapter)
 		key = adapted.key if adapted is not None else None
 		value = adapted.value if adapted is not None else None
 	return key, value
@@ -167,40 +180,44 @@ def _add_general_forum_comment(comment, event):
 	key, value = _get_comment_rel_PK(comment)
 	_process_comment_event(key, value, graph_interfaces.ADD_EVENT)
 
-@component.adapter(frm_interfaces.IPersonalBlogComment, lce_interfaces.IObjectModifiedEvent)
+@component.adapter(frm_interfaces.IPersonalBlogComment,
+				   lce_interfaces.IObjectModifiedEvent)
 def _modify_personal_blog_comment(comment, event):
 	if app_interfaces.IDeletedObjectPlaceholder.providedBy(comment):
 		key, value = _get_comment_rel_PK(comment)
 		_process_comment_event(key, value, graph_interfaces.REMOVE_EVENT)
 
-@component.adapter(frm_interfaces.IGeneralForumComment, lce_interfaces.IObjectModifiedEvent)
+@component.adapter(frm_interfaces.IGeneralForumComment,
+				   lce_interfaces.IObjectModifiedEvent)
 def _modify_general_forum_comment(comment, event):
 	_modify_personal_blog_comment(comment, event)
 
 # utils
 
-def _build_graph_forum(db, forum):
-	result = 0
-	for topic in forum.values():
-		adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
-		# add create/node
-		add_topic_node(db, adapted.key, adapted.value)
-		# add comments
-		for comment in topic.values():
-			key, value = _get_comment_rel_PK(comment)
-			rel = db.get_indexed_relationship(key, value)
-			if rel is None:
-				add_comment_relationship(db, adapted.key, adapted.value)
-				result += 1
-	return result
+def install(db):
 
-def build_graph_community(db, community):
-	result = 0
-	board = frm_interfaces.IBoard(community, None) or {}
-	for forum in board.values():
-		result += _build_graph_forum(db, forum)
-	return result
-		
-def build_graph_user(db, user):
-	forum = frm_interfaces.IPersonalBlog(user, None) or {}
-	return _build_graph_forum(db, forum)
+	def _build_graph_forum(db, forum):
+		result = 0
+		for topic in forum.values():
+			adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
+			# add create/node
+			add_topic_node(db, adapted.key, adapted.value)
+			# add comments
+			for comment in topic.values():
+				key, value = _get_comment_rel_PK(comment)
+				rel = db.get_indexed_relationship(key, value)
+				if rel is None:
+					add_comment_relationship(db, adapted.key, adapted.value)
+					result += 1
+		return result
+
+	def build_graph_community(db, community):
+		result = 0
+		board = frm_interfaces.IBoard(community, None) or {}
+		for forum in board.values():
+			result += _build_graph_forum(db, forum)
+		return result
+
+	def build_graph_user(db, user):
+		forum = frm_interfaces.IPersonalBlog(user, None) or {}
+		return _build_graph_forum(db, forum)

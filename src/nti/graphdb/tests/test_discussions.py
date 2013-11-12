@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals, absolute_import
+from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 # disable: accessing protected members, too many methods
@@ -13,9 +13,9 @@ from nti.dataserver.contenttypes.forums.topic import PersonalBlogEntry
 from nti.dataserver.contenttypes.forums.post import PersonalBlogComment
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
+from nti.graphdb import discussions
 from nti.graphdb import relationships
 from nti.graphdb import _neo4j as neo4j
-from nti.graphdb import _discussions as discussions
 
 import nti.dataserver.tests.mock_dataserver as mock_dataserver
 
