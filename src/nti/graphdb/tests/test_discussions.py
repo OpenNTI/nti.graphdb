@@ -41,7 +41,7 @@ class TestDiscussions(ConfiguringTestBase):
 		return user
 
 	@mock_dataserver.WithMockDSTrans
-	def xtest_user_blog_node(self):
+	def test_user_blog_node(self):
 		user = self._create_random_user()
 		blog = frm_interfaces.IPersonalBlog(user)
 		entry = PersonalBlogEntry()
@@ -51,9 +51,10 @@ class TestDiscussions(ConfiguringTestBase):
 		entry.lastModified = 42
 		entry.createdTime = 24
 
+		oid = discussions.to_external_ntiid_oid(entry)
 		pk = graph_interfaces.IUniqueAttributeAdapter(entry)
 
-		node, topic = discussions.modify_topic_node(self.db, pk.key, pk.value)
+		node, topic = discussions.modify_topic_node(self.db, oid, pk.key, pk.value)
 		assert_that(node, is_not(none()))
 		assert_that(topic, is_(entry))
 
@@ -68,7 +69,7 @@ class TestDiscussions(ConfiguringTestBase):
 		assert_that(res, is_(False))
 
 	@mock_dataserver.WithMockDSTrans
-	def xtest_user_blog_comment(self):
+	def test_user_blog_comment(self):
 		user = self._create_random_user()
 		blog = frm_interfaces.IPersonalBlog(user)
 		entry = PersonalBlogEntry()
@@ -85,10 +86,10 @@ class TestDiscussions(ConfiguringTestBase):
 		comment.createdTime = comment.lastModified = 43
 		mock_dataserver.current_transaction.add(comment)
 
-		comment_pk =  discussions.get_comment_PK(comment)
+		oid = discussions.to_external_ntiid_oid(comment)
 		comment_rel_pk = discussions.get_comment_relationship_PK(comment)
 				
-		rel = discussions.add_comment_relationship(self.db, comment_pk, comment_rel_pk)
+		rel = discussions.add_comment_relationship(self.db, oid, comment_rel_pk)
 		assert_that(rel, is_not(none()))
 		assert_that(rel, has_property('properties', has_entry('created', '1969-12-31T18:00:43')))
 		assert_that(rel, has_property('properties', has_entry('oid', is_not(none()))))

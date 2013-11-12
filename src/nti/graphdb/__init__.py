@@ -34,4 +34,4 @@ def get_graph_db(sites=(), request=None):
         app = component.queryUtility(gdb_interfaces.IGraphDB, name=site)
         if app is not None:
             return app
-    raise ComponentLookupError()
+    return None
