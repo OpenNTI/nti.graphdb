@@ -153,7 +153,7 @@ def _TopicPropertyAdpater(topic):
 def _CommentPropertyAdpater(post):
 	result = CaseInsensitiveDict({'type':'Comment'})
 	result['author'] = post.creator.username
-	result['OID'] = externalization.to_external_ntiid_oid(post)
+	result['oid'] = externalization.to_external_ntiid_oid(post)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)

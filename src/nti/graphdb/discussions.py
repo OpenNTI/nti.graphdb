@@ -30,7 +30,13 @@ from . import get_graph_db
 from . import relationships
 from . import interfaces as graph_interfaces
 
+PrimaryKey = utils.UniqueAttribute
+
 # topics
+
+def get_comment_PK(comment):
+	adapted = graph_interfaces.IUniqueAttributeAdapter(comment)
+	return PrimaryKey(adapted.key, adapted.value)
 
 def _add_authorship_relationship(db, topic):
 	creator = topic.creator
@@ -96,31 +102,27 @@ def _topic_modified(topic, event):
 	uua = graph_interfaces.IUniqueAttributeAdapter(topic)
 	_process_topic_add_mod_event(uua.key, uua.value, graph_interfaces.MODIFY_EVENT)
 
-def _process_topic_remove_event(key, value, comments=()):
+def _process_topic_remove_event(primary_keys=()):
 	db = get_graph_db()
 	def _process_event():
-		nodes = []
-		nodes.append(utils.UniqueAttribute(key, value))
-		for _key, _value in comments:
-			nodes.append(utils.UniqueAttribute(_key, _value))
-		db.delete_nodes(*nodes)
+		result = db.delete_nodes(*primary_keys)
+		logger.debug("%s node(s) deleted", result)
 	transaction.get().addAfterCommitHook(
 				lambda success: success and gevent.spawn(_process_event))
 	
 @component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectRemovedEvent)
 def _topic_removed(topic, event):
 	adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
-	comments = []
+	primary_keys = [PrimaryKey(adapted.key, adapted.value)]
 	for comment in topic.values():
-		uaa = graph_interfaces.IUniqueAttributeAdapter(comment)
-		comments.append((uaa.key, uaa.value))
-	_process_topic_remove_event(adapted.key, adapted.value, comments)
+		primary_keys.append(get_comment_PK(comment))
+	_process_topic_remove_event(primary_keys)
 
 # comments
 
-def add_comment_relationship(db, key, value):
+def add_comment_relationship(db, comment_pk, comment_rel_pk):
 	result = None
-	comment = ntiids.find_object_with_ntiid(value)
+	comment = ntiids.find_object_with_ntiid(comment_pk.value)
 	if comment is not None:
 		# comment are special case. we build a relationship between the comment-user and
 		# the topic. We force key/value to identify the relationship
@@ -132,31 +134,36 @@ def add_comment_relationship(db, key, value):
 									(author, comment, rel_type),
 									graph_interfaces.IPropertyAdapter)
 		result = db.create_relationship(author, topic, rel_type,
-										properties=properties, key=key, value=value)
+										properties=properties,
+										key=comment_rel_pk.key,
+										value=comment_rel_pk.value)
 		logger.debug("comment-on relationship %s created" % result)
 	return result
 
-def delete_comment(db, key, value):
-	node = db.get_indexed_node(key, value)# check for comment node
+def delete_comment(db, comment_pk, comment_rel_pk):
+	node = db.get_indexed_node(comment_pk.key, comment_pk.value) # check for comment node
 	if node is not None:
 		db.delete_node(node)
-		logger.debug("comment-on node %s deleted" % value)
-	elif db.delete_indexed_relationship(key, value):
-		logger.debug("comment-on relationship %s deleted" % value)
+		logger.debug("comment-on node %s deleted" % comment_pk)
+	if db.delete_indexed_relationship(comment_rel_pk.key, comment_rel_pk.value):
+		logger.debug("comment-on relationship %s deleted" % comment_rel_pk)
 		return True
 	return False
 
-def _process_comment_event(key, value, event):
+def _process_comment_event(comment_pk, comment_rel_pk, event):
 	db = get_graph_db()
 	def _process_event():
 		transaction_runner = \
 				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
 
 		if event == graph_interfaces.ADD_EVENT:
-			func = functools.partial(add_comment_relationship,
-									 db=db, key=key, value=value)
+			func = functools.partial(add_comment_relationship, db=db,
+									 comment_pk=comment_pk,
+									 comment_rel_pk=comment_rel_pk)
 		elif event == graph_interfaces.REMOVE_EVENT:
-			func = functools.partial(delete_comment, db=db, key=key, value=value)
+			func = functools.partial(delete_comment, db=db,
+									 comment_pk=comment_pk,
+									 comment_rel_pk=comment_rel_pk)
 		else:
 			func = None
 
@@ -166,34 +173,34 @@ def _process_comment_event(key, value, event):
 	transaction.get().addAfterCommitHook(
 					lambda success: success and gevent.spawn(_process_event))
 
-def _get_comment_rel_PK(comment):
-	key, value = (None, None)
-	if comment is not None:
-		author = comment.creator
-		rel_type = relationships.CommentOn()
-		adapted = component.queryMultiAdapter(
-									(author, comment, rel_type),
-									graph_interfaces.IUniqueAttributeAdapter)
-		key = adapted.key if adapted is not None else None
-		value = adapted.value if adapted is not None else None
-	return key, value
+
+def get_comment_relationship_PK(comment):
+	author = comment.creator
+	rel_type = relationships.CommentOn()
+	adapted = component.getMultiAdapter(
+							(author, comment, rel_type),
+							graph_interfaces.IUniqueAttributeAdapter)
+	return PrimaryKey(adapted.key, adapted.value)
 
 @component.adapter(frm_interfaces.IPersonalBlogComment, lce_interfaces.IObjectAddedEvent)
 def _add_personal_blog_comment(comment, event):
-	key, value = _get_comment_rel_PK(comment)
-	_process_comment_event(key, value, graph_interfaces.ADD_EVENT)
+	comment_pk = get_comment_PK(comment)
+	comment_rel_pk = get_comment_relationship_PK(comment)
+	_process_comment_event(comment_pk, comment_rel_pk, graph_interfaces.ADD_EVENT)
 
 @component.adapter(frm_interfaces.IGeneralForumComment, lce_interfaces.IObjectAddedEvent)
 def _add_general_forum_comment(comment, event):
-	key, value = _get_comment_rel_PK(comment)
-	_process_comment_event(key, value, graph_interfaces.ADD_EVENT)
+	comment_pk = get_comment_PK(comment)
+	comment_rel_pk = get_comment_relationship_PK(comment)
+	_process_comment_event(comment_pk, comment_rel_pk, graph_interfaces.ADD_EVENT)
 
 @component.adapter(frm_interfaces.IPersonalBlogComment,
 				   lce_interfaces.IObjectModifiedEvent)
 def _modify_personal_blog_comment(comment, event):
 	if app_interfaces.IDeletedObjectPlaceholder.providedBy(comment):
-		key, value = _get_comment_rel_PK(comment)
-		_process_comment_event(key, value, graph_interfaces.REMOVE_EVENT)
+		comment_pk = get_comment_PK(comment)
+		comment_rel_pk = get_comment_relationship_PK(comment)
+		_process_comment_event(comment_pk, comment_rel_pk, graph_interfaces.REMOVE_EVENT)
 
 @component.adapter(frm_interfaces.IGeneralForumComment,
 				   lce_interfaces.IObjectModifiedEvent)

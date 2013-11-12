@@ -331,7 +331,7 @@ class Neo4jDB(object):
 					nodes.append(node)
 
 		for lst in rb.submit():
-			if lst:
+			if lst and lst[0]:
 				nodes.append(lst[0])
 
 		# process all deletions at once
@@ -364,23 +364,23 @@ class Neo4jDB(object):
 		return (key, value)
 
 	def _do_create_relationship(self, start, end, rel_type, properties=None, key=None, value=None):
-		properties = properties or dict()
-
 		# get neo4j nodes
 		n4j_end = self.get_or_create_node(end, raw=True, props=False)
 		n4j_start = self.get_or_create_node(start, raw=True, props=False)
-		properties.update(self._get_rel_properties(start, end, rel_type))
+		rel_properties = self._get_rel_properties(start, end, rel_type)
+		if properties:
+			rel_properties.update(properties)
 		
 		index = self.db.get_or_create_index(neo4j.Relationship, "PKIndex")
 		key, value = self._get_rel_keyvalue(start, end, rel_type, key, value)
 		if key and value is not None:
-			abstract = [n4j_start, str(rel_type), n4j_end, properties]
+			abstract = [n4j_start, str(rel_type), n4j_end, rel_properties]
 			result = index.get_or_create(key, value, abstract)
-			if properties:
+			if rel_properties:
 				result.get_properties()
 		else:
 			# create neo4j relationship
-			rel = rel4j(n4j_start, str(rel_type), n4j_end, **properties)
+			rel = rel4j(n4j_start, str(rel_type), n4j_end, **rel_properties)
 			result = self.db.create(rel)[0]
 
 		return result
