@@ -25,16 +25,14 @@ from nti.externalization import externalization
 
 from nti.ntiids import ntiids
 
+from . import get_graph_db
 from . import relationships
-from . import get_possible_site_names
 from . import interfaces as graph_interfaces
 
 def _do_add_assessment_relationship(db, assessed, taker=None):
-	result = None
-	if assessed is not None:
-		taker = taker or assessed.creator
-		result = db.create_relationship(taker, assessed, relationships.TakeAssessment())
-		logger.debug("take-assessment relationship %s created" % result)
+	taker = taker or assessed.creator
+	result = db.create_relationship(taker, assessed, relationships.TakeAssessment())
+	logger.debug("take-assessment relationship %s created" % result)
 	return result
 
 def add_assessment_relationship(db, oid):
@@ -42,33 +40,30 @@ def add_assessment_relationship(db, oid):
 	return _do_add_assessment_relationship(db, qaset) if qaset is not None else None
 
 def _do_add_assessment_node(db, assessed):
-	result = None
-	if assessed is not None:
-		result = db.get_or_create_node(assessed)
-		logger.debug("node %s retreived/created" % result)
+	result = db.get_or_create_node(assessed)
+	logger.debug("node %s retreived/created" % result)
 	return result
 
 def add_assessment_node(db, oid):
 	obj = ntiids.find_object_with_ntiid(oid)
-	node = _do_add_assessment_node(db, obj)
-	return obj, node
-
-add_question_node = add_assessment_node
-add_question_set_node = add_assessment_node
+	if obj is not None:
+		node = _do_add_assessment_node(db, obj)
+		return obj, node
+	return (None, None)
 
 def create_question_membership(db, question, questionset):
 	rel_type = relationships.MemberOf()
-	adapter = component.queryMultiAdapter((question, questionset, rel_type),
-										  graph_interfaces.IUniqueAttributeAdapter)
-	if 	adapter is not None and \
-		db.get_indexed_relationship(adapter.key, adapter.value) is None:
+	adapter = component.getMultiAdapter(
+							(question, questionset, rel_type),
+							graph_interfaces.IUniqueAttributeAdapter)
+	if db.get_indexed_relationship(adapter.key, adapter.value) is None:
 		db.create_relationship(question, questionset, rel_type)
 		logger.debug("question-questionset membership relationship created")
 		return True
 	return False
 
 def process_assessed_question_set(db, oid):
-	qaset, _ = add_question_set_node(db, oid)
+	qaset, _ = add_assessment_node(db, oid)
 	if qaset is not None:
 		# create relationship taker->question-set
 		_do_add_assessment_relationship(db, qaset)
@@ -80,48 +75,62 @@ def process_assessed_question_set(db, oid):
 			_do_add_assessment_relationship(db, question, qaset.creator)
 
 def process_assessed_question(db, oid):
-	question, _ = add_question_node(db, oid)
+	question, _ = add_assessment_node(db, oid)
 	if question is not None:
 		_do_add_assessment_relationship(db, question)
 		
-def _queue_question_event(oid, event, is_questionset=True):
-	site = get_possible_site_names()[0]
+def _queue_question_event(db, oid, event, is_questionset=True):
+
 	def _process_event():
 		transaction_runner = \
-			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-		db = component.getUtility(graph_interfaces.IGraphDB, name=site)
+				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
 		if event == graph_interfaces.ADD_EVENT:
 			func = process_assessed_question_set if is_questionset \
 												 else process_assessed_question
 			func = functools.partial(func, db=db, oid=oid)
 			transaction_runner(func)
+
 	transaction.get().addAfterCommitHook(
 					lambda success: success and gevent.spawn(_process_event))
 
 @component.adapter(asm_interfaces.IQAssessedQuestionSet,
 				   lce_interfaces.IObjectAddedEvent)
 def _questionset_assessed(question_set, event):
-	oid = externalization.to_external_ntiid_oid(question_set)
-	_queue_question_event(oid, graph_interfaces.ADD_EVENT)
+	db = get_graph_db()
+	if db is not None:
+		oid = externalization.to_external_ntiid_oid(question_set)
+		_queue_question_event(db, oid, graph_interfaces.ADD_EVENT)
 
 @component.adapter(asm_interfaces.IQAssessedQuestion, lce_interfaces.IObjectAddedEvent)
 def _question_assessed(question, event):
-	oid = externalization.to_external_ntiid_oid(question)
-	_queue_question_event(oid, graph_interfaces.ADD_EVENT, False)
+	db = get_graph_db()
+	if db is not None:
+		oid = externalization.to_external_ntiid_oid(question)
+		_queue_question_event(db, oid, graph_interfaces.ADD_EVENT, False)
 
 # utils
 
-from zope.generations.utility import findObjectsMatching
+def install(db):
 
-def build_assessed_graph_object(db, obj):
-	oid = externalization.to_external_ntiid_oid(obj)
-	is_questionset = asm_interfaces.IQAssessedQuestionSet.providedBy(obj)
-	func = process_assessed_question_set if is_questionset else process_assessed_question
-	func(db, oid)
+	from zope.generations.utility import findObjectsMatching
+	
+	dataserver = component.getUtility(nti_interfaces.IDataserver)
+	_users = nti_interfaces.IShardLayout(dataserver).users_folder
 
-def build_assessed_graph_user(db, user):
 	condition = lambda x : 	asm_interfaces.IQAssessedQuestion.providedBy(x) or \
 							asm_interfaces.IQAssessedQuestionSet.providedBy(x)
 
-	for assessed in findObjectsMatching(user, condition):
-		build_assessed_graph_object(db, assessed)
+
+	def _build_assessed_graph_object(db, obj):
+		oid = externalization.to_external_ntiid_oid(obj)
+		is_questionset = asm_interfaces.IQAssessedQuestionSet.providedBy(obj)
+		func = process_assessed_question_set if is_questionset else process_assessed_question
+		func(db, oid)
+	
+	for user in _users.itervalues():
+		if not nti_interfaces.IUser.providedBy(user):
+			continue
+				
+		for assessed in findObjectsMatching(user, condition):
+			_build_assessed_graph_object(db, assessed)
+
