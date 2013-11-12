@@ -62,7 +62,6 @@ class TestModeled(ConfiguringTestBase):
 		if conn: conn.add(note2)
 		note2 = user.addContainedObject(note2)
 		
-		cnt_nodes, cnt_rels = modeled.install(self.db)
-		assert_that(cnt_nodes, is_(2))
+		cnt_rels = modeled.install(self.db)
 		assert_that(cnt_rels, is_(1))
 

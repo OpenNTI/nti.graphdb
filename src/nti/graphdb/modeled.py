@@ -28,7 +28,20 @@ from . import relationships
 from . import interfaces as graph_interfaces
 
 def to_external_ntiid_oid(obj):
-	return  externalization.to_external_ntiid_oid(obj)
+	return externalization.to_external_ntiid_oid(obj)
+
+def _get_inReplyTo_PK(obj):
+	key, value = (None, None)
+	if obj is not None:
+		author = obj.creator
+		rel_type = relationships.Reply()
+		adapted = component.queryMultiAdapter((author, obj, rel_type),
+											  graph_interfaces.IUniqueAttributeAdapter)
+		key = adapted.key if adapted is not None else None
+		value = adapted.value if adapted is not None else None
+	return key, value
+
+# note removed
 
 def remove_modeled(db, key, value):
 	node = db.get_indexed_node(key, value)
@@ -43,17 +56,6 @@ def remove_note(db, key, value, inReplyTo_key=None, inReplyTo_value=None):
 		db.delete_indexed_relationship(inReplyTo_key, inReplyTo_value)
 	remove_modeled(db, key, value)
 
-def _get_inReplyTo_PK(obj):
-	key, value = (None, None)
-	if obj is not None:
-		author = obj.creator
-		rel_type = relationships.Reply()
-		adapted = component.queryMultiAdapter((author, obj, rel_type),
-											  graph_interfaces.IUniqueAttributeAdapter)
-		key = adapted.key if adapted is not None else None
-		value = adapted.value if adapted is not None else None
-	return key, value
-
 def _proces_note_removed(note, event):
 	db = get_graph_db()
 	irt_key, irt_value = _get_inReplyTo_PK(note)
@@ -62,9 +64,16 @@ def _proces_note_removed(note, event):
 							 inReplyTo_key=irt_key, inReplyTo_value=irt_value)
 	transaction.get().addAfterCommitHook(lambda success: success and gevent.spawn(func))
 
-def _do_add_inReplyTo_relationship(db, note):
+@component.adapter(nti_interfaces.INote, lce_interfaces.IObjectRemovedEvent)
+def _note_removed(note, event):
+	_proces_note_removed(note, event)
+
+# note added
+
+def add_inReplyTo_relationship(db, oid):
+	note = ntiids.find_object_with_ntiid(oid)
 	in_replyTo = note.inReplyTo if note is not None else None
-	if in_replyTo and note:
+	if in_replyTo:
 		author = note.creator
 		rel_type = relationships.Reply()
 		# get the key/value to id the inReplyTo relationship
@@ -75,12 +84,6 @@ def _do_add_inReplyTo_relationship(db, note):
 		result = db.create_relationship(author, in_replyTo, rel_type,
 										properties=adapted.properties(),
 										key=key, value=value)
-		return result
-	return None
-
-def add_inReplyTo_relationship(db, oid):
-	note = ntiids.find_object_with_ntiid(oid)
-	result = _do_add_inReplyTo_relationship(db, note)
 	if result is not None:
 		logger.debug("replyTo relationship %s retrived/created" % result)
 
@@ -100,10 +103,6 @@ def _note_added(note, event):
 	if note.inReplyTo:
 		_process_note_inReplyTo(note)
 
-@component.adapter(nti_interfaces.INote, lce_interfaces.IObjectRemovedEvent)
-def _note_removed(note, event):
-	_proces_note_removed(note, event)
-
 # utils
 
 def install(db):
@@ -114,8 +113,7 @@ def install(db):
 	_users = nti_interfaces.IShardLayout(dataserver).users_folder
 	rel_type = relationships.Reply()
 
-	cnt_rels = 0
-	cnt_nodes = 0
+	result = 0
 	for user in _users.itervalues():
 		if not nti_interfaces.IUser.providedBy(user):
 			continue
@@ -130,8 +128,6 @@ def install(db):
 		nodes = db.create_nodes(*objs)
 		assert len(nodes) == len(objs)
 
-		cnt_nodes += len(nodes)
-
 		rels = []
 		for i, n in enumerate(nodes[1:]):
 			note = objs[i + 1]
@@ -142,6 +138,6 @@ def install(db):
 
 		# create relationships in batch
 		rels = db.create_relationships(*rels)
-		cnt_rels += len(rels)
+		result += len(rels)
 
-	return (cnt_nodes, cnt_rels)
+	return result
