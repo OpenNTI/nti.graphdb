@@ -13,7 +13,6 @@ logger = __import__('logging').getLogger(__name__)
 import gevent
 import functools
 import transaction
-import collections
 
 from zope import component
 
@@ -32,9 +31,13 @@ from nti.ntiids import ntiids
 
 from . import get_graph_db
 from . import relationships
-from . import interfaces as graph_interfaces
 
 LIKE_CAT_NAME = 'likes'
+
+def get_current_user():
+	request = get_current_request()
+	username = authenticated_userid(request) if request else None
+	return username
 
 def add_like_relationship(db, username, oid):
 	result = None
@@ -56,8 +59,8 @@ def remove_like_relationship(db, username, oid):
 			result = True
 	return result
 
-def _process_like_event(username, oid, like=True):
-	db = get_graph_db()
+def _process_like_event(db, username, oid, like=True):
+
 	def _process_event():
 		transaction_runner = \
 			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
@@ -68,17 +71,19 @@ def _process_like_event(username, oid, like=True):
 			func = functools.partial(remove_like_relationship, db=db, username=username,
 									 oid=oid)
 		transaction_runner(func)
+
 	transaction.get().addAfterCommitHook(
 					lambda success: success and gevent.spawn(_process_event))
 
 @component.adapter(nti_interfaces.IModeledContent, IObjectRatedEvent)
 def _object_rated(modeled, event):
-	request = get_current_request()
-	username = authenticated_userid(request) if request else None
-	if username and event.category == LIKE_CAT_NAME:
-		like = event.rating != 0
-		oid = externalization.to_external_ntiid_oid(modeled)
-		_process_like_event(username, oid, like)
+	db = get_graph_db()
+	if db is not None:
+		username = get_current_user()
+		if username and event.category == LIKE_CAT_NAME:
+			like = event.rating != 0
+			oid = externalization.to_external_ntiid_oid(modeled)
+			_process_like_event(db, username, oid, like)
 
 @component.adapter(frm_interfaces.ITopic, IObjectRatedEvent)
 def _topic_rated(topic, event):
@@ -94,71 +99,50 @@ def install(db):
 	from contentratings.category import BASE_KEY
 	from contentratings.storage import UserRatingStorage
 
-	records = collections.defaultdict(list)
-
 	dataserver = component.getUtility(nti_interfaces.IDataserver)
 	_users = nti_interfaces.IShardLayout(dataserver).users_folder
-	rel_type = relationships.Like()
 
-	def _lookup_like_rating_for_read(context, cat_name=LIKE_CAT_NAME):
+	def _get_like_storage(context, cat_name=LIKE_CAT_NAME):
 		key = getattr(UserRatingStorage, 'annotation_key', BASE_KEY)
 		key = str(key + '.' + cat_name)
 		annotations = an_interfaces.IAnnotations(context, {})
 		storage = annotations.get(key)
 		return storage
 
-	def _record_likeable(records, obj):
-		storage = _lookup_like_rating_for_read(obj) if obj is not None else None
+	def _add_like_relationship(db, username, oid):
+		add_like_relationship(db, username, oid)
+		_add_like_relationship.counter += 1
+	_add_like_relationship.counter = 0
+
+	def _record_likeable(obj):
+		storage = _get_like_storage(obj)
 		if storage is not None:
 			oid = externalization.to_external_ntiid_oid(obj)
 			for rating in storage.all_user_ratings():
 				if rating.userid and rating.userid in _users:
-					records[rating.userid].append(oid)
+					_add_like_relationship(db, rating.userid, oid)
 
 	for entity in _users.itervalues():
 		if nti_interfaces.IUser.providedBy(entity):
 
-			# get all likeable objects
+			# stored objects
 			for likeable in findObjectsProviding(entity, nti_interfaces.ILikeable):
-				_record_likeable(records, likeable)
+				_record_likeable(likeable)
 
 			# check blogs
 			blog = frm_interfaces.IPersonalBlog(entity)
 			for topic in blog.values():
-				_record_likeable(records, topic)
+				_record_likeable(topic)
 				for comment in topic.values():
-					_record_likeable(records, comment)
+					_record_likeable(comment)
 
 		elif nti_interfaces.ICommunity.providedBy(entity):
 			board = frm_interfaces.ICommunityBoard(entity)
 			for forum in board.values():
 				for topic in forum.values():
-					_record_likeable(records, topic)
+					_record_likeable(topic)
 					for comment in topic.values():
-						_record_likeable(records, comment)
+						_record_likeable(comment)
 
-	result = 0
-	for username, likes in records.items():
-		# create nodes
-		user = users.User.get_user(username)
-		objs = [user]
-		objs.extend(likes)
-		nodes = db.create_nodes(*objs)
-		assert len(nodes) == len(objs)
-
-		# create relationships
-		rels = []
-		for i, n in enumerate(nodes[1:]):
-			likeable = objs[i + 1]
-			properties = component.getMultiAdapter((user, likeable, rel_type),
-													graph_interfaces.IPropertyAdapter)
-			adapted = component.getMultiAdapter(
-										(user, likeable, rel_type),
-										graph_interfaces.IUniqueAttributeAdapter)
-			rels.append((nodes[0], rel_type, n, properties, adapted.key, adapted.value))
-
-		# create relationships in batch
-		rels = db.create_relationships(*rels)
-		result += len(rels)
-
+	result = _add_like_relationship.counter
 	return result
