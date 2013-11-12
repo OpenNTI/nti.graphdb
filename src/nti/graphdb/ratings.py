@@ -125,12 +125,17 @@ def install(db):
 			# check blogs
 			blog = frm_interfaces.IPersonalBlog(entity)
 			for topic in blog.values():
-				_record_likeable(topic, blog)
+				_record_likeable(rels, topic)
 				for comment in topic.values():
-					_record_likeable(comment, blog)
+					_record_likeable(rels, comment)
 
 		elif nti_interfaces.ICommunity.providedBy(entity):
-			pass
+			board = frm_interfaces.ICommunityBoard(entity)
+			for forum in board.values():
+				for topic in forum.values():
+					_record_likeable(rels, topic)
+					for comment in topic.values():
+						_record_likeable(rels, comment)
 
 	result = 0
 	for username,likes in rels.items():
