@@ -37,7 +37,8 @@ class _Relationship(object):
 
 	def __eq__(self, other):
 		try:
-			return self is other or (self._from == other._from and self._to == other._to)
+			return self is other or (self._from == other._from
+									 and self._to == other._to)
 		except AttributeError:
 			return NotImplemented
 
@@ -235,8 +236,9 @@ def _dfl_deleted(obj, event):
 		result = {}
 		rel_type = relationships.MemberOf()
 		for user in obj:
-			adapted = component.queryMultiAdapter((user, obj, rel_type),
-												  graph_interfaces.IUniqueAttributeAdapter)
+			adapted = component.queryMultiAdapter(
+										(user, obj, rel_type),
+										graph_interfaces.IUniqueAttributeAdapter)
 			if adapted:
 				result[adapted.key] = adapted.value
 		if result:

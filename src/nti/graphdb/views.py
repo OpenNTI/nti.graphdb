@@ -10,7 +10,6 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import component
 from zope import interface
 from zope.location.interfaces import IContained
 from zope.container import contained as zcontained
@@ -25,8 +24,7 @@ from nti.dataserver import authorization as nauth
 
 from nti.externalization.datastructures import LocatedExternalDict
 
-from . import get_possible_site_names
-from . import interfaces as graph_interfaces
+from . import get_graph_db
 
 @interface.implementer(IPathAdapter, IContained)
 class GraphPathAdapter(zcontained.Contained):
@@ -54,9 +52,12 @@ class SuggestFriendsView(object):
 		self.request = request
 
 	def __call__(self):
+		items = []
 		request = self.request
-		site = get_possible_site_names()[0]
-		db = component.getUtility(graph_interfaces.IGraphDB, name=site)
+		result = LocatedExternalDict({'Items': items})
+		db = get_graph_db()
+		if db is None:
+			return result
 		provider = db.provider
 
 		# validate user

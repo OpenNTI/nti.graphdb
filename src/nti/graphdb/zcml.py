@@ -29,7 +29,8 @@ class IRegisterGraphDB(interface.Interface):
 	"""
 	name = fields.TextLine(title="db name identifier", required=False, default="")
 	url = fields.TextLine(title="db url", required=True)
-	dbtype = schema.Choice(title="db type", values=DATABASE_TYPES, default=NEO4J, required=False)
+	dbtype = schema.Choice(title="db type", values=DATABASE_TYPES, default=NEO4J,
+						   required=False)
 	username = fields.TextLine(title="db username", required=False)
 	password = schema.Password(title="db password", required=False)
 	
@@ -37,5 +38,6 @@ def registerGraphDB(_context, url, username=None, password=None, dbtype=NEO4J, n
 	"""
 	Register an db
 	"""
-	factory = functools.partial(dbfactory.create_database, dbtype=dbtype, url=url, username=username, password=password)
+	factory = functools.partial(dbfactory.create_database, dbtype=dbtype, url=url,
+								username=username, password=password)
 	utility(_context, provides=graph_interfaces.IGraphDB, factory=factory, name=name)

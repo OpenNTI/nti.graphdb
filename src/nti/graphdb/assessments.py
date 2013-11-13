@@ -127,7 +127,8 @@ def install(db, usernames=()):
 	def _build_assessed_graph_object(db, obj):
 		oid = externalization.to_external_ntiid_oid(obj)
 		is_questionset = asm_interfaces.IQAssessedQuestionSet.providedBy(obj)
-		func = process_assessed_question_set if is_questionset else process_assessed_question
+		func = process_assessed_question_set if is_questionset \
+											 else process_assessed_question
 		func(db, oid)
 	
 	for username in usernames:
@@ -137,4 +138,3 @@ def install(db, usernames=()):
 				
 		for assessed in findObjectsMatching(user, condition):
 			_build_assessed_graph_object(db, assessed)
-
