@@ -13,9 +13,9 @@ from nti.dataserver.contenttypes.forums.topic import PersonalBlogEntry
 from nti.dataserver.contenttypes.forums.post import PersonalBlogComment
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
+from nti.graphdb import neo4j
 from nti.graphdb import discussions
 from nti.graphdb import relationships
-from nti.graphdb import _neo4j as neo4j
 from nti.graphdb import interfaces as graph_interfaces
 
 import nti.dataserver.tests.mock_dataserver as mock_dataserver

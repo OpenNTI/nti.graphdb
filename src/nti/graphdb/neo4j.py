@@ -26,8 +26,8 @@ from py2neo.exceptions import ClientError
 from nti.utils.schema import SchemaConfigured
 from nti.utils.schema import createDirectFieldProperties
 
+from . import provider_neo4j
 from . import interfaces as graph_interfaces
-from ._neo4j_provider import Neo4jQueryProvider
 
 def _isolate(self, node):
 	query = "START a=node(%s) MATCH a-[r]-b DELETE r" % node._id
@@ -128,12 +128,15 @@ class Neo4jRelationship(SchemaConfigured):
 class Neo4jDB(object):
 
 	__db__ = None
+	password = None
+	username = None
 
 	def __init__(self, url, username=None, password=None):
 		self.url = url
-		self.username = username
-		self.password = password
-		self.provider = Neo4jQueryProvider(self)
+		if username:
+			self.username = username
+		if password:
+			self.password = password
 
 	@classmethod
 	def authenticate(cls, url, username, password):
@@ -152,12 +155,19 @@ class Neo4jDB(object):
 		return result
 
 	@property
+	def provider(self):
+		return provider_neo4j.Neo4jQueryProvider(self)
+
+	@property
 	def db(self):
 		if self.__db__ is None:
 			if self.username and self.password:
 				self.authenticate(self.url, self.username, self.password)
 			self.__db__ = neo4j.GraphDatabaseService(self.url)
 		return self.__db__
+
+	def _reinit(self):
+		self.__db__ = None
 
 	def _safe_index_remove(self, index, entity):
 		try:

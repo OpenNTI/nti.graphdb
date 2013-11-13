@@ -12,9 +12,9 @@ from nti.dataserver.users import Community
 from nti.dataserver.users import FriendsList
 from nti.dataserver.users import DynamicFriendsList
 
+from nti.graphdb import neo4j
 from nti.graphdb import connections
 from nti.graphdb import relationships
-from nti.graphdb import _neo4j as neo4j
 
 import nti.dataserver.tests.mock_dataserver as mock_dataserver
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans

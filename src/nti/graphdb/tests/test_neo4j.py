@@ -10,8 +10,8 @@ __docformat__ = "restructuredtext en"
 from nti.dataserver.users import User
 from nti.dataserver.users import FriendsList
 
+from nti.graphdb import neo4j
 from nti.graphdb import relationships
-from nti.graphdb import _neo4j as neo4j
 
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 

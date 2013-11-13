@@ -22,9 +22,9 @@ from nti.externalization.externalization import toExternalObject
 from nti.ntiids import ntiids
 
 from nti import graphdb
+from nti.graphdb import neo4j
 from nti.graphdb import assessments
 from nti.graphdb import relationships
-from nti.graphdb import _neo4j as neo4j
 
 from nti.graphdb.tests import ApplicationTestBase, WithSharedApplicationMockDSWithChanges
 
