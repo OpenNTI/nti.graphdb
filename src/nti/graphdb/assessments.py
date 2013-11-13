@@ -19,6 +19,7 @@ from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.assessment import interfaces as asm_interfaces
 
+from nti.dataserver import users
 from nti.dataserver import interfaces as nti_interfaces
 
 from nti.externalization import externalization
@@ -110,12 +111,14 @@ def _question_assessed(question, event):
 
 # utils
 
-def install(db):
+def install(db, usernames=()):
 
 	from zope.generations.utility import findObjectsMatching
 	
-	dataserver = component.getUtility(nti_interfaces.IDataserver)
-	_users = nti_interfaces.IShardLayout(dataserver).users_folder
+	if not usernames:
+		dataserver = component.getUtility(nti_interfaces.IDataserver)
+		_users = nti_interfaces.IShardLayout(dataserver).users_folder
+		usernames = _users.iterkeys()
 
 	condition = lambda x : 	asm_interfaces.IQAssessedQuestion.providedBy(x) or \
 							asm_interfaces.IQAssessedQuestionSet.providedBy(x)
@@ -127,7 +130,8 @@ def install(db):
 		func = process_assessed_question_set if is_questionset else process_assessed_question
 		func(db, oid)
 	
-	for user in _users.itervalues():
+	for username in usernames:
+		user = users.Entity.get_entity(username)
 		if not nti_interfaces.IUser.providedBy(user):
 			continue
 				

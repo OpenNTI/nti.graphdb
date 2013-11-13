@@ -91,7 +91,7 @@ def _topic_rated(topic, event):
 
 # utils
 
-def install(db):
+def install(db, usernames=()):
 
 	from zope.annotation import interfaces as an_interfaces
 	from zope.generations.utility import findObjectsProviding
@@ -99,8 +99,10 @@ def install(db):
 	from contentratings.category import BASE_KEY
 	from contentratings.storage import UserRatingStorage
 
-	dataserver = component.getUtility(nti_interfaces.IDataserver)
-	_users = nti_interfaces.IShardLayout(dataserver).users_folder
+	if not usernames:
+		dataserver = component.getUtility(nti_interfaces.IDataserver)
+		_users = nti_interfaces.IShardLayout(dataserver).users_folder
+		usernames = _users.iterkeys()
 
 	def _get_like_storage(context, cat_name=LIKE_CAT_NAME):
 		key = getattr(UserRatingStorage, 'annotation_key', BASE_KEY)
@@ -122,7 +124,8 @@ def install(db):
 				if rating.userid and rating.userid in _users:
 					_add_like_relationship(db, rating.userid, oid)
 
-	for entity in _users.itervalues():
+	for username in usernames:
+		entity = users.Entity.get_entity(username)
 		if nti_interfaces.IUser.providedBy(entity):
 
 			# stored objects

@@ -19,6 +19,7 @@ from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.appserver import interfaces as app_interfaces
 
+from nti.dataserver import users
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
@@ -222,11 +223,13 @@ def _modify_general_forum_comment(comment, event):
 
 # utils
 
-def install(db):
+def install(db, usernames=()):
 
-	dataserver = component.getUtility(nti_interfaces.IDataserver)
-	_users = nti_interfaces.IShardLayout(dataserver).users_folder
-	
+	if not usernames:
+		dataserver = component.getUtility(nti_interfaces.IDataserver)
+		_users = nti_interfaces.IShardLayout(dataserver).users_folder
+		usernames = _users.iterkeys()
+
 	def _record_author(topic):
 		oid = to_external_ntiid_oid(topic)
 		adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
@@ -241,7 +244,8 @@ def install(db):
 		_record_comment.counter += 1
 	_record_comment.counter = 0
 
-	for entity in _users.itervalues():
+	for username in usernames:
+		entity = users.Entity.get_entity(username)
 		if nti_interfaces.IUser.providedBy(entity):
 			blog = frm_interfaces.IPersonalBlog(entity)
 			for topic in blog.values():
