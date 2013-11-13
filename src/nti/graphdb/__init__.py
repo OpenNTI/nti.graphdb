@@ -10,6 +10,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import six
+
 from zope import component
 from zope.component.interfaces import ComponentLookupError
 
@@ -29,6 +31,7 @@ def get_possible_site_names(request=None, include_default=True):
     return site_names
 
 def get_graph_db(sites=(), request=None):
+    sites = sites.split() if isinstance(sites, six.string_types) else sites
     sites = sites or get_possible_site_names(request=request)
     for site in sites:
         app = component.queryUtility(gdb_interfaces.IGraphDB, name=site)
