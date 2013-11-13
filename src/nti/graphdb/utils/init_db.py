@@ -23,6 +23,7 @@ from nti.graphdb import modeled
 from nti.graphdb import ratings
 from nti.graphdb import assessments
 from nti.graphdb import connections
+from nti.graphdb import discussions
 from nti.graphdb import interfaces as graph_interfaces
 
 from nti.utils.maps import CaseInsensitiveDict
@@ -30,6 +31,7 @@ from nti.utils.maps import CaseInsensitiveDict
 def init_db(db, usernames=()):
 	modeled.install(db, usernames)
 	ratings.install(db, usernames)
+	discussions.install(db, usernames)
 	connections.install(db, usernames)
 	assessments.install(db, usernames)
 
