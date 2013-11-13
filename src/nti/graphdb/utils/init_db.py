@@ -17,12 +17,18 @@ from zope import component
 from nti.dataserver.utils import run_with_dataserver
 
 from nti.graphdb import modeled
+from nti.graphdb import ratings
+from nti.graphdb import assessments
+from nti.graphdb import connections
 from nti.graphdb import interfaces as graph_interfaces
 
 def init_db(name=None):
 	name = name or u''
 	db = component.getUtility(graph_interfaces.IGraphDB, name=name)
 	modeled.install(db)
+	ratings.install(db)
+	connections.install(db)
+	assessments.install(db)
 
 def main():
 	arg_parser = argparse.ArgumentParser(description="Initialize a graphdb")
@@ -33,9 +39,11 @@ def main():
 	name = args.name
 	env_dir = args.env_dir
 
-	run_with_dataserver(environment_dir=env_dir, function=lambda: init_db(name))
+	conf_packages = ('nti.graphdb',)
+	run_with_dataserver(environment_dir=env_dir,
+						xmlconfig_packages=conf_packages,
+						function=lambda: init_db(name))
 	sys.exit( 0 )
-
 
 if __name__ == '__main__':
 	main()

@@ -231,31 +231,31 @@ def install(db):
 		oid = to_external_ntiid_oid(topic)
 		adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
 		add_topic_node(db, oid, adapted.key, adapted.value)
+		_record_author.counter += 1
+	_record_author.counter = 0
 
 	def _record_comment(comment):
 		oid = to_external_ntiid_oid(comment)
 		comment_rel_pk = get_comment_relationship_PK(comment)
 		add_comment_relationship(db, oid, comment_rel_pk)
+		_record_comment.counter += 1
+	_record_comment.counter = 0
 
-	result = 0
 	for entity in _users.itervalues():
 		if nti_interfaces.IUser.providedBy(entity):
 			blog = frm_interfaces.IPersonalBlog(entity)
 			for topic in blog.values():
 				_record_author(topic)
-				result += 1
 				for comment in topic.values():
 					_record_comment(comment)
-					result += 1
 
 		elif nti_interfaces.ICommunity.providedBy(entity):
 			board = frm_interfaces.ICommunityBoard(entity)
 			for forum in board.values():
 				for topic in forum.values():
 					_record_author(topic)
-					result += 1
 					for comment in topic.values():
 						_record_comment(comment)
-						result += 1
 
+	result = _record_comment.counter + _record_author.counter
 	return result
