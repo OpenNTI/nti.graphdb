@@ -99,9 +99,9 @@ def install(db, usernames=()):
 	from contentratings.category import BASE_KEY
 	from contentratings.storage import UserRatingStorage
 
+	dataserver = component.getUtility(nti_interfaces.IDataserver)
+	_users = nti_interfaces.IShardLayout(dataserver).users_folder
 	if not usernames:
-		dataserver = component.getUtility(nti_interfaces.IDataserver)
-		_users = nti_interfaces.IShardLayout(dataserver).users_folder
 		usernames = _users.iterkeys()
 
 	def _get_like_storage(context, cat_name=LIKE_CAT_NAME):
