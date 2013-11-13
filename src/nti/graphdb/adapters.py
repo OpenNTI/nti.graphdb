@@ -54,10 +54,10 @@ def _ModeledContentLabelAdpater(modeled):
 
 @component.adapter(nti_interfaces.INote)
 def _NoteLabelAdpater(note):
-	result = set(_ModeledContentLabelAdpater(note))
+	result = set()
 	result.update(getattr(note, 'tags', ()))
 	result.update(getattr(note, 'AutoTags', ()))
-	return tuple([r.lower() for r in result])
+	return ('note',) + tuple([r.lower() for r in result])
 
 @interface.implementer(graph_interfaces.ILabelAdapter)
 def _CommentLabelAdpater(obj):
@@ -67,12 +67,10 @@ def _CommentLabelAdpater(obj):
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(frm_interfaces.ITopic)
 def _TopicLabelAdpater(topic):
-	result = {'topic'}
-	result.update(topic.tags or ())
-	headline = getattr(topic, 'headline', None)
-	if headline is not None:
-		result.update(getattr(headline, 'tags', ()))
-	return tuple([r.lower() for r in result])
+	result = set(topic.tags or ())
+	tags = getattr(getattr(topic, 'headline', None), 'tags', ())
+	result.update(tags or ())
+	return ('topic',) + tuple([r.lower() for r in result])
 	
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(asm_interfaces.IQAssessedQuestionSet)
