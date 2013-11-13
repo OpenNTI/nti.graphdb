@@ -9,12 +9,18 @@ __docformat__ = "restructuredtext en"
 
 from zope import component
 
+from nti.contentfragments.interfaces import IPlainTextContentFragment
+
 from nti.dataserver.users import User
 from nti.dataserver.users import Community
+from nti.dataserver.contenttypes.forums.topic import PersonalBlogEntry
+from nti.dataserver.contenttypes.forums.post import PersonalBlogComment
+from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
 from nti.graphdb import relationships
 from nti.graphdb import interfaces as graph_interfaces
 
+import nti.dataserver.tests.mock_dataserver as mock_dataserver
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
 from nti.graphdb.tests import ConfiguringTestBase
@@ -102,4 +108,50 @@ class TestAdapters(ConfiguringTestBase):
 		assert_that(adapted, is_not(none()))
 		assert_that(adapted, has_property('key', 'user1@bar'))
 		assert_that(adapted, has_property('value', 'IS_FRIEND_OF,user2@bar'))
+
+	@WithMockDSTrans
+	def test_user_blog(self):
+		user = self._create_user("user1@bar")
+		blog = frm_interfaces.IPersonalBlog(user)
+		entry = PersonalBlogEntry()
+		entry.creator = user
+		entry.tags = (IPlainTextContentFragment('bankai'), IPlainTextContentFragment('shikai'))
+		blog['bleach'] = entry
+		entry.__parent__ = blog
+		entry.lastModified = 42
+		entry.createdTime = 24
+
+		comment = PersonalBlogComment()
+		comment.creator = user
+		entry['comment316072059'] = comment
+		comment.__parent__ = entry
+		comment.createdTime = comment.lastModified = 43
+		mock_dataserver.current_transaction.add(comment)
+
+		labels = graph_interfaces.ILabelAdapter(entry, None)
+		assert_that(labels, is_not(none()))
+		assert_that(labels, has_length(3))
+		assert_that(labels, is_(('topic', 'bankai', 'shikai')))
+
+		props = graph_interfaces.IPropertyAdapter(entry, None)
+		assert_that(props, is_not(none()))
+		assert_that(props, has_length(5))
+		assert_that(props, has_entry('author', u'user1@bar'))
+		assert_that(props, has_entry('ntiid', is_not(none())))
+		assert_that(props, has_entry('oid', is_not(none())))
+		assert_that(props, has_entry('title', u''))
+		assert_that(props, has_entry('type', u'Topic'))
+		
+		labels = graph_interfaces.ILabelAdapter(comment, None)
+		assert_that(labels, is_not(none()))
+		assert_that(labels, has_length(1))
+		assert_that(labels, is_(('comment',)))
+
+		props = graph_interfaces.IPropertyAdapter(comment, None)
+		assert_that(props, is_not(none()))
+		assert_that(props, has_length(3))
+		assert_that(props, has_entry('author', u'user1@bar'))
+		assert_that(props, has_entry('oid', is_not(none())))
+		assert_that(props, has_entry('type', u'Comment'))
+
 
