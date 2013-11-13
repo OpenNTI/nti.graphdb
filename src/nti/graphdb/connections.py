@@ -320,7 +320,7 @@ def install(db, usernames=()):
 	result = 0
 	for username in usernames:
 		user = users.Entity.get_entity(username)
-		if nti_interfaces.IUser.providedBy(user):
+		if not nti_interfaces.IUser.providedBy(user):
 			continue
 
 		for func in (update_friendships, update_memberships, update_following):
