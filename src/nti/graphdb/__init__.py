@@ -30,10 +30,10 @@ def get_possible_site_names(request=None, include_default=True):
         site_names += ('',)
     return site_names
 
-def get_graph_db(sites=(), request=None):
-    sites = sites.split() if isinstance(sites, six.string_types) else sites
-    sites = sites or get_possible_site_names(request=request)
-    for site in sites:
+def get_graph_db(names=None, request=None):
+    names = names.split() if isinstance(names, six.string_types) else names
+    names = names or get_possible_site_names(request=request)
+    for site in names:
         app = component.queryUtility(gdb_interfaces.IGraphDB, name=site)
         if app is not None:
             return app
