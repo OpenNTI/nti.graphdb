@@ -41,7 +41,7 @@ def init_graphdb(request):
 	values = json.loads(unicode(request.body, request.charset)) if request.body else {}
 	values = CaseInsensitiveDict(**values)
 	site = values.get('site', u'')
-	usernames = values.get('usernames', u'')
+	usernames = values.get('usernames', values.get('username', u''))
 	if isinstance(usernames,six.string_types):
 		usernames = usernames.split()
 	db = component.getUtility(graph_interfaces.IGraphDB, name=site)
