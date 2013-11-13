@@ -56,7 +56,7 @@ def remove_note(db, key, value, irt_PK=None):
 		db.delete_indexed_relationship(irt_PK.key, irt_PK.value)
 	remove_modeled(db, key, value)
 
-def _proces_note_removed(db, note, event):
+def _proces_note_removed(db, note):
 	irt_PK = _get_inReplyTo_PK(note)
 	adapted = graph_interfaces.IUniqueAttributeAdapter(note)
 	func = functools.partial(remove_note, db=db,
@@ -72,7 +72,7 @@ def _proces_note_removed(db, note, event):
 def _note_removed(note, event):
 	db = get_graph_db()
 	if db is not None:
-		_proces_note_removed(note, event)
+		_proces_note_removed(db, note)
 
 # note added
 
