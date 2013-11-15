@@ -41,8 +41,7 @@ def init_db(db, usernames=()):
 	for module in (graphdb.modeled,
 				   graphdb.ratings,
 				   graphdb.discussions,
-				   graphdb.connections,
-				   graphdb.assessments):
+				   graphdb.connections):
 		module.install(db, usernames)
 
 @view_config(route_name='objects.generic.traversal',

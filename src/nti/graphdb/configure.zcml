@@ -252,9 +252,6 @@
 	<subscriber handler=".discussions._modify_personal_blog_comment" />
 	<subscriber handler=".discussions._modify_general_forum_comment" />
 	
-	<subscriber handler=".assessments._question_assessed" />
-	<subscriber handler=".assessments._questionset_assessed" />
-	
 	<subscriber handler=".ratings._object_rated" />
 	<subscriber handler=".ratings._topic_rated" />
 	
