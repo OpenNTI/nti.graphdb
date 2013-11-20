@@ -147,6 +147,10 @@
 			 factory=".adapters._LikeRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
+	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IRatable .interfaces.IRate"
+			 factory=".adapters._RateRelationshipPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
 	<!-- unique attribute adapter -->
 	
 	<adapter for=""
@@ -225,6 +229,10 @@
 			 factory=".adapters._LikeUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
+	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IRatable .interfaces.IRate"
+			 factory=".adapters._RateUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IThreadable .interfaces.IReply"
 			 factory=".adapters._InReplyToUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />

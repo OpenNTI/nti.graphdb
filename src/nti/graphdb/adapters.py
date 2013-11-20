@@ -227,6 +227,7 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(_from, _qset, _rel):
 	return result
 
 _LikeRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
+_RateRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 _FollowRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 _AuthorshipRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 
@@ -405,6 +406,12 @@ class _UserObjectUniqueAttributeAdpater(object):
 				   nti_interfaces.ILikeable,
 				   graph_interfaces.ILike)
 class _LikeUniqueAttributeAdpater(_UserObjectUniqueAttributeAdpater):
+	pass
+
+@component.adapter(nti_interfaces.IEntity,
+				   nti_interfaces.IRatable,
+				   graph_interfaces.IRate)
+class _RateUniqueAttributeAdpater(_UserObjectUniqueAttributeAdpater):
 	pass
 
 @component.adapter(nti_interfaces.IEntity,
