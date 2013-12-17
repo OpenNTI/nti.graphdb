@@ -86,6 +86,12 @@ def _QuestionLabelAdpater(question):
 	result = ('question',)
 	return result
 
+@interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(asm_interfaces.IQAssignment)
+def _AssignmentLabelAdpater(question):
+	result = ('assignment',)
+	return result
+
 #### properties
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -177,6 +183,13 @@ def _QuestionPropertyAdpater(obj):
 	result['id'] = obj.questionId
 	return result
 
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(asm_interfaces.IQAssignment)
+def _AssignmentPropertyAdpater(obj):
+	result = CaseInsensitiveDict({'type':'Assignment'})
+	result['id'] = getattr(obj, 'ntiid', getattr(obj, 'NTIID', None))
+	return result
+
 def _question_stats(question):
 	total = incorrect = correct = partial = 0
 	for part in question.parts:
@@ -224,6 +237,14 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(_from, _qset, _rel):
 			incorrect += 1
 	result['correct'] = correct
 	result['incorrect'] = incorrect
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssignment,
+				   graph_interfaces.ITakeAssessment)
+def _AssignmentRelationshipPropertyAdpater(_from, _asm, _rel):
+	result = CaseInsensitiveDict({'taker' : _from.username})
+	result['created'] = _to_isoformat(_asm.createdTime)
 	return result
 
 _LikeRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
@@ -365,6 +386,20 @@ class _QuestionUniqueAttributeAdpater(object):
 _AssessedRelationshipUniqueAttributeAdpater = _EndRelationshipUniqueAttributeAdpater
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(asm_interfaces.IQAssessedQuestion)
+class _AssignmentUniqueAttributeAdpater(object):
+
+	key = "id"
+
+	def __init__(self, obj):
+		self.obj = obj
+
+	@property
+	def value(self):
+		result = getattr(self.obj, 'ntiid', getattr(self.obj, 'NTIID'))
+		return result
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(asm_interfaces.IQAssessedQuestion,
 				   asm_interfaces.IQAssessedQuestionSet,
 				   graph_interfaces.IMemberOf)
@@ -421,3 +456,24 @@ class _InReplyToUniqueAttributeAdpater(_UserObjectUniqueAttributeAdpater):
 	pass
 
 _AuthorshipUniqueAttributeAdpater = _UserObjectUniqueAttributeAdpater
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(nti_interfaces.IUser,
+				   asm_interfaces.IQAssignment,
+				   graph_interfaces.ITakeAssessment)
+class _AssignmentTakenUniqueAttributeAdpater(object):
+
+	def __init__(self, _from, _to, _rel):
+		self._to = _to
+		self._rel = _rel
+		self._from = _from
+
+	@property
+	def key(self):
+		return self._from.username
+
+	@property
+	def value(self):
+		ntiid = getattr(self._to, 'ntiid', getattr(self._to, 'NTIID'))
+		result = '%s,%s' % (self._rel, ntiid)
+		return result
