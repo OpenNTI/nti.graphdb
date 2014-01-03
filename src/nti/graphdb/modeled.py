@@ -41,8 +41,6 @@ def _get_inReplyTo_PK(obj):
 										graph_interfaces.IUniqueAttributeAdapter)
 	return PrimaryKey(adapted.key, adapted.value)
 
-# note removed
-
 def remove_modeled(db, key, value):
 	node = db.get_indexed_node(key, value)
 	if node is not None:
@@ -51,15 +49,15 @@ def remove_modeled(db, key, value):
 		return True
 	return False
 
-def remove_note(db, key, value, irt_PK=None):
-	if irt_PK:
+def _remove_note(db, key, value, irt_PK=None):
+	if irt_PK is not None:
 		db.delete_indexed_relationship(irt_PK.key, irt_PK.value)
 	remove_modeled(db, key, value)
 
 def _proces_note_removed(db, note):
 	irt_PK = _get_inReplyTo_PK(note)
 	adapted = graph_interfaces.IUniqueAttributeAdapter(note)
-	func = functools.partial(remove_note, db=db,
+	func = functools.partial(_remove_note, db=db,
 							 # note node locator
 							 key=adapted.key,
 							 value=adapted.value,
@@ -74,9 +72,7 @@ def _note_removed(note, event):
 	if db is not None:
 		_proces_note_removed(db, note)
 
-# note added
-
-def add_inReplyTo_relationship(db, oid):
+def _add_inReplyTo_relationship(db, oid):
 	note = ntiids.find_object_with_ntiid(oid)
 	in_replyTo = note.inReplyTo if note is not None else None
 	if in_replyTo is not None:
@@ -99,8 +95,8 @@ def _process_note_inReplyTo(db, note):
 	oid = to_external_ntiid_oid(note)
 	def _process_event():
 		transaction_runner = \
-			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-		func = functools.partial(add_inReplyTo_relationship, db=db, oid=oid)
+				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
+		func = functools.partial(_add_inReplyTo_relationship, db=db, oid=oid)
 		transaction_runner(func)
 
 	transaction.get().addAfterCommitHook(
@@ -132,7 +128,7 @@ def install(db, usernames=()):
 		for note in findObjectsProviding(user, nti_interfaces.INote):
 			if note.inReplyTo:
 				oid = to_external_ntiid_oid(note)
-				add_inReplyTo_relationship(db, oid)
+				_add_inReplyTo_relationship(db, oid)
 				result += 1
 
 	return result
