@@ -126,17 +126,25 @@ def _topic_removed(topic, event):
 	db = get_graph_db()
 	if db is not None:
 		primary_keys = [get_primary_key(topic)]
-		for comment in topic.values():
+		for comment in topic.values():  # remove comments
 			primary_keys.append(get_primary_key(comment))
 		_process_topic_remove_event(db, primary_keys)
 
 # comments
 
-def add_comment_relationship(db, oid, comment_rel_pk):
+def get_comment_relationship_PK(comment):
+	author = comment.creator
+	rel_type = relationships.CommentOn()
+	adapted = component.getMultiAdapter(
+							(author, comment, rel_type),
+							graph_interfaces.IUniqueAttributeAdapter)
+	return PrimaryKey(adapted.key, adapted.value)
+
+def _add_comment_relationship(db, oid, comment_rel_pk):
 	result = None
 	comment = ntiids.find_object_with_ntiid(oid)
 	if comment is not None:
-		# comment are special case. we build a relationship between the comment-user and
+		# comment are special case. we build a relationship between the commenting user and
 		# the topic. We force key/value to identify the relationship
 		# Note we don't create a comment node.
 		author = comment.creator
@@ -152,7 +160,7 @@ def add_comment_relationship(db, oid, comment_rel_pk):
 		logger.debug("comment-on relationship %s created" % result)
 	return result
 
-def delete_comment(db, comment_pk, comment_rel_pk):
+def _delete_comment(db, comment_pk, comment_rel_pk):
 	node = db.get_indexed_node(comment_pk.key, comment_pk.value) # check for comment node
 	if node is not None:
 		db.delete_node(node)
@@ -172,11 +180,11 @@ def _process_comment_event(db, comment, event):
 				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
 
 		if event == graph_interfaces.ADD_EVENT:
-			func = functools.partial(add_comment_relationship, db=db,
+			func = functools.partial(_add_comment_relationship, db=db,
 									 oid=oid,
 									 comment_rel_pk=comment_rel_pk)
 		elif event == graph_interfaces.REMOVE_EVENT:
-			func = functools.partial(delete_comment, db=db,
+			func = functools.partial(_delete_comment, db=db,
 									 comment_pk=comment_pk,
 									 comment_rel_pk=comment_rel_pk)
 		else:
@@ -187,15 +195,6 @@ def _process_comment_event(db, comment, event):
 
 	transaction.get().addAfterCommitHook(
 				lambda success: success and gevent.spawn(_process_event))
-
-
-def get_comment_relationship_PK(comment):
-	author = comment.creator
-	rel_type = relationships.CommentOn()
-	adapted = component.getMultiAdapter(
-							(author, comment, rel_type),
-							graph_interfaces.IUniqueAttributeAdapter)
-	return PrimaryKey(adapted.key, adapted.value)
 
 @component.adapter(frm_interfaces.IPersonalBlogComment, lce_interfaces.IObjectAddedEvent)
 def _add_personal_blog_comment(comment, event):
@@ -240,7 +239,7 @@ def install(db, usernames=()):
 	def _record_comment(comment):
 		oid = to_external_ntiid_oid(comment)
 		comment_rel_pk = get_comment_relationship_PK(comment)
-		add_comment_relationship(db, oid, comment_rel_pk)
+		_add_comment_relationship(db, oid, comment_rel_pk)
 		_record_comment.counter += 1
 	_record_comment.counter = 0
 

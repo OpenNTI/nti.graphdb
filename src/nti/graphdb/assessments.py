@@ -39,7 +39,7 @@ def add_assignment_node(db, assignmentId):
 			node = db.create_node(a)
 	return (a, node)
 
-def add_assignment_taken_rel(db, username, assignmentId):
+def add_assignment_taken_relationship(db, username, assignmentId):
 	a, _ = add_assignment_node(db, assignmentId)
 	user = users.User.get_user(username)
 	if a is not None and user is not None:
@@ -52,9 +52,10 @@ def process_assignment_taken(db, item):
 	username = nti_interfaces.IUser(item).username
 	def _process_event():
 		transaction_runner = \
-			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
+				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
 
-		func = functools.partial(add_assignment_taken_rel, db=db, username=username,
+		func = functools.partial(add_assignment_taken_relationship, db=db,
+								 username=username,
 								 assignmentId=assignmentId)
 		transaction_runner(func)
 
