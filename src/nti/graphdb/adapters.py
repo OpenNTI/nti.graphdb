@@ -145,6 +145,9 @@ def _NotePropertyAdpater(note):
 	result['title'] = unicode(note.title)
 	return result
 
+_HighlightPropertyAdpater = _ModeledContentPropertyAdpater
+_RedactionPropertyAdpater = _ModeledContentPropertyAdpater
+
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(frm_interfaces.ITopic)
 def _TopicPropertyAdpater(topic):
@@ -156,14 +159,14 @@ def _TopicPropertyAdpater(topic):
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
-def _CommentPropertyAdpater(post):
+def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 	result = CaseInsensitiveDict({'type':'Comment'})
 	result['author'] = post.creator.username
 	result['oid'] = externalization.to_external_ntiid_oid(post)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
-def _CommentRelationshipPropertyAdpater(_from, _post, _rel):
+def _CommentRelationshipPropertyAdpater(_from, _post, _rel):  # IPersonalBlogComment, IGeneralForumComment
 	result = CaseInsensitiveDict({'created': _to_isoformat(_post.createdTime)})
 	result['oid'] = externalization.to_external_ntiid_oid(_post)
 	result['topic'] = _post.__parent__.NTIID
@@ -201,11 +204,6 @@ def _question_stats(question):
 		else:
 			partial += 1
 	return (total == correct, total == incorrect, partial > 0)
-
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-def _CreatedTimePropertyAdpater(_from, _to, _rel):
-	result = CaseInsensitiveDict({'created':_to_isoformat(time.time())})
-	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssessedQuestion,
@@ -245,6 +243,11 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(_from, _qset, _rel):
 def _AssignmentRelationshipPropertyAdpater(_from, _asm, _rel):
 	result = CaseInsensitiveDict({'taker' : _from.username})
 	result['created'] = _to_isoformat(_asm.createdTime)
+	return result
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+def _CreatedTimePropertyAdpater(_from, _to, _rel):
+	result = CaseInsensitiveDict({'created':_to_isoformat(time.time())})
 	return result
 
 _LikeRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
