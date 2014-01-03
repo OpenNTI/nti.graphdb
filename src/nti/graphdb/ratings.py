@@ -138,7 +138,7 @@ from zope.generations.utility import findObjectsMatching
 from contentratings.category import BASE_KEY
 from contentratings.storage import UserRatingStorage
 
-def _get_storage(context, cat_name=LIKE_CAT_NAME):
+def _get_storage(context, cat_name):
 	key = getattr(UserRatingStorage, 'annotation_key', BASE_KEY)
 	key = str(key + '.' + cat_name)
 	annotations = an_interfaces.IAnnotations(context, {})
