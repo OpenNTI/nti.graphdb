@@ -89,7 +89,6 @@ class IGraphDB(interface.Interface):
 	def get_indexed_relationship(key, value):
 		pass
 
-
 class IGraphNode(interface.Interface):
 	id = nti_schema.ValidTextLine(title="node id")
 	uri = nti_schema.ValidTextLine(title="uri identifier", required=False)
