@@ -151,8 +151,8 @@
 			 factory=".adapters._AssessedQuestionRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 		 
-	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.ITakeAssessment"
-			 factory=".adapters._AssessedQuestionSetRelationshipPropertyAdpater"
+	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssignment .interfaces.ITakeAssessment"
+			 factory=".adapters._AssignmentRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.ILikeable .interfaces.ILike"
