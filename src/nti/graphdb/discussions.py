@@ -19,7 +19,6 @@ from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.appserver import interfaces as app_interfaces
 
-from nti.dataserver import users
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
@@ -222,43 +221,27 @@ def _modify_general_forum_comment(comment, event):
 
 # utils
 
-def install(db, usernames=()):
+def _record_author(db, topic):
+	oid = to_external_ntiid_oid(topic)
+	adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
+	add_topic_node(db, oid, adapted.key, adapted.value)
 
-	if not usernames:
-		dataserver = component.getUtility(nti_interfaces.IDataserver)
-		_users = nti_interfaces.IShardLayout(dataserver).users_folder
-		usernames = _users.iterkeys()
+def _record_comment(db, comment):
+	oid = to_external_ntiid_oid(comment)
+	comment_rel_pk = get_comment_relationship_PK(comment)
+	_add_comment_relationship(db, oid, comment_rel_pk)
 
-	def _record_author(topic):
-		oid = to_external_ntiid_oid(topic)
-		adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
-		add_topic_node(db, oid, adapted.key, adapted.value)
-		_record_author.counter += 1
-	_record_author.counter = 0
-
-	def _record_comment(comment):
-		oid = to_external_ntiid_oid(comment)
-		comment_rel_pk = get_comment_relationship_PK(comment)
-		_add_comment_relationship(db, oid, comment_rel_pk)
-		_record_comment.counter += 1
-	_record_comment.counter = 0
-
-	for username in usernames:
-		entity = users.Entity.get_entity(username)
-		if nti_interfaces.IUser.providedBy(entity):
-			blog = frm_interfaces.IPersonalBlog(entity)
-			for topic in blog.values():
+def init(db, entity):
+	if nti_interfaces.IUser.providedBy(entity):
+		blog = frm_interfaces.IPersonalBlog(entity)
+		for topic in blog.values():
+			_record_author(topic)
+			for comment in topic.values():
+				_record_comment(comment)
+	elif nti_interfaces.ICommunity.providedBy(entity):
+		board = frm_interfaces.ICommunityBoard(entity)
+		for forum in board.values():
+			for topic in forum.values():
 				_record_author(topic)
 				for comment in topic.values():
 					_record_comment(comment)
-
-		elif nti_interfaces.ICommunity.providedBy(entity):
-			board = frm_interfaces.ICommunityBoard(entity)
-			for forum in board.values():
-				for topic in forum.values():
-					_record_author(topic)
-					for comment in topic.values():
-						_record_comment(comment)
-
-	result = _record_comment.counter + _record_author.counter
-	return result

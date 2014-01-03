@@ -310,23 +310,10 @@ def update_following(db, entity):
 								 relationships.Follow())
 	return result
 
-# utils
-
-def install(db, usernames=()):
-
-	if not usernames:
-		dataserver = component.getUtility(nti_interfaces.IDataserver)
-		_users = nti_interfaces.IShardLayout(dataserver).users_folder
-		usernames = _users.iterkeys()
-
+def init(db, user):
 	result = 0
-	for username in usernames:
-		user = users.Entity.get_entity(username)
-		if not nti_interfaces.IUser.providedBy(user):
-			continue
-
-		for func in (update_friendships, update_memberships, update_following):
-			rels = func(db, user)
-			result += len(rels)
-
+	for func in (update_friendships, update_memberships, update_following):
+		rels = func(db, user)
+		result += len(rels)
 	return result
+
