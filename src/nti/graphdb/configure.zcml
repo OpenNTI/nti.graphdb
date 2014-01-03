@@ -15,6 +15,12 @@
 			 factory=".views.GraphPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter" />
 			 	
+	<!-- Generations -->
+	
+	<utility factory=".generations.install._GraphDBSchemaManager"
+			 name="nti.dataserver-graphdb"
+			 provides="zope.generations.interfaces.IInstallableSchemaManager"/>
+			 
 	<!-- label adapter -->
 	
 	<adapter for=""
