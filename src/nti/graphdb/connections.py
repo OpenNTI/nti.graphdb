@@ -312,8 +312,8 @@ def update_following(db, entity):
 
 def init(db, user):
 	result = 0
-	for func in (update_friendships, update_memberships, update_following):
-		rels = func(db, user)
-		result += len(rels)
+	if nti_interfaces.IUser.providedBy(user):
+		for func in (update_friendships, update_memberships, update_following):
+			rels = func(db, user)
+			result += len(rels)
 	return result
-

@@ -86,6 +86,7 @@ def _process_like_event(db, username, oid, like=True):
 					lambda success: success and gevent.spawn(_process_event))
 
 def add_rate_relationship(db, username, oid, rating):
+	rating = rating if rating is not None else 0
 	result = _add_relationship(db, username, oid, relationships.Rate(),
 							   properties={"rating":int(rating)})
 	return result
@@ -122,7 +123,7 @@ def _object_rated(modeled, event):
 			_process_like_event(db, username, oid, like)
 		elif event.category == RATING_CAT_NAME:
 			rating = getattr(event, 'rating', None)
-			is_rate = not IObjectUnratedEvent.providedBy()
+			is_rate = not IObjectUnratedEvent.providedBy(event)
 			_process_rate_event(db, username, oid, rating, is_rate)
 
 @component.adapter(frm_interfaces.ITopic, IObjectRatedEvent)
@@ -131,61 +132,64 @@ def _topic_rated(topic, event):
 
 # utils
 
-def install(db, usernames=()):
+from zope.annotation import interfaces as an_interfaces
+from zope.generations.utility import findObjectsMatching
 
-	from zope.annotation import interfaces as an_interfaces
-	from zope.generations.utility import findObjectsProviding
+from contentratings.category import BASE_KEY
+from contentratings.storage import UserRatingStorage
 
-	from contentratings.category import BASE_KEY
-	from contentratings.storage import UserRatingStorage
+def _get_storage(context, cat_name=LIKE_CAT_NAME):
+	key = getattr(UserRatingStorage, 'annotation_key', BASE_KEY)
+	key = str(key + '.' + cat_name)
+	annotations = an_interfaces.IAnnotations(context, {})
+	storage = annotations.get(key)
+	return storage
 
-	dataserver = component.getUtility(nti_interfaces.IDataserver)
-	_users = nti_interfaces.IShardLayout(dataserver).users_folder
-	if not usernames:
-		usernames = _users.iterkeys()
+def _record_likeable(db, obj):
+	storage = _get_storage(obj, LIKE_CAT_NAME)
+	if storage is not None:
+		oid = externalization.to_external_ntiid_oid(obj)
+		for rating in storage.all_user_ratings():
+			username = rating.userid or u''
+			if users.Entity.get_entity(username) is not None:
+				add_like_relationship(db, username, oid)
 
-	def _get_like_storage(context, cat_name=LIKE_CAT_NAME):
-		key = getattr(UserRatingStorage, 'annotation_key', BASE_KEY)
-		key = str(key + '.' + cat_name)
-		annotations = an_interfaces.IAnnotations(context, {})
-		storage = annotations.get(key)
-		return storage
+def _record_ratings(db, obj):
+	storage = _get_storage(obj, RATING_CAT_NAME)
+	if storage is not None:
+		oid = externalization.to_external_ntiid_oid(obj)
+		for rating in storage.all_user_ratings():
+			username = rating.userid or u''
+			if users.Entity.get_entity(username) is not None:
+				add_rate_relationship(db, username, oid, float(rating))
 
-	def _add_like_relationship(db, username, oid):
-		add_like_relationship(db, username, oid)
-		_add_like_relationship.counter += 1
-	_add_like_relationship.counter = 0
+def init(db, entity):
 
-	def _record_likeable(obj):
-		storage = _get_like_storage(obj)
-		if storage is not None:
-			oid = externalization.to_external_ntiid_oid(obj)
-			for rating in storage.all_user_ratings():
-				if rating.userid and rating.userid in _users:
-					_add_like_relationship(db, rating.userid, oid)
+	def condition(x):
+		return  nti_interfaces.ILikeable.providedBy(x) or \
+				nti_interfaces.IModeledContent.providedBy(x)
 
-	for username in usernames:
-		entity = users.Entity.get_entity(username)
-		if nti_interfaces.IUser.providedBy(entity):
+	if nti_interfaces.IUser.providedBy(entity):
+		for obj in findObjectsMatching(entity, condition):
+			_record_ratings(db, obj)
+			if nti_interfaces.ILikeable.providedBy(obj):
+				_record_likeable(db, obj)
 
-			# stored objects
-			for likeable in findObjectsProviding(entity, nti_interfaces.ILikeable):
-				_record_likeable(likeable)
+		blog = frm_interfaces.IPersonalBlog(entity)
+		for topic in blog.values():
+			_record_ratings(db, topic)
+			_record_likeable(db, topic)
+			for comment in topic.values():
+				_record_ratings(db, comment)
+				_record_likeable(db, comment)
 
-			# check blogs
-			blog = frm_interfaces.IPersonalBlog(entity)
-			for topic in blog.values():
-				_record_likeable(topic)
+	elif nti_interfaces.ICommunity.providedBy(entity):
+		board = frm_interfaces.ICommunityBoard(entity)
+		for forum in board.values():
+			for topic in forum.values():
+				_record_ratings(db, topic)
+				_record_likeable(db, topic)
 				for comment in topic.values():
-					_record_likeable(comment)
+					_record_ratings(db, comment)
+					_record_likeable(db, comment)
 
-		elif nti_interfaces.ICommunity.providedBy(entity):
-			board = frm_interfaces.ICommunityBoard(entity)
-			for forum in board.values():
-				for topic in forum.values():
-					_record_likeable(topic)
-					for comment in topic.values():
-						_record_likeable(comment)
-
-	result = _add_like_relationship.counter
-	return result

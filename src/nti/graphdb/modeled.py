@@ -15,9 +15,9 @@ import functools
 import transaction
 
 from zope import component
+from zope.generations.utility import findObjectsProviding
 from zope.lifecycleevent import interfaces as lce_interfaces
 
-from nti.dataserver import users
 from nti.dataserver import interfaces as nti_interfaces
 
 from nti.externalization import externalization
@@ -110,25 +110,12 @@ def _note_added(note, event):
 
 # utils
 
-def install(db, usernames=()):
-
-	from zope.generations.utility import findObjectsProviding
-
-	if not usernames:
-		dataserver = component.getUtility(nti_interfaces.IDataserver)
-		_users = nti_interfaces.IShardLayout(dataserver).users_folder
-		usernames = _users.iterkeys()
-
+def init(db, user):
 	result = 0
-	for username in usernames:
-		user = users.Entity.get_entity(username)
-		if not nti_interfaces.IUser.providedBy(user):
-			continue
-		
+	if nti_interfaces.IUser.providedBy(user):
 		for note in findObjectsProviding(user, nti_interfaces.INote):
 			if note.inReplyTo:
 				oid = to_external_ntiid_oid(note)
 				_add_inReplyTo_relationship(db, oid)
 				result += 1
-
 	return result
