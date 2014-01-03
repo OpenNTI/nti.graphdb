@@ -19,6 +19,8 @@ from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.app.assessment import interfaces as appa_interfaces
 
+from nti.app.products.courseware import interfaces as cw_interfaces
+
 from nti.assessment import interfaces as assessment_interfaces
 
 from nti.dataserver import users
@@ -68,3 +70,24 @@ def _assignment_history_item_added(item, event):
 	db = get_graph_db()
 	if db is not None:
 		process_assignment_taken(db, item)
+
+# utils
+
+def get_course_enrollments(user):
+	container = []
+	for catalog in component.subscribers((user,), cw_interfaces.IPrincipalEnrollmentCatalog):
+		queried = catalog.iter_enrollments()
+		container.extend(queried)
+	container[:] = [cw_interfaces.ICourseInstanceEnrollment(x) for x in container]
+	return container
+
+def init(db, user):
+	if not nti_interfaces.IUser.providedBy(user):
+		return
+	enrollments = get_course_enrollments(user)
+	for enrollment in enrollments:
+		course = enrollment.CourseInstance
+		history = component.getMultiAdapter((course, user),
+											appa_interfaces.IUsersCourseAssignmentHistory)
+		for assignmentId, _ in history.items():
+			add_assignment_taken_relationship(db, user.username, assignmentId)
