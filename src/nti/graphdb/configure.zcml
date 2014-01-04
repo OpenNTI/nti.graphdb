@@ -288,6 +288,10 @@
 	<subscriber handler=".modeled._note_added" />
 	<subscriber handler=".modeled._note_removed" />
 	
+	<subscriber handler=".assessments._question_assessed" />
+	<subscriber handler=".assessments._questionset_assessed" />
+	<subscriber handler=".assessments._assignment_history_item_added" />
+	
 	<include package="." file="meta.zcml" />
 		
 	<configure zcml:condition="have devmode">
