@@ -41,3 +41,5 @@ class UniqueAttribute(object):
         xhash ^= hash(self.key)
         xhash ^= hash(self.value)
         return xhash
+
+PrimaryKey = UniqueAttribute

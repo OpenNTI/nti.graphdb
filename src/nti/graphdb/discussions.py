@@ -26,12 +26,10 @@ from nti.externalization import externalization
 
 from nti.ntiids import ntiids
 
-from . import utils
 from . import get_graph_db
 from . import relationships
+from .utils import PrimaryKey
 from . import interfaces as graph_interfaces
-
-PrimaryKey = utils.UniqueAttribute
 
 def to_external_ntiid_oid(obj):
 	return externalization.to_external_ntiid_oid(obj)
