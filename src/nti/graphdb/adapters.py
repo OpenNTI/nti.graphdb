@@ -18,6 +18,8 @@ from zope import interface
 
 from nti.assessment import interfaces as asm_interfaces
 
+from nti.contentsearch import discriminators
+
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.users import interfaces as user_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
@@ -56,10 +58,8 @@ def _ModeledContentLabelAdpater(modeled):
 
 @component.adapter(nti_interfaces.INote)
 def _NoteLabelAdpater(note):
-	result = set()
-	result.update(getattr(note, 'tags', ()))
-	result.update(getattr(note, 'AutoTags', ()))
-	return ('note',) + tuple([r.lower() for r in result])
+	tags = discriminators.get_tags(note, ())
+	return ('note',) + tuple([r.lower() for r in tags])
 
 @interface.implementer(graph_interfaces.ILabelAdapter)
 def _CommentLabelAdpater(obj):
@@ -69,10 +69,11 @@ def _CommentLabelAdpater(obj):
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(frm_interfaces.ITopic)
 def _TopicLabelAdpater(topic):
-	result = set(topic.tags or ())
-	tags = getattr(getattr(topic, 'headline', None), 'tags', ())
-	result.update(tags or ())
-	return ('topic',) + tuple([r.lower() for r in result])
+	tags = set(discriminators.get_tags(topic, ()))
+	headline = getattr(topic, 'headline', None)
+	if headline is not None:
+		tags.update(discriminators.get_tags(headline, ()))
+	return ('topic',) + tuple([r.lower() for r in tags])
 	
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(asm_interfaces.IQAssessedQuestionSet)
