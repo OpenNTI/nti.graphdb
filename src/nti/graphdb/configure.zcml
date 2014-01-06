@@ -167,6 +167,10 @@
 			 factory=".adapters._FlaggedRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
+	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IThreadable .interfaces.IReply"
+			 factory=".adapters._RepliedRelationshipPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
 	<!-- unique attribute adapter -->
 	
 	<adapter for=""

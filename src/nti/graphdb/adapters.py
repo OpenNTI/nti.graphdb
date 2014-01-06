@@ -172,21 +172,21 @@ def _CommentRelationshipPropertyAdpater(_from, _post, _rel):  # IPersonalBlogCom
 @component.adapter(asm_interfaces.IQAssessedQuestionSet)
 def _QuestionSetPropertyAdpater(obj):
 	result = CaseInsensitiveDict({'type':'QuestionSet'})
-	result['id'] = obj.questionSetId
+	result['oid'] = obj.questionSetId
 	return result
 	
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(asm_interfaces.IQAssessedQuestion)
 def _QuestionPropertyAdpater(obj):
 	result = CaseInsensitiveDict({'type':'Question'})
-	result['id'] = obj.questionId
+	result['oid'] = obj.questionId
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(asm_interfaces.IQAssignment)
 def _AssignmentPropertyAdpater(obj):
 	result = CaseInsensitiveDict({'type':'Assignment'})
-	result['id'] = getattr(obj, 'ntiid', getattr(obj, 'NTIID', None))
+	result['oid'] = getattr(obj, 'ntiid', getattr(obj, 'NTIID', None))
 	return result
 
 def _question_stats(question):
@@ -241,9 +241,15 @@ def _AssignmentRelationshipPropertyAdpater(_from, _asm, _rel):
 	result['created'] = _asm.createdTime
 	return result
 
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CreatedTimePropertyAdpater(_from, _to, _rel):
 	result = CaseInsensitiveDict({'created':time.time()})
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+def _RepliedRelationshipPropertyAdpater(entity, obj, rel_type):
+	result = _CreatedTimePropertyAdpater(entity, obj, rel_type)
+	result['oid'] = externalization.to_external_ntiid_oid(obj)
 	return result
 
 _LikeRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
@@ -305,7 +311,7 @@ class _ModeledContentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 @component.adapter(frm_interfaces.ITopic)
 class _TopicUniqueAttributeAdpater(object):
 
-	key = "ntiid"
+	key = "oid"
 
 	def __init__(self, obj):
 		self.obj = obj
@@ -389,7 +395,7 @@ _AssessedRelationshipUniqueAttributeAdpater = _EndRelationshipUniqueAttributeAdp
 @component.adapter(asm_interfaces.IQAssessedQuestion)
 class _AssignmentUniqueAttributeAdpater(object):
 
-	key = "id"
+	key = "oid"
 
 	def __init__(self, obj):
 		self.obj = obj

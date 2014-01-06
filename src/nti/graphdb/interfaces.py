@@ -93,9 +93,13 @@ class IGraphNode(interface.Interface):
 	id = nti_schema.ValidTextLine(title="node id")
 	uri = nti_schema.ValidTextLine(title="uri identifier", required=False)
 	labels = schema.Tuple(value_type=nti_schema.ValidTextLine(title="label"), required=False)
-	properties = schema.Dict(nti_schema.ValidTextLine(title="key"),
-							 nti_schema.ValidTextLine(title="value"),
-							 required=False)
+	properties = schema.Dict(nti_schema.ValidTextLine(title="The key"),
+							 nti_schema.Variant(
+							 	(nti_schema.Number(title="Number value"),
+							  	 nti_schema.Bool(title='Boolean value'),
+							  	 nti_schema.ValidTextLine(title='String value')), title="The value"),
+							 required=False,
+							 min_length=0)
 
 class IRelationshipType(interface.Interface):
 	"""
