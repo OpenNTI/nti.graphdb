@@ -255,7 +255,9 @@ class Neo4jDB(object):
 			elif obj is not None:
 				adapted = graph_interfaces.IUniqueAttributeAdapter(obj, None)
 				if adapted is not None:
-					result = self.db.get_indexed_node("PKIndex", adapted.key, adapted.value)
+					result = self.db.get_indexed_node("PKIndex",
+													  adapted.key,
+													  adapted.value)
 			self._get_labels_and_properties(result, props)
 		except ClientError, e:
 			if not _is_404(e):
@@ -285,7 +287,8 @@ class Neo4jDB(object):
 		return nodes
 
 	def get_or_create_node(self, obj, raw=False, props=True):
-		result = self.get_node(obj, raw=raw, props=props) or self.create_node(obj, raw=raw, props=props)
+		result = self.get_node(obj, raw=raw, props=props) or \
+				 self.create_node(obj, raw=raw, props=props)
 		return result
 
 	def get_indexed_node(self, key, value, raw=False, props=True):
@@ -373,7 +376,8 @@ class Neo4jDB(object):
 			value = adapted.value if value is None else value
 		return (key, value)
 
-	def _do_create_relationship(self, start, end, rel_type, properties=None, key=None, value=None):
+	def _do_create_relationship(self, start, end, rel_type,
+								properties=None, key=None, value=None):
 		# get neo4j nodes
 		n4j_end = self.get_or_create_node(end, raw=True, props=False)
 		n4j_start = self.get_or_create_node(start, raw=True, props=False)
@@ -397,7 +401,8 @@ class Neo4jDB(object):
 
 	def create_relationship(self, start, end, rel_type, properties=None,
 							key=None, value=None, raw=False):
-		result = self._do_create_relationship(start, end, rel_type, properties, key, value)
+		result = self._do_create_relationship(start, end, rel_type, properties,
+											  key, value)
 		return Neo4jRelationship.create(result) if not raw else result
 
 	def create_relationships(self, *rels):
@@ -459,7 +464,8 @@ class Neo4jDB(object):
 
 	def get_relationship(self, obj, raw=False):
 		result = self._do_get_relationship(obj)
-		return Neo4jRelationship.create(result) if result is not None and not raw else result
+		return 	Neo4jRelationship.create(result) \
+				if result is not None and not raw else result
 
 	relationship = get_relationship
 
@@ -467,7 +473,8 @@ class Neo4jDB(object):
 		result = self.db.get_indexed_relationship("PKIndex", key, value)
 		if result is not None and props:
 			result.get_properties()
-		return Neo4jRelationship.create(result) if result is not None and not raw else result
+		return 	Neo4jRelationship.create(result) \
+				if result is not None and not raw else result
 	
 	def _do_match(self, start_node=None, end_node=None, rel_type=None,
 				  bidirectional=False, limit=None):
@@ -480,7 +487,8 @@ class Neo4jDB(object):
 	def match(self, start=None, end=None, rel_type=None, bidirectional=False,
 			  limit=None, raw=False):
 		result = self._do_match(start, end, rel_type, bidirectional, limit)
-		result = [Neo4jRelationship.create(x) for x in result or ()] if not raw else result
+		result = [Neo4jRelationship.create(x) for x in result or ()] \
+				 if not raw else result
 		return result or ()
 		
 	def delete_relationships(self, *objs):

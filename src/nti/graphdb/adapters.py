@@ -11,7 +11,6 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 import time
-from datetime import datetime
 
 from zope import component
 from zope import interface
@@ -29,10 +28,6 @@ from nti.externalization import externalization
 from nti.utils.maps import CaseInsensitiveDict
 
 from . import interfaces as graph_interfaces
-
-def _to_isoformat(t):
-	d = datetime.fromtimestamp(t)
-	return unicode(d.isoformat())
 
 #### labels
 
@@ -136,7 +131,7 @@ def _DFLPropertyAdpater(dfl):
 def _ModeledContentPropertyAdpater(modeled):
 	result = CaseInsensitiveDict({'type':modeled.__class__.__name__})
 	result['creator'] = modeled.creator.username
-	result['created'] = _to_isoformat(modeled.createdTime)
+	result['created'] = modeled.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(modeled)
 	return result
 
@@ -168,7 +163,7 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(_from, _post, _rel):  # IPersonalBlogComment, IGeneralForumComment
-	result = CaseInsensitiveDict({'created': _to_isoformat(_post.createdTime)})
+	result = CaseInsensitiveDict({'created': _post.createdTime})
 	result['oid'] = externalization.to_external_ntiid_oid(_post)
 	result['topic'] = _post.__parent__.NTIID
 	return result
@@ -211,7 +206,7 @@ def _question_stats(question):
 				   graph_interfaces.ITakeAssessment)
 def _AssessedQuestionRelationshipPropertyAdpater(_from, _question, _rel):
 	result = CaseInsensitiveDict({'taker' : _from.username})
-	result['created'] = _to_isoformat(_question.createdTime)
+	result['created'] = _question.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(_question)
 	is_correct, is_incorrect, partial = _question_stats(_question)
 	result['correct'] = is_correct
@@ -224,7 +219,7 @@ def _AssessedQuestionRelationshipPropertyAdpater(_from, _question, _rel):
 				  graph_interfaces.ITakeAssessment)
 def _AssessedQuestionSetRelationshipPropertyAdpater(_from, _qset, _rel):
 	result = CaseInsensitiveDict({'taker' : _from.username})
-	result['created'] = _to_isoformat(_qset.createdTime)
+	result['created'] = _qset.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(_qset)
 	correct = incorrect = 0
 	questions = _qset.questions
@@ -243,12 +238,12 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(_from, _qset, _rel):
 				   graph_interfaces.ITakeAssessment)
 def _AssignmentRelationshipPropertyAdpater(_from, _asm, _rel):
 	result = CaseInsensitiveDict({'taker' : _from.username})
-	result['created'] = _to_isoformat(_asm.createdTime)
+	result['created'] = _asm.createdTime
 	return result
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 def _CreatedTimePropertyAdpater(_from, _to, _rel):
-	result = CaseInsensitiveDict({'created':_to_isoformat(time.time())})
+	result = CaseInsensitiveDict({'created':time.time()})
 	return result
 
 _LikeRelationshipPropertyAdpater = _CreatedTimePropertyAdpater

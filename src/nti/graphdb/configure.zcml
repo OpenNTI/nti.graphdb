@@ -287,8 +287,8 @@
 	<subscriber handler=".ratings._object_rated" />
 	<subscriber handler=".ratings._topic_rated" />
 	
-	<subscriber handler=".modeled._note_added" />
-	<subscriber handler=".modeled._note_removed" />
+	<subscriber handler=".modeled._threadable_added" />
+	<subscriber handler=".modeled._threadable_removed" />
 	
 	<subscriber handler=".flagging._object_flagged" />
 	<subscriber handler=".flagging._object_unflagged" />
