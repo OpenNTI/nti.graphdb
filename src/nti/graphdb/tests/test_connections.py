@@ -103,6 +103,6 @@ class TestFriendShips(ConfiguringTestBase):
 		user1.addContainedObject(dfl)
 		dfl.addFriend(user2)
 
-		rels = connections.install(self.db)
+		rels = connections.init(self.db, user1)
 		assert_that(rels, is_(8))
 

@@ -9,6 +9,8 @@ __docformat__ = "restructuredtext en"
 
 import uuid
 
+import nti.contentsearch as contentsearch
+
 import nti.dataserver as dataserver
 
 import nti.graphdb as graphdb
@@ -27,7 +29,7 @@ def _random_username(self):
     return username
 
 class ConfiguringTestBase(DSSharedConfiguringTestBase):
-    set_up_packages = (dataserver, graphdb,)
+    set_up_packages = (dataserver, graphdb, contentsearch)
     DEFAULT_URI = DEFAULT_URI
 
     _random_username = _random_username

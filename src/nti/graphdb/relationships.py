@@ -70,6 +70,13 @@ class Rate(_Singleton):
 		return "HAS_RATED"
 	__repr__ = __str__
 
+@interface.implementer(graph_interfaces.IFlagged)
+class Flagged(_Singleton):
+
+	def __str__(self):
+		return "HAS_FLAGGED"
+	__repr__ = __str__
+
 @interface.implementer(graph_interfaces.IReply)
 class Reply(_Singleton):
 

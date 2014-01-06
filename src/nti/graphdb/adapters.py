@@ -254,6 +254,7 @@ def _CreatedTimePropertyAdpater(_from, _to, _rel):
 _LikeRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 _RateRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 _FollowRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
+_FlaggedRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 _AuthorshipRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 
 #### unique attribute
@@ -451,6 +452,12 @@ class _LikeUniqueAttributeAdpater(_UserObjectUniqueAttributeAdpater):
 				   nti_interfaces.IRatable,
 				   graph_interfaces.IRate)
 class _RateUniqueAttributeAdpater(_UserObjectUniqueAttributeAdpater):
+	pass
+
+@component.adapter(nti_interfaces.IEntity,
+				   nti_interfaces.IFlaggable,
+				   graph_interfaces.IFlagged)
+class _FlaggUniqueAttributeAdpater(_UserObjectUniqueAttributeAdpater):
 	pass
 
 @component.adapter(nti_interfaces.IEntity,

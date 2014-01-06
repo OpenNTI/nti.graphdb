@@ -170,6 +170,9 @@ class ILike(IRelationshipType):
 class IRate(IRelationshipType):
 	pass
 
+class IFlagged(IRelationshipType):
+	pass
+
 class IReply(IRelationshipType):
 	pass
 

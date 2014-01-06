@@ -89,7 +89,7 @@ class TestDiscussions(ConfiguringTestBase):
 		oid = discussions.to_external_ntiid_oid(comment)
 		comment_rel_pk = discussions.get_comment_relationship_PK(comment)
 				
-		rel = discussions.add_comment_relationship(self.db, oid, comment_rel_pk)
+		rel = discussions._add_comment_relationship(self.db, oid, comment_rel_pk)
 		assert_that(rel, is_not(none()))
 		assert_that(rel, has_property('properties', has_entry('created', '1969-12-31T18:00:43')))
 		assert_that(rel, has_property('properties', has_entry('oid', is_not(none()))))
@@ -122,6 +122,6 @@ class TestDiscussions(ConfiguringTestBase):
 		comment.createdTime = comment.lastModified = 43
 		mock_dataserver.current_transaction.add(comment)
 
-		rels = discussions.install(self.db)
+		rels = discussions.init(self.db, user)
 		assert_that(rels, is_(2))
 

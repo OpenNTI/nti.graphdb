@@ -55,6 +55,6 @@ class TestRatings(ConfiguringTestBase):
 		note = user.addContainedObject(note)
 		liking.like_object(note, user.username)
 		
-		cnt_rels = ratings.install(self.db)
+		cnt_rels = ratings.init(self.db, user)
 		assert_that(cnt_rels, is_(1))
 
