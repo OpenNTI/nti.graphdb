@@ -35,7 +35,7 @@ from . import get_graph_db
 from . import relationships
 from . import interfaces as graph_interfaces
 
-# question/questionset
+# question/question_set
 
 def _get_creator_in_lineage(obj):
 	result = None
@@ -48,7 +48,8 @@ def _get_creator_in_lineage(obj):
 
 def _get_underlying(obj):
 	if 	assessment_interfaces.IQuestion.providedBy(obj) or \
-		assessment_interfaces.IQuestionSet.providedBy(obj) :
+		assessment_interfaces.IQuestionSet.providedBy(obj) or \
+		assessment_interfaces.IQAssignment.providedBy(obj) :
 		result = obj
 	elif assessment_interfaces.IQAssessedQuestion.providedBy(obj):
 		result = component.getUtility(assessment_interfaces.IQuestion,
@@ -88,26 +89,32 @@ def _add_question_node(db, obj):
 	return (None, None)
 _add_questionset_node = _add_question_node
 
-def _create_question_membership(db, question, questionset):
-	rel_type = relationships.MemberOf()
-	question = _get_underlying(question)
-	questionset = _get_underlying(questionset)
+def _create_slave_master_membership(db, slave, master, rel_type=None):
+	rel_type = rel_type or relationships.MemberOf()
 	adapter = component.getMultiAdapter(
-							(question, questionset, rel_type),
+							(slave, master, rel_type),
 							graph_interfaces.IUniqueAttributeAdapter)
 	if db.get_indexed_relationship(adapter.key, adapter.value) is None:
-		db.create_relationship(question, questionset, rel_type)
-		logger.debug("question-questionset membership relationship created")
+		db.create_relationship(slave, master, rel_type)
 		return True
 	return False
 
-def _process_assessed_questionset(db, oid):
+def _create_question_membership(db, question, question_set):
+	question = _get_underlying(question)
+	question_set = _get_underlying(question_set)
+	return _create_slave_master_membership(db, question, question_set)
+
+def _create_question_set_membership(db, question_set):
+	for question in question_set.questions:
+		_create_slave_master_membership(db, question, question_set)
+
+def _process_assessed_question_set(db, oid):
 	qaset, _ = _add_questionset_node(db, oid)
 	if qaset is not None:
 		# create relationship taker->question-set
 		_add_assessed_relationship(db, qaset)
 		for question in qaset.questions:
-			# create relationship question --> questionset
+			# create relationship question --> question_set
 			_add_question_node(db, question)
 			_create_question_membership(db, question, qaset)
 
@@ -119,14 +126,14 @@ def _process_assessed_question(db, oid):
 def _queue_question_event(db, assessed):
 
 	oid = externalization.to_external_ntiid_oid(assessed)
-	is_questionset = assessment_interfaces.IQAssessedQuestionSet.providedBy(assessed)
+	is_question_set = assessment_interfaces.IQAssessedQuestionSet.providedBy(assessed)
 
 	def _process_event():
 		transaction_runner = \
 				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
 
-		func = _process_assessed_questionset if is_questionset \
-											 else _process_assessed_question
+		func = _process_assessed_question_set if is_question_set \
+											  else _process_assessed_question
 		func = functools.partial(func, db=db, oid=oid)
 		transaction_runner(func)
 
@@ -151,20 +158,24 @@ def _question_assessed(question, event):
 
 def add_assignment_node(db, assignmentId):
 	node = None
-	a = component.queryUtility(assessment_interfaces.IQAssignment, assignmentId)
-	if a is not None:
-		adapted = graph_interfaces.IUniqueAttributeAdapter(a)
+	assignment = component.queryUtility(assessment_interfaces.IQAssignment, assignmentId)
+	if assignment is not None:
+		adapted = graph_interfaces.IUniqueAttributeAdapter(assignment)
 		key, value = adapted.key, adapted.value
 		node = db.get_indexed_node(key, value)
 		if node is None:
-			node = db.create_node(a)
-	return (a, node)
+			node = db.create_node(assignment)
+			for part in assignment.parts:
+				question_set = part.question_set
+				_create_slave_master_membership(db, question_set, assignment)
+				_create_question_set_membership(db, part.question_set)
+	return (assignment, node)
 
 def add_assignment_taken_relationship(db, username, assignmentId):
-	a, _ = add_assignment_node(db, assignmentId)
+	assignment, _ = add_assignment_node(db, assignmentId)
 	user = users.User.get_user(username)
-	if a is not None and user is not None:
-		rel = db.create_relationship(user, a, relationships.TakeAssessment())
+	if assignment is not None and user is not None:
+		rel = db.create_relationship(user, assignment, relationships.TakeAssessment())
 		return rel
 	return None
 
@@ -220,9 +231,9 @@ def init_questions(db, user):
 
 	for assessed in findObjectsMatching(user, condition):
 		oid = externalization.to_external_ntiid_oid(assessed)
-		is_questionset = assessment_interfaces.IQAssessedQuestionSet.providedBy(assessed)
-		func = _process_assessed_questionset if is_questionset \
-											 else _process_assessed_question
+		is_question_set = assessment_interfaces.IQAssessedQuestionSet.providedBy(assessed)
+		func = _process_assessed_question_set if is_question_set \
+											  else _process_assessed_question
 		func(db, oid)
 
 def init(db, user):
