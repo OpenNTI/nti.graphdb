@@ -181,11 +181,11 @@ class _QuestionMembershipUniqueAttributeAdpater(object):
 
 	@property
 	def key(self):
-		return self._from.questionId
+		return get_ntiid(self._from)
 
 	@property
 	def value(self):
-		result = '%s,%s' % (self._rel, self._to.questionSetId)
+		result = '%s,%s' % (self._rel, get_ntiid(self._to))
 		return result
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
