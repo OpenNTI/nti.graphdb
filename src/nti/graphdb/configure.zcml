@@ -249,6 +249,10 @@
 			 factory=".adapters_unique._QuestionMembershipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 	
+	<adapter for="nti.assessment.interfaces.IQuestionSet nti.assessment.interfaces.IQAssignment .interfaces.IMemberOf"
+			 factory=".adapters_unique._AssignmentMembershipUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssignment .interfaces.ITakeAssessment"
 			 factory=".adapters_unique._AssignmentTakenUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />

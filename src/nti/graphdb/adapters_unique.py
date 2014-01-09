@@ -168,11 +168,7 @@ class _AssignmentUniqueAttributeAdpater(object):
 		result = get_ntiid(self.obj)
 		return result
 
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-@component.adapter(asm_interfaces.IQuestion,
-				   asm_interfaces.IQuestionSet,
-				   graph_interfaces.IMemberOf)
-class _QuestionMembershipUniqueAttributeAdpater(object):
+class _NTIIDMembershipUniqueAttributeAdpater(object):
 
 	def __init__(self, _from, _to, _rel):
 		self._to = _to
@@ -187,6 +183,21 @@ class _QuestionMembershipUniqueAttributeAdpater(object):
 	def value(self):
 		result = '%s,%s' % (self._rel, get_ntiid(self._to))
 		return result
+
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(asm_interfaces.IQuestion,
+				   asm_interfaces.IQuestionSet,
+				   graph_interfaces.IMemberOf)
+class _QuestionMembershipUniqueAttributeAdpater(_NTIIDMembershipUniqueAttributeAdpater):
+	pass
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(asm_interfaces.IQuestionSet,
+				   asm_interfaces.IQAssignment,
+				   graph_interfaces.IMemberOf)
+class _AssignmentMembershipUniqueAttributeAdpater(_NTIIDMembershipUniqueAttributeAdpater):
+	pass
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _UserObjectUniqueAttributeAdpater(object):
