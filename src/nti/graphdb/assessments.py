@@ -90,6 +90,8 @@ _add_questionset_node = _add_question_node
 
 def _create_question_membership(db, question, questionset):
 	rel_type = relationships.MemberOf()
+	question = _get_underlying(question)
+	questionset = _get_underlying(questionset)
 	adapter = component.getMultiAdapter(
 							(question, questionset, rel_type),
 							graph_interfaces.IUniqueAttributeAdapter)
