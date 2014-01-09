@@ -37,23 +37,49 @@ from . import interfaces as graph_interfaces
 
 # question/questionset
 
-def add_question_relationship(db, assessed, taker=None):
-	taker = taker or assessed.creator
-	result = db.create_relationship(taker, assessed, relationships.TakeAssessment())
-	logger.debug("take-assessment relationship %s created" % result)
+def _get_underlying(obj):
+	if 	assessment_interfaces.IQuestion.providedBy(obj) or \
+		assessment_interfaces.IQuestionSet.providedBy(obj) :
+		result = obj
+	elif assessment_interfaces.IQAssessedQuestion.providedBy(obj):
+		result = component.getUtility(assessment_interfaces.IQuestion,
+									  name=obj.questionId)
+	elif assessment_interfaces.IQAssessedQuestionSet.providedBy(obj):
+		result = component.getUtility(assessment_interfaces.IQuestionSet,
+									  name=obj.questionSetId)
+	else:
+		result = None # Throw Exception?
 	return result
 
-def add_question_node(db, assessed):
-	obj = assessed if not isinstance(assessed, six.string_types) \
-				   else ntiids.find_object_with_ntiid(assessed)
+def _add_assessed_relationship(db, assessed, taker=None):
+	taker = taker or assessed.creator
+	rel_type = relationships.TakeAssessment()
+	properties = component.getMultiAdapter(
+								(taker, assessed, rel_type),
+								graph_interfaces.IPropertyAdapter)
+	
+	unique = component.getMultiAdapter(
+								(taker, assessed, rel_type),
+								graph_interfaces.IUniqueAttributeAdapter)
+		
+	underlying = _get_underlying(assessed)
+	result = db.create_relationship(taker, underlying, rel_type,
+									properties=properties,
+									key=unique.key, value=unique.value)
+	logger.debug("taker-question[set] relationship %s created" % result)
+	return result
+
+def _add_question_node(db, obj):
+	obj = obj if not isinstance(obj, six.string_types) \
+				  	 else ntiids.find_object_with_ntiid(obj)
 	if obj is not None:
-		node = db.get_or_create_node(assessed)
-		logger.debug("node %s retreived/created" % node)
+		underlying = _get_underlying(obj)
+		node = db.get_or_create_node(underlying)
 		return obj, node
 	return (None, None)
-add_questionset_node = add_question_node
+_add_questionset_node = _add_question_node
 
-def create_question_membership(db, question, questionset):
+def _create_question_membership(db, question, questionset):
 	rel_type = relationships.MemberOf()
 	adapter = component.getMultiAdapter(
 							(question, questionset, rel_type),
@@ -65,21 +91,19 @@ def create_question_membership(db, question, questionset):
 	return False
 
 def _process_assessed_questionset(db, oid):
-	qaset, _ = add_questionset_node(db, oid)
+	qaset, _ = _add_questionset_node(db, oid)
 	if qaset is not None:
 		# create relationship taker->question-set
-		add_question_relationship(db, qaset)
+		_add_assessed_relationship(db, qaset)
 		for question in qaset.questions:
 			# create relationship question --> questionset
-			create_question_membership(db, question, qaset)
-			# create relationship taker->question
-			add_question_node(db, question)
-			add_question_relationship(db, question, qaset.creator)
+			_add_question_node(db, question)
+			_create_question_membership(db, question, qaset)
 
 def _process_assessed_question(db, oid):
-	question, _ = add_question_node(db, oid)
+	question, _ = _add_question_node(db, oid)
 	if question is not None:
-		add_question_relationship(db, question)
+		_add_assessed_relationship(db, question)
 
 def _queue_question_event(db, assessed):
 
@@ -161,7 +185,8 @@ from zope.generations.utility import findObjectsMatching
 
 def get_course_enrollments(user):
 	container = []
-	for catalog in component.subscribers((user,), cw_interfaces.IPrincipalEnrollmentCatalog):
+	subs = component.subscribers((user,), cw_interfaces.IPrincipalEnrollmentCatalog)
+	for catalog in subs:
 		queried = catalog.iter_enrollments()
 		container.extend(queried)
 	container[:] = [cw_interfaces.ICourseInstanceEnrollment(x) for x in container]
@@ -171,8 +196,9 @@ def init_asssignments(db, user):
 	enrollments = get_course_enrollments(user)
 	for enrollment in enrollments:
 		course = enrollment.CourseInstance
-		history = component.getMultiAdapter((course, user),
-											appa_interfaces.IUsersCourseAssignmentHistory)
+		history = component.getMultiAdapter(
+									(course, user),
+									appa_interfaces.IUsersCourseAssignmentHistory)
 		for assignmentId, _ in history.items():
 			add_assignment_taken_relationship(db, user.username, assignmentId)
 

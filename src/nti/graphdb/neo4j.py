@@ -243,6 +243,7 @@ class Neo4jDB(object):
 
 	def _do_get_node(self, obj, props=True):
 		result = None
+		__traceback_info__ = obj, props
 		try:
 			if isinstance(obj, neo4j.Node):
 				result = obj
@@ -258,7 +259,8 @@ class Neo4jDB(object):
 					result = self.db.get_indexed_node("PKIndex",
 													  adapted.key,
 													  adapted.value)
-			self._get_labels_and_properties(result, props)
+			if result is not None:
+				self._get_labels_and_properties(result, props)
 		except ClientError, e:
 			if not _is_404(e):
 				raise e
