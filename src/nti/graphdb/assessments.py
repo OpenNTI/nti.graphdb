@@ -37,6 +37,15 @@ from . import interfaces as graph_interfaces
 
 # question/questionset
 
+def _get_creator_in_lineage(obj):
+	result = None
+	while result is None and obj is not None:
+		result = getattr(obj, 'creator', None)
+		obj = getattr(obj, '__parent__', None)
+		if nti_interfaces.IUser.providedBy(obj) and result is None:
+			result = obj
+	return result
+
 def _get_underlying(obj):
 	if 	assessment_interfaces.IQuestion.providedBy(obj) or \
 		assessment_interfaces.IQuestionSet.providedBy(obj) :
@@ -52,7 +61,7 @@ def _get_underlying(obj):
 	return result
 
 def _add_assessed_relationship(db, assessed, taker=None):
-	taker = taker or assessed.creator
+	taker = taker or _get_creator_in_lineage(assessed)
 	rel_type = relationships.TakeAssessment()
 	properties = component.getMultiAdapter(
 								(taker, assessed, rel_type),
