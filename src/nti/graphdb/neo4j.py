@@ -294,6 +294,7 @@ class Neo4jDB(object):
 		return result
 
 	def get_indexed_node(self, key, value, raw=False, props=True):
+		__traceback_info__ = key, value
 		result = self.db.get_indexed_node("PKIndex", key, value)
 		self._get_labels_and_properties(result, props)
 		return Neo4jNode.create(result) if result is not None and not raw else result
