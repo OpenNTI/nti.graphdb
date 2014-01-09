@@ -178,7 +178,7 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(_from, _qset, _rel):
 				   graph_interfaces.ITakeAssessment)
 def _AssignmentRelationshipPropertyAdpater(_from, _asm, _rel):
 	result = CaseInsensitiveDict({'taker' : _from.username})
-	result['created'] = _asm.createdTime
+	result['created'] = time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
