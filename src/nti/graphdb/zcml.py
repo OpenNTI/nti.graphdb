@@ -27,7 +27,7 @@ class IRegisterGraphDB(interface.Interface):
 	"""
 	The arguments needed for registering an graph db
 	"""
-	name = fields.TextLine(title="db name identifier", required=False, default="")
+	name = fields.TextLine(title="db name identifier (site)", required=False, default="")
 	url = fields.TextLine(title="db url", required=True)
 	dbtype = schema.Choice(title="db type", values=DATABASE_TYPES, default=NEO4J,
 						   required=False)
