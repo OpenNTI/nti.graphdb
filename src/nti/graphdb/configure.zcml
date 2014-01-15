@@ -14,7 +14,16 @@
 			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest"
 			 factory=".views.GraphPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter" />
-			 
+			
+	<!-- generations -->
+	
+	<utility factory=".generations.install._GraphDBSchemaManager"
+			 name="nti.dataserver-graphdb"
+			 provides="zope.generations.interfaces.IInstallableSchemaManager"/>
+			  
+
+	<include package=".async" file="configure.zcml" />
+
 	<!-- label adapter -->
 	
 	<adapter for=""
