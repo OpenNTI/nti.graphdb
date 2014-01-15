@@ -10,10 +10,6 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-import gevent
-import functools
-import transaction
-
 from zope import component
 from zope.lifecycleevent import interfaces as lce_interfaces
 
@@ -24,7 +20,9 @@ from nti.externalization import externalization
 
 from nti.ntiids import ntiids
 
+from . import create_job
 from . import get_graph_db
+from . import get_job_queue
 from . import relationships
 from . import interfaces as graph_interfaces
 
@@ -120,15 +118,9 @@ def _process_friendslist_event(db, obj, event):
 		return # pragma no cover
 
 	username = getattr(obj.creator, 'username', obj.creator)
-	def _process_relationships():
-		logger.info("Updating friendships for %s" % username)
-		transaction_runner = \
-				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-		updater = functools.partial(update_friendships, db=db, entity=username)
-		transaction_runner(updater)
-
-	transaction.get().addAfterCommitHook(
-				lambda success: success and gevent.spawn(_process_relationships))
+	queue = get_job_queue()
+	job = create_job(update_friendships, db=db, entity=username)
+	queue.put(job)
 
 @component.adapter(nti_interfaces.IFriendsList, lce_interfaces.IObjectAddedEvent)
 def _friendslist_added(obj, event):
@@ -197,15 +189,13 @@ def _process_membership_event(db, event):
 	source = source.username
 	target = externalization.to_external_ntiid_oid(target)
 	start_membership = nti_interfaces.IStartDynamicMembershipEvent.providedBy(event)
-	def _process_relationships():
-		transaction_runner = \
-				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-		func = process_start_membership if start_membership else process_stop_membership
-		func = functools.partial(func, db=db, source=source, target=target)
-		transaction_runner(func)
 
-	transaction.get().addAfterCommitHook(
-				lambda success: success and gevent.spawn(_process_relationships))
+	queue = get_job_queue()
+	if start_membership:
+		job = create_job(process_start_membership, db=db, source=source, target=target)
+	else:
+		job = create_job(process_stop_membership, db=db, source=source, target=target)
+	queue.put(job)
 
 @component.adapter(nti_interfaces.IStartDynamicMembershipEvent)
 def _start_dynamic_membership_event(event):
@@ -219,14 +209,14 @@ def _stop_dynamic_membership_event(event):
 	if db is not None:
 		_process_membership_event(db, event)
 
+def _delete_index_relationship(db, keyref):
+	for key, value in keyref.items():
+		db.delete_index_relationship(key, value)
+			
 def _do_membership_deletions(db, keyref):
-
-	def _process_relationships():
-		for key, value in keyref.items():
-			db.delete_index_relationship(key, value)
-
-	transaction.get().addAfterCommitHook(
-			lambda success: success and gevent.spawn(_process_relationships))
+	queue = get_job_queue()
+	job = create_job(_delete_index_relationship, db=db, keyref=keyref)
+	queue.put(job)
 
 @component.adapter(nti_interfaces.IDynamicSharingTargetFriendsList,
 				  lce_interfaces.IObjectRemovedEvent)
@@ -270,15 +260,12 @@ def _process_follow_event(db, event):
 	followed = event.not_following if stop_following else event.now_following
 	followed = getattr(followed, 'username', followed)
 	
-	def _process_relationships():
-		transaction_runner = \
-				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-		func = process_unfollow if stop_following else process_follow
-		func = functools.partial(func, db=db, source=source, followed=followed)
-		transaction_runner(func)
-
-	transaction.get().addAfterCommitHook(
-				lambda success: success and gevent.spawn(_process_relationships))
+	queue = get_job_queue()
+	if stop_following:
+		job = create_job(process_unfollow, db=db, source=source, followed=followed)
+	else:
+		job = create_job(process_follow, db=db, source=source, followed=followed)
+	queue.put(job)
 
 @component.adapter(nti_interfaces.IEntityFollowingEvent)
 def _start_following_event(event):
