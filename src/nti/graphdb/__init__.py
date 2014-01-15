@@ -19,6 +19,9 @@ from pyramid.threadlocal import get_current_request
 
 from . import interfaces as gdb_interfaces
 
+from .async import job as async_job
+from .async import interfaces as async_interfaces
+
 def get_possible_site_names(request=None, include_default=True):
     request = request or get_current_request()
     if not request:
@@ -38,3 +41,12 @@ def get_graph_db(names=None, request=None):
         if app is not None:
             return app
     return None
+
+def get_job_queue():
+    result = component.queryUtility(async_interfaces.IQueue)
+    return result
+
+def create_job(func, *args, **kwargs):
+    all_args = [func] + list(args)
+    result = async_job.Job(*all_args, **kwargs)
+    return result

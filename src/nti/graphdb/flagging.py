@@ -10,10 +10,6 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-import gevent
-import functools
-import transaction
-
 from zope import component
 
 from pyramid.security import authenticated_userid
@@ -26,8 +22,10 @@ from nti.externalization import externalization
 
 from nti.ntiids import ntiids
 
+from . import create_job
 from . import get_graph_db
 from . import relationships
+from . import get_job_queue
 
 def get_current_user():
 	request = get_current_request()
@@ -59,23 +57,16 @@ def remove_flagged_relationship(db, username, oid):
 def _process_flagging_event(flaggable, is_flagged=True):
 	db = get_graph_db()
 	username = get_current_user()
-	if not username or db is None:
-		return
-	oid = externalization.to_external_ntiid_oid(flaggable)
-
-	def _process_event():
-		transaction_runner = \
-				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
+	if username and db is not None:
+		oid = externalization.to_external_ntiid_oid(flaggable)
+		queue = get_job_queue()
 		if is_flagged:
-			func = functools.partial(add_flagged_relationship, db=db, username=username,
-									 oid=oid)
+			job = create_job(add_flagged_relationship, db=db, username=username,
+							 oid=oid)
 		else:
-			func = functools.partial(remove_flagged_relationship, db=db,
-									 username=username, oid=oid)
-		transaction_runner(func)
-
-	transaction.get().addAfterCommitHook(
-					lambda success: success and gevent.spawn(_process_event))
+			job = create_job(remove_flagged_relationship, db=db, username=username,
+							 oid=oid)
+		queue.put(job)
 
 @component.adapter(nti_interfaces.IFlaggable, nti_interfaces.IObjectFlaggedEvent)
 def _object_flagged(flaggable, event):
