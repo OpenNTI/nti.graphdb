@@ -29,8 +29,7 @@ setup(
 	namespace_packages=['nti'],
 	install_requires=[
 		'setuptools',
-        'py2neo',
-        'zc.async'
+        'py2neo'
 	],
 	entry_points=entry_points
 )
