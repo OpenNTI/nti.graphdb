@@ -10,10 +10,6 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-import gevent
-import functools
-import transaction
-
 from zope import component
 from zope.generations.utility import findObjectsProviding
 from zope.lifecycleevent import interfaces as lce_interfaces
@@ -25,9 +21,11 @@ from nti.externalization import externalization
 
 from nti.ntiids import ntiids
 
+from . import utils
+from . import create_job
 from . import get_graph_db
+from . import get_job_queue
 from . import relationships
-from .utils import PrimaryKey
 from . import interfaces as graph_interfaces
 
 def to_external_ntiid_oid(obj):
@@ -37,7 +35,7 @@ def _get_inReplyTo_PK(obj):
 	author = obj.creator
 	adapted = component.getMultiAdapter((author, obj, relationships.Reply()),
 										graph_interfaces.IUniqueAttributeAdapter)
-	return PrimaryKey(adapted.key, adapted.value)
+	return utils.PrimaryKey(adapted.key, adapted.value)
 
 def remove_modeled(db, key, value):
 	node = db.get_indexed_node(key, value)
@@ -55,14 +53,14 @@ def _remove_threadable(db, key, value, irt_PK=None):
 def _proces_threadable_removed(db, threadable):
 	irt_PK = _get_inReplyTo_PK(threadable)
 	adapted = graph_interfaces.IUniqueAttributeAdapter(threadable)
-	func = functools.partial(_remove_threadable, db=db,
-							 # note node locator
-							 key=adapted.key,
-							 value=adapted.value,
-							 # inReplyTo rel locator
-							 irt_PK=irt_PK)
-	transaction.get().addAfterCommitHook(
-					lambda success: success and gevent.spawn(func))
+	queue = get_job_queue()
+	job = create_job(_remove_threadable, db=db,
+					 # note node locator
+					 key=adapted.key,
+					 value=adapted.value,
+					 # inReplyTo rel locator
+					 irt_PK=irt_PK)
+	queue.put(job)
 
 @component.adapter(nti_interfaces.IThreadable, lce_interfaces.IObjectRemovedEvent)
 def _threadable_removed(threadable, event):
@@ -91,14 +89,9 @@ def _add_inReplyTo_relationship(db, oid):
 
 def _process_threadable_inReplyTo(db, threadable):
 	oid = to_external_ntiid_oid(threadable)
-	def _process_event():
-		transaction_runner = \
-				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-		func = functools.partial(_add_inReplyTo_relationship, db=db, oid=oid)
-		transaction_runner(func)
-
-	transaction.get().addAfterCommitHook(
-						lambda success: success and gevent.spawn(_process_event))
+	queue = get_job_queue()
+	job = create_job(_add_inReplyTo_relationship, db=db, oid=oid)
+	queue.put(job)
 
 @component.adapter(nti_interfaces.IThreadable, lce_interfaces.IObjectAddedEvent)
 def _threadable_added(threadable, event):

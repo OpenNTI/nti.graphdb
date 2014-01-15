@@ -24,8 +24,8 @@ from nti.ntiids import ntiids
 
 from . import create_job
 from . import get_graph_db
-from . import relationships
 from . import get_job_queue
+from . import relationships
 
 def get_current_user():
 	request = get_current_request()

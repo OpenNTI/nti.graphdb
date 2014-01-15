@@ -10,10 +10,6 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-import gevent
-import functools
-import transaction
-
 from zope import component
 from zope.lifecycleevent import interfaces as lce_interfaces
 
@@ -26,9 +22,11 @@ from nti.externalization import externalization
 
 from nti.ntiids import ntiids
 
+from . import utils
+from . import create_job
 from . import get_graph_db
+from . import get_job_queue
 from . import relationships
-from .utils import PrimaryKey
 from . import interfaces as graph_interfaces
 
 def to_external_ntiid_oid(obj):
@@ -36,7 +34,7 @@ def to_external_ntiid_oid(obj):
 
 def get_primary_key(obj):
 	adapted = graph_interfaces.IUniqueAttributeAdapter(obj)
-	return PrimaryKey(adapted.key, adapted.value)
+	return utils.PrimaryKey(adapted.key, adapted.value)
 
 # topics
 
@@ -82,20 +80,14 @@ def _process_topic_add_mod_event(db, topic, event):
 	adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
 	key, value = adapted.key, adapted.value
 
-	def _process_event():
-		transaction_runner = \
-			component.getUtility(nti_interfaces.IDataserverTransactionRunner)
+	if event == graph_interfaces.ADD_EVENT:
+		func = add_topic_node
+	else:
+		func = modify_topic_node
 
-		if event == graph_interfaces.ADD_EVENT:
-			func = add_topic_node
-		else:
-			func = modify_topic_node
-
-		func = functools.partial(func, db=db, oid=oid, key=key, value=value)
-		transaction_runner(func)
-
-	transaction.get().addAfterCommitHook(
-					lambda success: success and gevent.spawn(_process_event))
+	queue = get_job_queue()
+	job = create_job(func, db=db, oid=oid, key=key, value=value)
+	queue.put(job)
 
 @component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectAddedEvent)
 def _topic_added(topic, event):
@@ -109,14 +101,15 @@ def _topic_modified(topic, event):
 	if db is not None:
 		_process_topic_add_mod_event(db, topic, graph_interfaces.MODIFY_EVENT)
 
+def _delete_nodes(db, *args):
+	result = db.delete_nodes(*args)
+	logger.debug("%s node(s) deleted", result)
+
 def _process_topic_remove_event(db, primary_keys=()):
-
-	def _process_event():
-		result = db.delete_nodes(*primary_keys)
-		logger.debug("%s node(s) deleted", result)
-
-	transaction.get().addAfterCommitHook(
-			lambda success: success and gevent.spawn(_process_event))
+	if primary_keys:
+		queue = get_job_queue()
+		job = create_job(_delete_nodes, db=db, *primary_keys)
+		queue.put(job)
 	
 @component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectRemovedEvent)
 def _topic_removed(topic, event):
@@ -135,7 +128,7 @@ def get_comment_relationship_PK(comment):
 	adapted = component.getMultiAdapter(
 							(author, comment, rel_type),
 							graph_interfaces.IUniqueAttributeAdapter)
-	return PrimaryKey(adapted.key, adapted.value)
+	return utils.PrimaryKey(adapted.key, adapted.value)
 
 def _add_comment_relationship(db, oid, comment_rel_pk):
 	result = None
@@ -172,26 +165,14 @@ def _process_comment_event(db, comment, event):
 	comment_pk = get_primary_key(comment)
 	comment_rel_pk = get_comment_relationship_PK(comment)
 
-	def _process_event():
-		transaction_runner = \
-				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-
-		if event == graph_interfaces.ADD_EVENT:
-			func = functools.partial(_add_comment_relationship, db=db,
-									 oid=oid,
-									 comment_rel_pk=comment_rel_pk)
-		elif event == graph_interfaces.REMOVE_EVENT:
-			func = functools.partial(_delete_comment, db=db,
-									 comment_pk=comment_pk,
-									 comment_rel_pk=comment_rel_pk)
-		else:
-			func = None
-
-		if func is not None:
-			transaction_runner(func)
-
-	transaction.get().addAfterCommitHook(
-				lambda success: success and gevent.spawn(_process_event))
+	queue = get_job_queue()
+	if event == graph_interfaces.ADD_EVENT:
+		job = create_job(_add_comment_relationship, db=db, oid=oid,
+						 comment_rel_pk=comment_rel_pk)
+	else:
+		job = create_job(_delete_comment, db=db, comment_pk=comment_pk,
+						 comment_rel_pk=comment_rel_pk)
+	queue.put(job)
 
 @component.adapter(frm_interfaces.IPersonalBlogComment, lce_interfaces.IObjectAddedEvent)
 def _add_personal_blog_comment(comment, event):

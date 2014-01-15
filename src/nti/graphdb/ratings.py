@@ -10,10 +10,6 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-import gevent
-import functools
-import transaction
-
 from zope import component
 
 from pyramid.security import authenticated_userid
@@ -30,7 +26,9 @@ from nti.externalization import externalization
 
 from nti.ntiids import ntiids
 
+from . import create_job
 from . import get_graph_db
+from . import get_job_queue
 from . import relationships
 
 LIKE_CAT_NAME = 'likes'
@@ -70,20 +68,12 @@ def remove_like_relationship(db, username, oid):
 	return result
 
 def _process_like_event(db, username, oid, like=True):
-
-	def _process_event():
-		transaction_runner = \
-				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-		if like:
-			func = functools.partial(add_like_relationship, db=db, username=username,
-									 oid=oid)
-		else:
-			func = functools.partial(remove_like_relationship, db=db, username=username,
-									 oid=oid)
-		transaction_runner(func)
-
-	transaction.get().addAfterCommitHook(
-					lambda success: success and gevent.spawn(_process_event))
+	queue = get_job_queue()
+	if like:
+		job = create_job(add_like_relationship, db=db, username=username, oid=oid)
+	else:
+		job = create_job(remove_like_relationship, db=db, username=username, oid=oid)
+	queue.put(job)
 
 def add_rate_relationship(db, username, oid, rating):
 	rating = rating if rating is not None else 0
@@ -96,21 +86,13 @@ def remove_rate_relationship(db, username, oid):
 	return result
 
 def _process_rate_event(db, username, oid, rating=None, is_rate=True):
-
-	def _process_event():
-		transaction_runner = \
-				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-		if is_rate:
-			func = functools.partial(add_rate_relationship, db=db, username=username,
-									 oid=oid, rating=rating)
-		else:
-			func = functools.partial(remove_rate_relationship, db=db, username=username,
-									 oid=oid)
-		transaction_runner(func)
-
-	transaction.get().addAfterCommitHook(
-					lambda success: success and gevent.spawn(_process_event))
-
+	queue = get_job_queue()
+	if is_rate:
+		job = create_job(add_rate_relationship, db=db, username=username,
+						 oid=oid, rating=rating)
+	else:
+		job = create_job(remove_rate_relationship, db=db, username=username, oid=oid)
+	queue.put(job)
 
 @component.adapter(nti_interfaces.IModeledContent, IObjectRatedEvent)
 def _object_rated(modeled, event):
