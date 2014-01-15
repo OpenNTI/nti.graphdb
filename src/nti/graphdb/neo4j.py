@@ -18,6 +18,8 @@ import collections
 from zope import component
 from zope import interface
 
+from persistent import Persistent
+
 from py2neo import neo4j
 from py2neo import rel as rel4j
 from py2neo import node as node4j
@@ -125,7 +127,7 @@ class Neo4jRelationship(SchemaConfigured):
 		return result
 
 @interface.implementer(graph_interfaces.IGraphDB)
-class Neo4jDB(object):
+class Neo4jDB(Persistent):
 
 	_v_db__ = None
 	password = None
