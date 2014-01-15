@@ -127,7 +127,7 @@ class Neo4jRelationship(SchemaConfigured):
 @interface.implementer(graph_interfaces.IGraphDB)
 class Neo4jDB(object):
 
-	__db__ = None
+	_v_db__ = None
 	password = None
 	username = None
 
@@ -137,6 +137,23 @@ class Neo4jDB(object):
 			self.username = username
 		if password:
 			self.password = password
+
+	def __str__(self):
+		return self.url
+
+	def __repr__(self):
+		return "%s(%s,%s)" % (self.__class__.__name__, self.url, self.username)
+
+	def __eq__(self, other):
+		try:
+			return self is other or (self.url == other.url)
+		except AttributeError:
+			return NotImplemented
+
+	def __hash__(self):
+		xhash = 47
+		xhash ^= hash(self.url)
+		return xhash
 
 	@classmethod
 	def authenticate(cls, url, username, password):
@@ -160,14 +177,14 @@ class Neo4jDB(object):
 
 	@property
 	def db(self):
-		if self.__db__ is None:
+		if self._v_db__ is None:
 			if self.username and self.password:
 				self.authenticate(self.url, self.username, self.password)
-			self.__db__ = neo4j.GraphDatabaseService(self.url)
-		return self.__db__
+			self._v_db__ = neo4j.GraphDatabaseService(self.url)
+		return self._v_db__
 
 	def _reinit(self):
-		self.__db__ = None
+		self._v_db__ = None
 
 	def _safe_index_remove(self, index, entity):
 		try:
