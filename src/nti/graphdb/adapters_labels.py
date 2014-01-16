@@ -35,6 +35,11 @@ def _EntityLabelAdpater(entity):
 	return (entity.__class__.__name__.lower(),)
 
 @interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(nti_interfaces.IUser)
+def _UserLabelAdpater(entity):
+	return ('user',)
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(nti_interfaces.IDynamicSharingTargetFriendsList)
 def _DFLLabelAdpater(obj):
 	return ('dfl',)
