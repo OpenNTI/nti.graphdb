@@ -11,6 +11,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 import six
+import logging
 
 from zope import component
 from zope.component.interfaces import ComponentLookupError
@@ -50,3 +51,12 @@ def create_job(func, *args, **kwargs):
     all_args = [func] + list(args)
     result = async_job.Job(*all_args, **kwargs)
     return result
+
+try:
+    package = 'py2neo.packages.httpstream.http'
+    __import__(package)
+    py2neo_logger = logging.getLogger(package)
+    py2neo_logger.setLevel(logging.ERROR)
+except ImportError:
+    logger.error("could not setup logging level for py2neo")
+
