@@ -107,5 +107,5 @@ class TestFriendShips(ConfiguringTestBase):
 		dfl.addFriend(user2)
 
 		rels = connections.init(self.db, user1)
-		assert_that(rels, is_(8))
+		assert_that(rels, is_(4))
 
