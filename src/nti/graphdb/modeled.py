@@ -107,7 +107,9 @@ def init(db, entity):
 		if nti_interfaces.IThreadable.providedBy(obj) and obj.inReplyTo:
 			oid = to_external_ntiid_oid(obj)
 			_add_inReplyTo_relationship(db, oid)
-			
+			_add_threadable_rel.count += 1
+	_add_threadable_rel.count = 0
+
 	if nti_interfaces.IUser.providedBy(entity):
 		for obj in findObjectsProviding(entity, nti_interfaces.IThreadable):
 			_add_threadable_rel(obj)
@@ -123,3 +125,6 @@ def init(db, entity):
 			for topic in forum.values():
 				for comment in topic.values():
 					_add_threadable_rel(comment)
+
+	return _add_threadable_rel.count
+

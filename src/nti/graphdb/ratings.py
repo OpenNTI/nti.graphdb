@@ -128,50 +128,57 @@ def _get_storage(context, cat_name):
 	return storage
 
 def _record_likeable(db, obj):
+	result = 0
 	storage = _get_storage(obj, LIKE_CAT_NAME)
 	if storage is not None:
 		oid = externalization.to_external_ntiid_oid(obj)
 		for rating in storage.all_user_ratings():
 			username = rating.userid or u''
-			if users.Entity.get_entity(username) is not None:
-				add_like_relationship(db, username, oid)
+			if 	users.Entity.get_entity(username) is not None and \
+				add_like_relationship(db, username, oid) is not None:
+				result += 1
+	return result
 
 def _record_ratings(db, obj):
+	result = 0
 	storage = _get_storage(obj, RATING_CAT_NAME)
 	if storage is not None:
 		oid = externalization.to_external_ntiid_oid(obj)
 		for rating in storage.all_user_ratings():
 			username = rating.userid or u''
-			if users.Entity.get_entity(username) is not None:
-				add_rate_relationship(db, username, oid, float(rating))
+			if 	users.Entity.get_entity(username) is not None and \
+				add_rate_relationship(db, username, oid, float(rating)):
+				result += 1
+	return result
 
 def init(db, entity):
-
 	def condition(x):
 		return  nti_interfaces.ILikeable.providedBy(x) or \
 				nti_interfaces.IModeledContent.providedBy(x)
 
+	result = 0
 	if nti_interfaces.IUser.providedBy(entity):
 		for obj in findObjectsMatching(entity, condition):
-			_record_ratings(db, obj)
+			result += _record_ratings(db, obj)
 			if nti_interfaces.ILikeable.providedBy(obj):
-				_record_likeable(db, obj)
+				result += _record_likeable(db, obj)
 
 		blog = frm_interfaces.IPersonalBlog(entity)
 		for topic in blog.values():
-			_record_ratings(db, topic)
-			_record_likeable(db, topic)
+			result += _record_ratings(db, topic)
+			result += _record_likeable(db, topic)
 			for comment in topic.values():
-				_record_ratings(db, comment)
-				_record_likeable(db, comment)
+				result += _record_ratings(db, comment)
+				result += _record_likeable(db, comment)
 
 	elif nti_interfaces.ICommunity.providedBy(entity):
 		board = frm_interfaces.ICommunityBoard(entity)
 		for forum in board.values():
 			for topic in forum.values():
-				_record_ratings(db, topic)
-				_record_likeable(db, topic)
+				result += _record_ratings(db, topic)
+				result += _record_likeable(db, topic)
 				for comment in topic.values():
-					_record_ratings(db, comment)
-					_record_likeable(db, comment)
+					result += _record_ratings(db, comment)
+					result += _record_likeable(db, comment)
 
+	return result

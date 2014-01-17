@@ -203,24 +203,33 @@ def _modify_general_forum_comment(comment, event):
 def _record_author(db, topic):
 	oid = to_external_ntiid_oid(topic)
 	adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
-	add_topic_node(db, oid, adapted.key, adapted.value)
+	result, _ = add_topic_node(db, oid, adapted.key, adapted.value)
+	return result
 
 def _record_comment(db, comment):
 	oid = to_external_ntiid_oid(comment)
 	comment_rel_pk = get_comment_relationship_PK(comment)
-	_add_comment_relationship(db, oid, comment_rel_pk)
+	result = _add_comment_relationship(db, oid, comment_rel_pk)
+	return result
 
 def init(db, entity):
+	result = 0
 	if nti_interfaces.IUser.providedBy(entity):
 		blog = frm_interfaces.IPersonalBlog(entity)
 		for topic in blog.values():
-			_record_author(topic)
+			if _record_author(db, topic) is not None:
+				result += 1
 			for comment in topic.values():
-				_record_comment(comment)
+				if _record_comment(db, comment) is not None:
+					result += 1
 	elif nti_interfaces.ICommunity.providedBy(entity):
 		board = frm_interfaces.ICommunityBoard(entity)
 		for forum in board.values():
 			for topic in forum.values():
-				_record_author(topic)
+				if _record_author(db, topic) is not None:
+					result += 1
 				for comment in topic.values():
-					_record_comment(comment)
+					if _record_comment(db, comment) is not None:
+						result += 1
+	return result
+

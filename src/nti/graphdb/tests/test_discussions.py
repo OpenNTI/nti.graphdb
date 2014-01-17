@@ -97,7 +97,7 @@ class TestDiscussions(ConfiguringTestBase):
 				
 		rel = discussions._add_comment_relationship(self.db, oid, comment_rel_pk)
 		assert_that(rel, is_not(none()))
-		assert_that(rel, has_property('properties', has_entry('created', '1969-12-31T18:00:43')))
+		assert_that(rel, has_property('properties', has_entry('created', 43)))
 		assert_that(rel, has_property('properties', has_entry('oid', is_not(none()))))
 
 		node = self.db.get_indexed_node("username", user.username)
@@ -130,4 +130,3 @@ class TestDiscussions(ConfiguringTestBase):
 
 		rels = discussions.init(self.db, user)
 		assert_that(rels, is_(2))
-
