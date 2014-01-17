@@ -32,7 +32,7 @@ class Neo4jQueryProvider(object):
 			query.append("WHERE n <> x")
 			query.append("AND NOT n-[:%s]->x" % rel_type)
 			query.append("WITH x, n")
-			query.append("MATCH pmfs=x-[?:%s]->mf<-[?:%s]-n" % (rel_type, rel_type))
+			query.append("OPTIONAL MATCH pmfs=x-[:%s]->mf<-[:%s]-n" % (rel_type, rel_type))
 			query.append("RETURN x.username as username, COUNT(DISTINCT pmfs) as mfs")
 			query.append("ORDER BY mfs DESC, username")
 			if limit:
