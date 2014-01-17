@@ -24,7 +24,7 @@ from py2neo import node as node4j
 from py2neo.exceptions import ClientError
 
 from .node import Neo4jNode
-from .. import provider_neo4j
+from .provider import Neo4jQueryProvider
 from .relationship import Neo4jRelationship
 from .. import interfaces as graph_interfaces
 
@@ -88,7 +88,7 @@ class Neo4jDB(Persistent):
 
 	@property
 	def provider(self):
-		return provider_neo4j.Neo4jQueryProvider(self)
+		return Neo4jQueryProvider(self)
 
 	@property
 	def db(self):

@@ -25,7 +25,7 @@ from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
 from nti.graphdb.tests import ConfiguringTestBase
 
-class TestNeo4j(ConfiguringTestBase):
+class TestNeo4jDB(ConfiguringTestBase):
 
 	@classmethod
 	def setUpClass(cls):

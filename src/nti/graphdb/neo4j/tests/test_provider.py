@@ -16,7 +16,7 @@ from nti.dataserver.users import FriendsList
 
 from nti.graphdb import relationships
 from nti.graphdb.neo4j import database
-from nti.graphdb import provider_neo4j as provider
+from nti.graphdb.neo4j import provider as provider
 
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 

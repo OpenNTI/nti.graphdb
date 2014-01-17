@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*
 """
-Neo4J graphdb query provider
-
 $Id$
 """
 from __future__ import print_function, unicode_literals, absolute_import, division
@@ -12,8 +10,8 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
-from . import relationships
-from . import interfaces as graph_interfaces
+from .. import relationships
+from .. import interfaces as graph_interfaces
 
 @interface.implementer(graph_interfaces.IGraphQueryProvider)
 class Neo4jQueryProvider(object):
