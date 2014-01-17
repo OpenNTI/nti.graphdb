@@ -11,9 +11,6 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 import six
-import gevent
-import functools
-import transaction
 
 from zope import component
 from zope.lifecycleevent import interfaces as lce_interfaces
@@ -31,7 +28,9 @@ from nti.externalization import externalization
 
 from nti.ntiids import ntiids
 
+from . import create_job
 from . import get_graph_db
+from . import get_job_queue
 from . import relationships
 from . import interfaces as graph_interfaces
 
@@ -102,7 +101,8 @@ def _create_slave_master_membership(db, slave, master, rel_type=None):
 def _create_question_membership(db, question, question_set):
 	question = _get_underlying(question)
 	question_set = _get_underlying(question_set)
-	return _create_slave_master_membership(db, question, question_set)
+	if question is not None and question_set is not None:
+		return _create_slave_master_membership(db, question, question_set)
 
 def _create_question_set_membership(db, question_set):
 	for question in question_set.questions:
@@ -124,21 +124,14 @@ def _process_assessed_question(db, oid):
 		_add_assessed_relationship(db, question)
 
 def _queue_question_event(db, assessed):
-
 	oid = externalization.to_external_ntiid_oid(assessed)
 	is_question_set = assessment_interfaces.IQAssessedQuestionSet.providedBy(assessed)
-
-	def _process_event():
-		transaction_runner = \
-				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-
-		func = _process_assessed_question_set if is_question_set \
-											  else _process_assessed_question
-		func = functools.partial(func, db=db, oid=oid)
-		transaction_runner(func)
-
-	transaction.get().addAfterCommitHook(
-					lambda success: success and gevent.spawn(_process_event))
+	queue = get_job_queue()
+	if is_question_set:
+		job = create_job(_process_assessed_question_set, db=db, oid=oid)
+	else:
+		job = create_job(_process_assessed_question, db=db, oid=oid)
+	queue.put(job)
 
 @component.adapter(assessment_interfaces.IQAssessedQuestionSet,
 				   lce_interfaces.IObjectAddedEvent)
@@ -182,17 +175,11 @@ def add_assignment_taken_relationship(db, username, assignmentId):
 def process_assignment_taken(db, item):
 	assignmentId = item.__name__  # by definition
 	username = nti_interfaces.IUser(item).username
-	def _process_event():
-		transaction_runner = \
-				component.getUtility(nti_interfaces.IDataserverTransactionRunner)
-
-		func = functools.partial(add_assignment_taken_relationship, db=db,
-								 username=username,
-								 assignmentId=assignmentId)
-		transaction_runner(func)
-
-	transaction.get().addAfterCommitHook(
-				lambda success: success and gevent.spawn(_process_event))
+	queue = get_job_queue()
+	job = create_job(add_assignment_taken_relationship, db=db,
+					 username=username,
+					 assignmentId=assignmentId)
+	queue.put(job)
 
 @component.adapter(appa_interfaces.IUsersCourseAssignmentHistoryItem,
 				   lce_interfaces.IObjectAddedEvent)

@@ -529,7 +529,11 @@ class Neo4jDB(Persistent):
 	delete_relationship = delete_relationships
 
 	def delete_indexed_relationship(self, key, value):
-		rel = self.db.get_indexed_relationship("PKIndex", key, value)
+		try:
+			rel = self.db.get_indexed_relationship("PKIndex", key, value)
+		except ClientError:
+			rel = None
+
 		if rel is not None:
 			wb = neo4j.WriteBatch(self.db)
 			wb.remove_from_index(neo4j.Relationship, "PKIndex", entity=rel)
