@@ -12,12 +12,10 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
-from persistent import Persistent
-
 from .. import interfaces as graph_interfaces
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-class UniqueAttribute(Persistent):
+class UniqueAttribute(object):
 
     def __init__(self, key, value):
         self.key = key

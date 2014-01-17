@@ -16,8 +16,6 @@ import collections
 from zope import component
 from zope import interface
 
-from persistent import Persistent
-
 from py2neo import neo4j
 from py2neo import rel as rel4j
 from py2neo import node as node4j
@@ -40,7 +38,7 @@ def _is_404(ex):
 _marker = object()
 
 @interface.implementer(graph_interfaces.IGraphDB)
-class Neo4jDB(Persistent):
+class Neo4jDB(object):
 
 	_v_db__ = None
 	password = None
@@ -83,7 +81,7 @@ class Neo4jDB(Persistent):
 		graphdb.clear()
 		graphdb.get_or_create_index(neo4j.Node, "PKIndex")
 		graphdb.get_or_create_index(neo4j.Relationship, "PKIndex")
-		result = Neo4jDB(url, username=username, password=password)
+		result = cls(url, username=username, password=password)
 		return result
 
 	@property
@@ -467,3 +465,4 @@ class Neo4jDB(Persistent):
 	def execute(self, query, **params):
 		result = neo4j.CypherQuery(self.db, query).execute(**params)
 		return result
+
