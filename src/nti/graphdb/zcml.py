@@ -17,7 +17,7 @@ from zope import interface
 from zope.configuration import fields
 from zope.component.zcml import utility
 
-from . import neo4j
+from .neo4j import Neo4jDB
 from . import interfaces as graph_interfaces
 
 NEO4J = graph_interfaces.NEO4J
@@ -38,6 +38,5 @@ def registerGraphDB(_context, url, username=None, password=None, name=u""):
 	"""
 	Register an db
 	"""
-	factory = functools.partial(neo4j.Neo4jDB, url=url,
-								username=username, password=password)
+	factory = functools.partial(Neo4jDB, url=url, username=username, password=password)
 	utility(_context, provides=graph_interfaces.IGraphDB, factory=factory, name=name)

@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*
 """
-Neo4J graphdb
-
 $Id$
 """
 from __future__ import print_function, unicode_literals, absolute_import, division
@@ -25,16 +23,14 @@ from py2neo import rel as rel4j
 from py2neo import node as node4j
 from py2neo.exceptions import ClientError
 
-from nti.utils.schema import SchemaConfigured
-from nti.utils.schema import createDirectFieldProperties
-
-from . import provider_neo4j
-from . import interfaces as graph_interfaces
+from .node import Neo4jNode
+from .. import provider_neo4j
+from .relationship import Neo4jRelationship
+from .. import interfaces as graph_interfaces
 
 def _isolate(self, node):
 	query = "START a=node(%s) MATCH a-[r]-b DELETE r" % node._id
 	self.append_cypher(query, {})
-
 neo4j.WriteBatch.isolate = _isolate
 
 def _is_404(ex):
@@ -42,89 +38,6 @@ def _is_404(ex):
 	return getattr(cause, 'status_code', None) == 404
 
 _marker = object()
-
-@interface.implementer(graph_interfaces.IGraphNode)
-class Neo4jNode(SchemaConfigured):
-	createDirectFieldProperties(graph_interfaces.IGraphNode)
-
-	_neo = None
-
-	def __str__(self):
-		return self.id
-
-	def __repr__(self):
-		return "%s(%s,%s)" % (self.__class__.__name__, self.id, self.properties)
-
-	def __eq__(self, other):
-		try:
-			return self is other or (self.id == other.id)
-		except AttributeError:
-			return NotImplemented
-
-	def __hash__(self):
-		xhash = 47
-		xhash ^= hash(self.id)
-		return xhash
-
-	@classmethod
-	def create(cls, node):
-		if isinstance(node, Neo4jNode):
-			result = node
-		elif graph_interfaces.IGraphNode.providedBy(node):
-			result = Neo4jNode(id=node.id, uri=node.uri,
-							   labels=tuple(node.labels),
-							   properties=dict(node.properties))
-		elif node is not None:
-			result = Neo4jNode(id=unicode(node._id), uri=unicode(node.__uri__))
-			result.labels = tuple(getattr(node, '_labels', ()))
-			result.properties = dict(node._properties)
-			result._neo = node
-		else:
-			result = None
-		return result
-
-@interface.implementer(graph_interfaces.IGraphRelationship)
-class Neo4jRelationship(SchemaConfigured):
-	createDirectFieldProperties(graph_interfaces.IGraphRelationship)
-
-	_neo = None
-
-	def __str__(self):
-		return self.id
-
-	def __repr__(self):
-		return "%s(%s,%s)" % (self.__class__.__name__, self.id, self.properties)
-
-	def __eq__(self, other):
-		try:
-			return self is other or (self.id == other.id)
-		except AttributeError:
-			return NotImplemented
-
-	def __hash__(self):
-		xhash = 47
-		xhash ^= hash(self.id)
-		return xhash
-
-	@classmethod
-	def create(cls, rel):
-		if isinstance(rel, Neo4jRelationship):
-			result = rel
-		elif graph_interfaces.IGraphRelationship.providedBy(rel):
-			result = Neo4jRelationship(id=rel.id, uri=rel.uri, type=rel.type,
-									   start=rel.start, end=rel.end,
-									   properties=dict(rel.properties))
-		elif rel is not None:
-			result = Neo4jRelationship(id=unicode(rel._id),
-									   uri=unicode(rel.__uri__),
-									   type=rel.type,
-									   start=Neo4jNode.create(rel.start_node),
-									   end=Neo4jNode.create(rel.end_node),
-									   properties=dict(rel._properties))
-			result._neo = rel
-		else:
-			result = None
-		return result
 
 @interface.implementer(graph_interfaces.IGraphDB)
 class Neo4jDB(Persistent):

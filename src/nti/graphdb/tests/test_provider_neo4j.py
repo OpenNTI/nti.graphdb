@@ -7,26 +7,28 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
+from hamcrest import is_
+from hamcrest import has_length
+from hamcrest import assert_that
+
 from nti.dataserver.users import User
 from nti.dataserver.users import FriendsList
 
-from nti.graphdb import neo4j
 from nti.graphdb import relationships
+from nti.graphdb.neo4j import database
 from nti.graphdb import provider_neo4j as provider
 
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
 from nti.graphdb.tests import ConfiguringTestBase
 
-from hamcrest import (assert_that, has_length, is_)
-
 class TestNeo4jProvider(ConfiguringTestBase):
 
     @classmethod
     def setUpClass(cls):
         super(ConfiguringTestBase, cls).setUpClass()
-        # cls.db = neo4j.Neo4jDB.create_db(cls.DEFAULT_URI)
-        cls.db = neo4j.Neo4jDB(cls.DEFAULT_URI)
+        # cls.db = database.Neo4jDB.create_db(cls.DEFAULT_URI)
+        cls.db = database.Neo4jDB(cls.DEFAULT_URI)
         cls.provider = provider.Neo4jQueryProvider(cls.db)
 
     def _create_user(self, username='nt@nti.com', password='temp001', **kwargs):

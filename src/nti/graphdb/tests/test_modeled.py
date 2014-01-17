@@ -7,14 +7,17 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
+from hamcrest import is_
+from hamcrest import assert_that
+
 from nti.contentfragments.interfaces import IPlainTextContentFragment
 
 from nti.dataserver.users import User
 
 from nti.dataserver.contenttypes import Note
 
-from nti.graphdb import neo4j
 from nti.graphdb import modeled
+from nti.graphdb.neo4j import database
 
 from nti.ntiids.ntiids import make_ntiid
 
@@ -22,14 +25,12 @@ import nti.dataserver.tests.mock_dataserver as mock_dataserver
 
 from nti.graphdb.tests import ConfiguringTestBase
 
-from hamcrest import (assert_that, is_)
-
 class TestModeled(ConfiguringTestBase):
 
 	@classmethod
 	def setUpClass(cls):
 		super(ConfiguringTestBase, cls).setUpClass()
-		cls.db = neo4j.Neo4jDB(cls.DEFAULT_URI)
+		cls.db = database.Neo4jDB(cls.DEFAULT_URI)
 
 	def _create_user(self, username='nt@nti.com', password='temp001'):
 		usr = User.create_user(self.ds, username=username, password=password)
