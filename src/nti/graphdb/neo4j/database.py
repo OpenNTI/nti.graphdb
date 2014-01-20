@@ -68,6 +68,10 @@ class Neo4jDB(object):
 		xhash ^= hash(self.url)
 		return xhash
 
+	def __setstate__(self, state):
+		super(Neo4jDB, self).__setstate__(state)
+		self._v_db__ = None
+
 	@classmethod
 	def authenticate(cls, url, username, password):
 		o = urlparse.urlparse(url)
