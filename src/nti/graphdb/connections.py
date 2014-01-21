@@ -211,7 +211,7 @@ def _stop_dynamic_membership_event(event):
 
 def _delete_index_relationship(db, keyref):
 	for key, value in keyref.items():
-		db.delete_index_relationship(key, value)
+		db.delete_indexed_relationship(key, value)
 			
 def _do_membership_deletions(db, keyref):
 	queue = get_job_queue()
