@@ -101,14 +101,14 @@ def _topic_modified(topic, event):
 	if db is not None:
 		_process_topic_add_mod_event(db, topic, graph_interfaces.MODIFY_EVENT)
 
-def _delete_nodes(db, *args):
-	result = db.delete_nodes(*args)
+def _delete_nodes(db, nodes=()):
+	result = db.delete_nodes(*nodes)
 	logger.debug("%s node(s) deleted", result)
 
-def _process_topic_remove_event(db, *primary_keys):
+def _process_topic_remove_event(db, primary_keys=()):
 	if primary_keys:
 		queue = get_job_queue()
-		job = create_job(_delete_nodes, db=db, *primary_keys)
+		job = create_job(_delete_nodes, db=db, nodes=primary_keys)
 		queue.put(job)
 	
 @component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectRemovedEvent)
@@ -118,7 +118,7 @@ def _topic_removed(topic, event):
 		primary_keys = [get_primary_key(topic)]
 		for comment in topic.values():  # remove comments
 			primary_keys.append(get_primary_key(comment))
-		_process_topic_remove_event(db, *primary_keys)
+		_process_topic_remove_event(db, primary_keys)
 
 # comments
 
