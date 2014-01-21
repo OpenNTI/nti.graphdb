@@ -43,11 +43,4 @@ def get_graph_db(names=None, request=None):
             return app
     return None
 
-try:
-    package = 'py2neo.packages.httpstream.http'
-    __import__(package)
-    py2neo_logger = logging.getLogger(package)
-    py2neo_logger.setLevel(logging.ERROR)
-except ImportError:
-    logger.error("could not setup logging level for py2neo")
 
