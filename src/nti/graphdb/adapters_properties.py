@@ -70,7 +70,7 @@ def _DFLPropertyAdpater(dfl):
 @component.adapter(nti_interfaces.IModeledContent)
 def _ModeledContentPropertyAdpater(modeled):
 	result = CaseInsensitiveDict({'type':modeled.__class__.__name__})
-	result['creator'] = modeled.creator.username
+	result['creator'] = getattr(modeled.creator, 'username', modeled.creator)
 	result['created'] = modeled.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(modeled)
 	return result
@@ -88,7 +88,7 @@ _RedactionPropertyAdpater = _ModeledContentPropertyAdpater
 @component.adapter(frm_interfaces.ITopic)
 def _TopicPropertyAdpater(topic):
 	result = CaseInsensitiveDict({'type':'Topic'})
-	result['author'] = topic.creator.username
+	result['author'] = getattr(topic.creator, 'username', topic.creator)
 	result['title'] = unicode(topic.title)
 	result['ntiid'] = topic.NTIID
 	result['oid'] = externalization.to_external_ntiid_oid(topic)
@@ -97,7 +97,7 @@ def _TopicPropertyAdpater(topic):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 	result = CaseInsensitiveDict({'type':'Comment'})
-	result['author'] = post.creator.username
+	result['author'] = getattr(post.creator, 'username', post.creator)
 	result['oid'] = externalization.to_external_ntiid_oid(post)
 	return result
 
