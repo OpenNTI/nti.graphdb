@@ -45,7 +45,7 @@ def get_graph_db(names=None, request=None):
     return None
 
 def _tone_down_logging():
-    if logger.getEffectiveLevel() < loglevels.TRACE:
+    if logger.getEffectiveLevel() > loglevels.TRACE:
         try:
             package = 'py2neo.packages.httpstream.http'
             __import__(package)
