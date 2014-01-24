@@ -14,7 +14,8 @@ import six
 import logging
 
 from zope import component
-from zope.component.interfaces import ComponentLookupError
+
+from ZODB import loglevels
 
 from pyramid.threadlocal import get_current_request
 
@@ -43,4 +44,13 @@ def get_graph_db(names=None, request=None):
             return app
     return None
 
-
+def _tone_down_logging():
+    if logger.getEffectiveLevel() < loglevels.TRACE:
+        try:
+            package = 'py2neo.packages.httpstream.http'
+            __import__(package)
+            py2neo_logger = logging.getLogger(package)
+            py2neo_logger.setLevel(logging.ERROR)
+        except ImportError:
+            logger.error("could not setup logging level for py2neo")
+_tone_down_logging()

@@ -19,6 +19,8 @@ from nti.app.assessment import interfaces as appa_interfaces
 
 from nti.app.products.courseware import interfaces as cw_interfaces
 
+from nti.app.products.gradebook import interfaces as gb_interfaces
+
 from nti.assessment import interfaces as assessment_interfaces
 
 from nti.dataserver import users
@@ -187,6 +189,13 @@ def _assignment_history_item_added(item, event):
 	db = get_graph_db()
 	if db is not None:
 		process_assignment_taken(db, item)
+
+@component.adapter(gb_interfaces.IGrade,
+				   lce_interfaces.IObjectModifiedEvent)
+def _grade_modified(item, event):
+	# logger.info("\nMODIFIED\n")
+	pass
+
 
 # utils
 

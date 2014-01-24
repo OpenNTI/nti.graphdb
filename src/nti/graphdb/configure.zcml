@@ -61,6 +61,7 @@
 	<subscriber handler=".flagging._object_flagged" />
 	<subscriber handler=".flagging._object_unflagged" />
 	
+	<subscriber handler=".assessments._grade_modified" />
 	<subscriber handler=".assessments._question_assessed" />
 	<subscriber handler=".assessments._questionset_assessed" />
 	<subscriber handler=".assessments._assignment_history_item_added" />
