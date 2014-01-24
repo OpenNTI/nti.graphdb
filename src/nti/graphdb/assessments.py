@@ -190,12 +190,32 @@ def _assignment_history_item_added(item, event):
 	if db is not None:
 		process_assignment_taken(db, item)
 
+def set_grade_to_assignment(db, username, assignmentId, value):
+	rel = add_assignment_taken_relationship(db, username, assignmentId)
+	if rel is not None and value:
+		props = dict(rel.properties)
+		props['grade'] = unicode(str(value))
+		db.update_relationship(rel, props)
+
+def process_grade_modified(db, grade):
+	queue = get_job_queue()
+	job = create_job(set_grade_to_assignment, db=db,
+					 username=grade.Username,
+					 assignmentId=grade.AssignmentId,
+					 value=grade.value)
+	queue.put(job)
+
 @component.adapter(gb_interfaces.IGrade,
 				   lce_interfaces.IObjectModifiedEvent)
-def _grade_modified(item, event):
-	# logger.info("\nMODIFIED\n")
-	pass
+def _grade_modified(grade, event):
+	db = get_graph_db()
+	if db is not None:
+		process_grade_modified(db, grade)
 
+@component.adapter(gb_interfaces.IGrade,
+				   lce_interfaces.IObjectAddedEvent)
+def _grade_added(grade, event):
+	_grade_modified(grade, event)
 
 # utils
 

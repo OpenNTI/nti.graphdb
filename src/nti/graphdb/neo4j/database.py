@@ -454,9 +454,8 @@ class Neo4jDB(object):
 
 	def update_relationship(self, obj, properties=_marker):
 		rel = self._do_get_relationship(obj)
-		if rel is not None:
-			if properties != _marker:
-				rel.set_properties(properties)
+		if rel is not None and properties != _marker:
+			rel.set_properties(properties)
 			return True
 		return False
 
