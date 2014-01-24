@@ -16,7 +16,7 @@ from nti.dataserver.users import User
 
 from nti.dataserver.contenttypes import Note
 
-from nti.graphdb import modeled
+from nti.graphdb import threadables
 from nti.graphdb.neo4j import database
 
 from nti.ntiids.ntiids import make_ntiid
@@ -25,7 +25,7 @@ import nti.dataserver.tests.mock_dataserver as mock_dataserver
 
 from nti.graphdb.tests import ConfiguringTestBase
 
-class TestModeled(ConfiguringTestBase):
+class TestThreadable(ConfiguringTestBase):
 
 	@classmethod
 	def setUpClass(cls):
@@ -63,6 +63,6 @@ class TestModeled(ConfiguringTestBase):
 		if conn: conn.add(note2)
 		note2 = user.addContainedObject(note2)
 		
-		cnt_rels = modeled.init(self.db, user)
+		cnt_rels = threadables.init(self.db, user)
 		assert_that(cnt_rels, is_(1))
 

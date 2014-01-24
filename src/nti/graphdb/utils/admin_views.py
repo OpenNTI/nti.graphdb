@@ -23,8 +23,8 @@ from nti.dataserver import interfaces as nti_interfaces
 
 from nti.utils.maps import CaseInsensitiveDict
 
-from .. import modeled
 from .. import ratings
+from .. import threadables
 from .. import assessments
 from .. import connections
 from .. import discussions
@@ -43,8 +43,8 @@ def username_search(search_term):
 	return usernames
 
 def init(db, entity):
-	modeled.init(db, entity)
 	ratings.init(db, entity)
+	threadables.init(db, entity)
 	connections.init(db, entity)
 	discussions.init(db, entity)
 	assessments.init(db, entity)
