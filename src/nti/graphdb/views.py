@@ -74,8 +74,6 @@ class SuggestFriendsView(object):
 		except:
 			raise hexc.HTTPUnprocessableEntity()
 
-		items = []
-		result = LocatedExternalDict({'Items': items})
 		tuples = provider.suggest_friends_to(user, max_depth=max_depth, limit=limit)
 		for friend, mutualFriends in tuples:
 			items.append({"username": friend, "MutualFriends":mutualFriends})
