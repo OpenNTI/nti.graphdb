@@ -23,12 +23,12 @@ from nti.dataserver import interfaces as nti_interfaces
 
 from nti.utils.maps import CaseInsensitiveDict
 
-from .. import ratings
-from .. import threadables
-from .. import assessments
-from .. import connections
-from .. import discussions
-from .. import interfaces as graph_interfaces
+from . import ratings
+from . import threadables
+from . import assessments
+from . import connections
+from . import discussions
+from . import interfaces as graph_interfaces
 
 def _make_min_max_btree_range(search_term):
 	min_inclusive = search_term # start here
