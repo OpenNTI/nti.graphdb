@@ -10,7 +10,7 @@
 
 	<!-- access to the views under .../graph/ -->
 	
-	<adapter name="graph"
+	<adapter name="graphdb"
 			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest"
 			 factory=".views.GraphPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter" />

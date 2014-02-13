@@ -28,14 +28,13 @@ from . import get_graph_db
 
 @interface.implementer(IPathAdapter, IContained)
 class GraphPathAdapter(zcontained.Contained):
-	"""
-	Exists to provide a namespace in which to place all of these views,
-	and perhaps to traverse further on.
-	"""
+
+	__name__ = 'graphdb'
 
 	def __init__(self, context, request):
 		self.context = context
 		self.request = request
+		self.__parent__ = context
 
 _view_defaults = dict(route_name='objects.generic.traversal',
 					  renderer='rest',

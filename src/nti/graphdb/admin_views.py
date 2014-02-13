@@ -23,12 +23,16 @@ from nti.dataserver import interfaces as nti_interfaces
 
 from nti.utils.maps import CaseInsensitiveDict
 
+from . import views
 from . import ratings
 from . import threadables
 from . import assessments
 from . import connections
 from . import discussions
 from . import interfaces as graph_interfaces
+
+from .async.reactor import JobReactor
+from .async import interfaces as async_interfaces
 
 def _make_min_max_btree_range(search_term):
 	min_inclusive = search_term # start here
@@ -58,6 +62,7 @@ def init_db(db, usernames=()):
 @view_config(route_name='objects.generic.traversal',
 			 name='init_graphdb',
 			 request_method='POST',
+			 context=views.GraphPathAdapter,
 			 permission=nauth.ACT_MODERATE)
 def init_graphdb(request):
 	values = json.loads(unicode(request.body, request.charset)) if request.body else {}
@@ -76,3 +81,18 @@ def init_graphdb(request):
 	db = component.getUtility(graph_interfaces.IGraphDB, name=site)
 	init_db(db, usernames)
 	return hexc.HTTPNoContent()
+
+@view_config(route_name='objects.generic.traversal',
+			 name='start_reactor',
+			 request_method='POST',
+			 context=views.GraphPathAdapter,
+			 permission=nauth.ACT_MODERATE)
+def start_reactor(request):
+	reactor = component.queryUtility(async_interfaces.IJobReactor)
+	if reactor is not None:
+		return hexc.HTTPConflict(detail="Reactor already running")
+	else:
+		reactor = JobReactor()
+		component.provideUtility(reactor, async_interfaces.IJobReactor)
+		request.nti_gevent_spawn(reactor)
+		return hexc.HTTPNoContent()
