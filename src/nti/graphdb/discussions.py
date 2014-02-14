@@ -96,6 +96,18 @@ def _process_discussion_remove_events(db, primary_keys=()):
 		job = create_job(_delete_nodes, db=db, nodes=primary_keys)
 		queue.put(job)
 
+def add_membership_relationship(db, child, parent):
+	child = ntiids.find_object_with_ntiid(child)
+	parent = ntiids.find_object_with_ntiid(parent)
+	if child is not None and parent is not None:
+		rel_type = relationships.MemberOf()
+		properties = component.getMultiAdapter(
+									(child, parent, rel_type),
+									graph_interfaces.IPropertyAdapter)
+		result = db.create_relationship(child, parent, rel_type, properties=properties)
+		logger.debug("membership relationship %s created" % result)
+		return result
+	
 # topics
 
 def _add_authorship_relationship(db, topic):
@@ -109,16 +121,21 @@ def _add_authorship_relationship(db, topic):
 	return result
 
 def _process_topic_add_mod_event(db, topic, event):
+	queue = get_job_queue()
 	oid = to_external_ntiid_oid(topic)
 	adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
 	key, value = adapted.key, adapted.value
 
-	func = add_topic_node \
-		   if event == graph_interfaces.ADD_EVENT else modify_topic_node
+	if event == graph_interfaces.ADD_EVENT:
+		job = create_job(add_topic_node, db=db, oid=oid, key=key, value=value)
+		queue.put(job)
 
-	queue = get_job_queue()
-	job = create_job(func, db=db, oid=oid, key=key, value=value)
-	queue.put(job)
+		parent = to_external_ntiid_oid(topic.__parent__)
+		job = create_job(add_membership_relationship, db=db, child=oid, parent=parent)
+		queue.put(job)
+	else:
+		job = create_job(modify_topic_node, db=db, oid=oid, key=key, value=value)
+		queue.put(job)
 
 @component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectAddedEvent)
 def _topic_added(topic, event):
@@ -185,19 +202,24 @@ def _delete_comment(db, comment_pk, comment_rel_pk):
 	return False
 
 def _process_comment_event(db, comment, event):
+	queue = get_job_queue()
 	oid = to_external_ntiid_oid(comment)
 	comment_pk = get_primary_key(comment)
 	comment_rel_pk = get_comment_relationship_PK(comment)
 
-	queue = get_job_queue()
 	if event == graph_interfaces.ADD_EVENT:
 		job = create_job(_add_comment_relationship, db=db, oid=oid,
 						 comment_rel_pk=comment_rel_pk)
+		queue.put(job)
+		
+		parent = to_external_ntiid_oid(comment.__parent__)
+		job = create_job(add_membership_relationship, db=db, child=oid, parent=parent)
+		queue.put(job)
 	else:
 		job = create_job(_delete_comment, db=db, comment_pk=comment_pk,
 						 comment_rel_pk=comment_rel_pk)
-	queue.put(job)
-
+		queue.put(job)
+	
 @component.adapter(frm_interfaces.IPersonalBlogComment, lce_interfaces.IObjectAddedEvent)
 def _add_personal_blog_comment(comment, event):
 	db = get_graph_db()

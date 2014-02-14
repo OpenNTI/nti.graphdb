@@ -97,19 +97,19 @@ class _CommentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _CommentRelationshipUniqueAttributeAdpater(object):
 
-	def __init__(self, _from, _to, _rel):
-		self._to = _to
-		self._rel = _rel
-		self._from = _from
+	def __init__(self, entity, to, rel):
+		self.to = to
+		self.rel = rel
+		self.entity = entity
 
 	@property
 	def key(self):
-		return self._from.username
+		return self.entity.username
 
 	@property
 	def value(self):
-		oid = externalization.to_external_ntiid_oid(self._to)
-		result = '%s,%s' % (self._rel, oid)
+		oid = externalization.to_external_ntiid_oid(self.to)
+		result = '%s,%s' % (self.rel, oid)
 		return result
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
@@ -132,6 +132,24 @@ class _RelationshipUniqueAttributeAdpater(object):
 _FollowUniqueAttributeAdpater = _RelationshipUniqueAttributeAdpater
 _FriendshipUniqueAttributeAdpater = _RelationshipUniqueAttributeAdpater
 _TargetMembershipUniqueAttributeAdpater = _RelationshipUniqueAttributeAdpater
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+class _ObjectRelationshipUniqueAttributeAdpater(object):
+
+	def __init__(self, child, parent, rel):
+		self.rel = rel
+		self.child = child
+		self.parent = parent
+
+	@property
+	def key(self):
+		return externalization.to_external_ntiid_oid(self.child)
+
+	@property
+	def value(self):
+		oid = externalization.to_external_ntiid_oid(self.parent)
+		result = '%s,%s' % (self.rel, oid)
+		return result
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(asm_interfaces.IQuestionSet)
@@ -207,19 +225,19 @@ class _AssignmentMembershipUniqueAttributeAdpater(_NTIIDMembershipUniqueAttribut
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _UserObjectUniqueAttributeAdpater(object):
 
-	def __init__(self, _from, _to, _rel):
-		self._to = _to
-		self._rel = _rel
-		self._from = _from
+	def __init__(self, entity, to, rel):
+		self.to = to
+		self.rel = rel
+		self.entity = entity
 
 	@property
 	def key(self):
-		return self._from.username
+		return self.entity.username
 
 	@property
 	def value(self):
-		oid = externalization.to_external_ntiid_oid(self._to)
-		result = '%s,%s' % (self._rel, oid)
+		oid = externalization.to_external_ntiid_oid(self.to)
+		result = '%s,%s' % (self.rel, oid)
 		return result
 
 @component.adapter(nti_interfaces.IEntity,
@@ -256,17 +274,17 @@ _AssessedRelationshipUniqueAttributeAdpater = _UserObjectUniqueAttributeAdpater
 				   graph_interfaces.ITakeAssessment)
 class _AssignmentTakenUniqueAttributeAdpater(object):
 
-	def __init__(self, _from, _to, _rel):
-		self._to = _to
-		self._rel = _rel
-		self._from = _from
+	def __init__(self, entity, asm, rel):
+		self.asm = asm
+		self.rel = rel
+		self.entity = entity
 
 	@property
 	def key(self):
-		return self._from.username
+		return self.entity.username
 
 	@property
 	def value(self):
-		ntiid = get_ntiid(self._to)
-		result = '%s,%s' % (self._rel, ntiid)
+		ntiid = get_ntiid(self.asm)
+		result = '%s,%s' % (self.rel, ntiid)
 		return result

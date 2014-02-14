@@ -100,6 +100,7 @@ def _TopicPropertyAdpater(topic):
 	result['title'] = unicode(topic.title)
 	result['ntiid'] = topic.NTIID
 	result['oid'] = externalization.to_external_ntiid_oid(topic)
+	result['forum'] = externalization.to_external_ntiid_oid(topic.__parent__)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -107,13 +108,12 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 	result = CaseInsensitiveDict({'type':'Comment'})
 	result['author'] = getattr(post.creator, 'username', post.creator)
 	result['oid'] = externalization.to_external_ntiid_oid(post)
+	result['topic'] = post.__parent__.NTIID
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(_from, _post, _rel):  # IPersonalBlogComment, IGeneralForumComment
 	result = CaseInsensitiveDict({'created': _post.createdTime})
-	result['oid'] = externalization.to_external_ntiid_oid(_post)
-	result['topic'] = _post.__parent__.NTIID
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -152,11 +152,11 @@ def _question_stats(question):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssessedQuestion,
 				   graph_interfaces.ITakeAssessment)
-def _AssessedQuestionRelationshipPropertyAdpater(_from, _question, _rel):
-	result = CaseInsensitiveDict({'taker' : _from.username})
-	result['created'] = _question.createdTime
-	result['oid'] = externalization.to_external_ntiid_oid(_question)
-	is_correct, is_incorrect, partial = _question_stats(_question)
+def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
+	result = CaseInsensitiveDict({'taker' : user.username})
+	result['created'] = question.createdTime
+	result['oid'] = externalization.to_external_ntiid_oid(question)
+	is_correct, is_incorrect, partial = _question_stats(question)
 	result['correct'] = is_correct
 	result['incorrect'] = is_incorrect
 	result['partial'] = partial
@@ -165,12 +165,12 @@ def _AssessedQuestionRelationshipPropertyAdpater(_from, _question, _rel):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssessedQuestionSet,
 				  graph_interfaces.ITakeAssessment)
-def _AssessedQuestionSetRelationshipPropertyAdpater(_from, _qset, _rel):
-	result = CaseInsensitiveDict({'taker' : _from.username})
-	result['created'] = _qset.createdTime
-	result['oid'] = externalization.to_external_ntiid_oid(_qset)
+def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
+	result = CaseInsensitiveDict({'taker' : user.username})
+	result['created'] = questionSet.createdTime
+	result['oid'] = externalization.to_external_ntiid_oid(questionSet)
 	correct = incorrect = 0
-	questions = _qset.questions
+	questions = questionSet.questions
 	for question in questions:
 		is_correct, is_incorrect, _ = _question_stats(question)
 		if is_correct:
@@ -184,8 +184,8 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(_from, _qset, _rel):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssignment,
 				   graph_interfaces.ITakeAssessment)
-def _AssignmentRelationshipPropertyAdpater(_from, _asm, _rel):
-	result = CaseInsensitiveDict({'taker' : _from.username})
+def _AssignmentRelationshipPropertyAdpater(user, asm, rel):
+	result = CaseInsensitiveDict({'taker' : user.username})
 	result['created'] = time.time()
 	return result
 

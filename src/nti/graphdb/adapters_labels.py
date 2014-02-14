@@ -71,7 +71,9 @@ def _TopicLabelAdpater(topic):
 	headline = getattr(topic, 'headline', None)
 	if headline is not None:
 		tags.update(discriminators.get_tags(headline, ()))
-	return ('topic',) + tuple([r.lower() for r in tags])
+	result = ['topic'] + tuple([r.lower() for r in tags])
+	result = tuple(sorted(result))
+	return result
 	
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(asm_interfaces.IQuestionSet)
