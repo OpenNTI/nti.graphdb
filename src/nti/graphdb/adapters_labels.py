@@ -10,12 +10,12 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import itertools
+
 from zope import component
 from zope import interface
 
 from nti.assessment import interfaces as asm_interfaces
-
-from nti.contentsearch import discriminators
 
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
@@ -51,8 +51,9 @@ def _ModeledContentLabelAdpater(modeled):
 
 @component.adapter(nti_interfaces.INote)
 def _NoteLabelAdpater(note):
-	tags = discriminators.get_tags(note, ())
-	return ('note',) + tuple([r.lower() for r in tags])
+	chained = itertools.chain(['note'], note.tags or ())
+	result = {w.lower() for w in chained}
+	return tuple(sorted(result))
 
 @interface.implementer(graph_interfaces.ILabelAdapter)
 def _CommentLabelAdpater(obj):
@@ -67,11 +68,8 @@ def _ForumLabelAdpater(modeled):
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(frm_interfaces.ITopic)
 def _TopicLabelAdpater(topic):
-	tags = set(discriminators.get_tags(topic, ()))
-	headline = getattr(topic, 'headline', None)
-	if headline is not None:
-		tags.update(discriminators.get_tags(headline, ()))
-	result = ['topic'] + tuple([r.lower() for r in tags])
+	chained = itertools.chain(['topic'], topic.tags or (), topic.headline.tags or ())
+	result = {w.lower() for w in chained}
 	result = tuple(sorted(result))
 	return result
 	
