@@ -34,6 +34,68 @@ def get_primary_key(obj):
 	adapted = graph_interfaces.IUniqueAttributeAdapter(obj)
 	return utils.PrimaryKey(adapted.key, adapted.value)
 
+# discussion
+
+def add_discussion_node(db, oid, key, value):
+	created = False
+	node = db.get_indexed_node(key, value)
+	obj = ntiids.find_object_with_ntiid(oid)
+	if obj is not None and node is None:
+		node = db.create_node(obj)
+		logger.debug("node %s created" % node)
+		created = True
+	return created, node, obj
+
+def add_topic_node(db, oid, key, value):
+	created, node, topic = add_discussion_node(db, oid, key, value)
+	if created:
+		_add_authorship_relationship(db, topic)
+	return node, topic
+
+def add_forum_node(db, oid, key, value):
+	_, node, forum = add_discussion_node(db, oid, key, value)
+	return node, forum
+
+def _update_node(db, node, obj):
+	labels = graph_interfaces.ILabelAdapter(obj)
+	properties = graph_interfaces.IPropertyAdapter(obj)
+	db.update_node(node, labels, properties)
+	logger.debug("properties updated for node %s" % node)
+	return node, obj
+
+def modify_forum_node(db, oid, key, value):
+	node, forum = add_forum_node(db, oid, key, value)
+	if forum is not None:
+		_update_node(db, node, forum)
+	return node, forum
+
+def modify_topic_node(db, oid, key, value):
+	node, topic = add_topic_node(db, oid, key, value)
+	if topic is not None:
+		_update_node(db, node, topic)
+	return node, topic
+
+def delete_discussion_node(db, key, value):
+	node = db.get_indexed_node(key, value)
+	if node is not None:
+		db.delete_node(node)
+		logger.debug("topic node %s deleted" % node)
+		return True
+	return False
+
+delete_foum_node = delete_discussion_node
+delete_topic_node = delete_discussion_node
+
+def _delete_nodes(db, nodes=()):
+	result = db.delete_nodes(*nodes)
+	logger.debug("%s node(s) deleted", result)
+
+def _process_discussion_remove_events(db, primary_keys=()):
+	if primary_keys:
+		queue = get_job_queue()
+		job = create_job(_delete_nodes, db=db, nodes=primary_keys)
+		queue.put(job)
+
 # topics
 
 def _add_authorship_relationship(db, topic):
@@ -46,42 +108,13 @@ def _add_authorship_relationship(db, topic):
 	logger.debug("authorship relationship %s created" % result)
 	return result
 
-def add_topic_node(db, oid, key, value):
-	result = None
-	node = db.get_indexed_node(key, value)
-	topic = ntiids.find_object_with_ntiid(oid)
-	if topic is not None and node is None:
-		result = db.create_node(topic)
-		logger.debug("topic node %s created" % result)
-		_add_authorship_relationship(db, topic)
-	return result, topic
-
-def modify_topic_node(db, oid, key, value):
-	node, topic = add_topic_node(db, oid, key, value)
-	if topic is not None:
-		labels = graph_interfaces.ILabelAdapter(topic)
-		properties = graph_interfaces.IPropertyAdapter(topic)
-		db.update_node(node, labels, properties)
-		logger.debug("properties updated for node %s" % node)
-	return node, topic
-
-def delete_topic_node(db, key, value):
-	node = db.get_indexed_node(key, value)
-	if node is not None:
-		db.delete_node(node)
-		logger.debug("topic node %s deleted" % node)
-		return True
-	return False
-
 def _process_topic_add_mod_event(db, topic, event):
 	oid = to_external_ntiid_oid(topic)
 	adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
 	key, value = adapted.key, adapted.value
 
-	if event == graph_interfaces.ADD_EVENT:
-		func = add_topic_node
-	else:
-		func = modify_topic_node
+	func = add_topic_node \
+		   if event == graph_interfaces.ADD_EVENT else modify_topic_node
 
 	queue = get_job_queue()
 	job = create_job(func, db=db, oid=oid, key=key, value=value)
@@ -99,24 +132,17 @@ def _topic_modified(topic, event):
 	if db is not None:
 		_process_topic_add_mod_event(db, topic, graph_interfaces.MODIFY_EVENT)
 
-def _delete_nodes(db, nodes=()):
-	result = db.delete_nodes(*nodes)
-	logger.debug("%s node(s) deleted", result)
+def _remove_topic(db, topic):
+	primary_keys = [get_primary_key(topic)]
+	for comment in topic.values():  # remove comments
+		primary_keys.append(get_primary_key(comment))
+	_process_discussion_remove_events(db, primary_keys)
 
-def _process_topic_remove_event(db, primary_keys=()):
-	if primary_keys:
-		queue = get_job_queue()
-		job = create_job(_delete_nodes, db=db, nodes=primary_keys)
-		queue.put(job)
-	
 @component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectRemovedEvent)
 def _topic_removed(topic, event):
 	db = get_graph_db()
 	if db is not None:
-		primary_keys = [get_primary_key(topic)]
-		for comment in topic.values():  # remove comments
-			primary_keys.append(get_primary_key(comment))
-		_process_topic_remove_event(db, primary_keys)
+		_remove_topic(db, topic)
 
 # comments
 
@@ -195,6 +221,40 @@ def _modify_personal_blog_comment(comment, event):
 				   lce_interfaces.IObjectModifiedEvent)
 def _modify_general_forum_comment(comment, event):
 	_modify_personal_blog_comment(comment, event)
+
+# forums
+
+def _process_forum_add_mod_event(db, forum, event):
+	oid = to_external_ntiid_oid(forum)
+	adapted = graph_interfaces.IUniqueAttributeAdapter(forum)
+	key, value = adapted.key, adapted.value
+
+	func = 	add_forum_node \
+			if event == graph_interfaces.ADD_EVENT else modify_forum_node
+
+	queue = get_job_queue()
+	job = create_job(func, db=db, oid=oid, key=key, value=value)
+	queue.put(job)
+
+@component.adapter(frm_interfaces.IForum, lce_interfaces.IObjectAddedEvent)
+def _forum_added(forum, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_forum_add_mod_event(db, forum, graph_interfaces.ADD_EVENT)
+
+@component.adapter(frm_interfaces.IForum, lce_interfaces.IObjectModifiedEvent)
+def _forum_modified(forum, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_forum_add_mod_event(db, forum, graph_interfaces.MODIFY_EVENT)
+
+@component.adapter(frm_interfaces.IForum, lce_interfaces.IObjectRemovedEvent)
+def _forum_removed(forum, event):
+	db = get_graph_db()
+	if db is not None:
+		for topic in forum.values():  # remove topics
+			_remove_topic(db, topic)
+		_process_discussion_remove_events(db, [get_primary_key(forum)])
 
 # utils
 

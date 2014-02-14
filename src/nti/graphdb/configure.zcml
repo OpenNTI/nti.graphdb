@@ -37,23 +37,27 @@
 	
 	<subscriber handler=".connections._dfl_deleted" />
 	
-	<subscriber handler=".connections._start_following_event" />
 	<subscriber handler=".connections._stop_following_event" />
+	<subscriber handler=".connections._start_following_event" />
 	
-	<subscriber handler=".connections._start_dynamic_membership_event" />
 	<subscriber handler=".connections._stop_dynamic_membership_event" />
+	<subscriber handler=".connections._start_dynamic_membership_event" />
 	
 	<subscriber handler=".discussions._topic_added" />
-	<subscriber handler=".discussions._topic_modified" />
 	<subscriber handler=".discussions._topic_removed" />
+	<subscriber handler=".discussions._topic_modified" />
+		
+	<subscriber handler=".discussions._forum_added" />
+	<subscriber handler=".discussions._forum_removed" />
+	<subscriber handler=".discussions._forum_modified" />
 	
 	<subscriber handler=".discussions._add_personal_blog_comment" />
 	<subscriber handler=".discussions._add_general_forum_comment" />
 	<subscriber handler=".discussions._modify_personal_blog_comment" />
 	<subscriber handler=".discussions._modify_general_forum_comment" />
 	
-	<subscriber handler=".ratings._object_rated" />
 	<subscriber handler=".ratings._topic_rated" />
+	<subscriber handler=".ratings._object_rated" />
 	
 	<subscriber handler=".threadables._threadable_added" />
 	<subscriber handler=".threadables._threadable_removed" />
