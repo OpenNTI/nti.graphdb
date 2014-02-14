@@ -61,6 +61,7 @@
 	
 	<subscriber handler=".threadables._threadable_added" />
 	<subscriber handler=".threadables._threadable_removed" />
+	<subscriber handler=".threadables._threadable_modified" />
 	
 	<subscriber handler=".flagging._object_flagged" />
 	<subscriber handler=".flagging._object_unflagged" />

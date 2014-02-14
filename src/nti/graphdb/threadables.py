@@ -55,7 +55,7 @@ def _proces_threadable_removed(db, threadable):
 	adapted = graph_interfaces.IUniqueAttributeAdapter(threadable)
 	queue = get_job_queue()
 	job = create_job(_remove_threadable, db=db,
-					 # note node locator
+					 # threadable node locator
 					 key=adapted.key,
 					 value=adapted.value,
 					 # inReplyTo rel locator
@@ -67,6 +67,12 @@ def _threadable_removed(threadable, event):
 	db = get_graph_db()
 	if db is not None:
 		_proces_threadable_removed(db, threadable)
+
+@component.adapter(nti_interfaces.IThreadable, lce_interfaces.IObjectModifiedEvent)
+def _threadable_modified(thread, event):
+	db = get_graph_db()
+	if db is not None and nti_interfaces.IDeletedObjectPlaceholder.providedBy(thread):
+		_proces_threadable_removed(db, thread)
 
 def _add_inReplyTo_relationship(db, oid):
 	threadable = ntiids.find_object_with_ntiid(oid)

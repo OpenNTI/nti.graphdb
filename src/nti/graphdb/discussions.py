@@ -11,8 +11,6 @@ logger = __import__('logging').getLogger(__name__)
 from zope import component
 from zope.lifecycleevent import interfaces as lce_interfaces
 
-from nti.appserver import interfaces as app_interfaces
-
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
@@ -236,7 +234,7 @@ def _add_general_forum_comment(comment, event):
 				   lce_interfaces.IObjectModifiedEvent)
 def _modify_personal_blog_comment(comment, event):
 	db = get_graph_db()
-	if db is not None and app_interfaces.IDeletedObjectPlaceholder.providedBy(comment):
+	if db is not None and nti_interfaces.IDeletedObjectPlaceholder.providedBy(comment):
 		_process_comment_event(db, comment, graph_interfaces.REMOVE_EVENT)
 
 @component.adapter(frm_interfaces.IGeneralForumComment,
