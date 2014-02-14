@@ -31,6 +31,8 @@
 			 		  
 	<!-- subscribers -->
 	 
+	<subscriber handler=".subscribers._set_change_listener" />
+	
 	<subscriber handler=".connections._friendslist_added" />
 	<subscriber handler=".connections._friendslist_modified" />
 	<subscriber handler=".connections._friendslist_deleted" />
