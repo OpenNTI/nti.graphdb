@@ -73,15 +73,15 @@
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.assessment.interfaces.IQuestionSet"
-			 factory=".adapters_unique._QuestionSetUniqueAttributeAdpater"
+			 factory=".adapters_unique._NTIIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 		
 	<adapter for="nti.assessment.interfaces.IQuestion"
-			 factory=".adapters_unique._QuestionUniqueAttributeAdpater"
+			 factory=".adapters_unique._NTIIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.assessment.interfaces.IQAssignment"
-			 factory=".adapters_unique._AssignmentUniqueAttributeAdpater"
+			 factory=".adapters_unique._NTIIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.ITakeAssessment"

@@ -153,7 +153,7 @@ class _ObjectRelationshipUniqueAttributeAdpater(object):
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(asm_interfaces.IQuestionSet)
-class _QuestionSetUniqueAttributeAdpater(object):
+class _NTIIDUniqueAttributeAdpater(object):
 
 	key = "oid"
 
@@ -163,33 +163,6 @@ class _QuestionSetUniqueAttributeAdpater(object):
 	@property
 	def value(self):
 		return get_ntiid(self.obj)
-
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-@component.adapter(asm_interfaces.IQuestion)
-class _QuestionUniqueAttributeAdpater(object):
-
-	key = "oid"
-
-	def __init__(self, obj):
-		self.obj = obj
-
-	@property
-	def value(self):
-		return get_ntiid(self.obj)
-
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-@component.adapter(asm_interfaces.IQAssignment)
-class _AssignmentUniqueAttributeAdpater(object):
-
-	key = "oid"
-
-	def __init__(self, obj):
-		self.obj = obj
-
-	@property
-	def value(self):
-		result = get_ntiid(self.obj)
-		return result
 
 class _NTIIDMembershipUniqueAttributeAdpater(object):
 
@@ -206,7 +179,6 @@ class _NTIIDMembershipUniqueAttributeAdpater(object):
 	def value(self):
 		result = '%s,%s' % (self._rel, get_ntiid(self._to))
 		return result
-
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(asm_interfaces.IQuestion,
@@ -265,7 +237,6 @@ class _InReplyToUniqueAttributeAdpater(_UserObjectUniqueAttributeAdpater):
 	pass
 
 _AuthorshipUniqueAttributeAdpater = _UserObjectUniqueAttributeAdpater
-
 _AssessedRelationshipUniqueAttributeAdpater = _UserObjectUniqueAttributeAdpater
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
