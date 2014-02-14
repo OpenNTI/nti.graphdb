@@ -85,6 +85,14 @@ _HighlightPropertyAdpater = _ModeledContentPropertyAdpater
 _RedactionPropertyAdpater = _ModeledContentPropertyAdpater
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(frm_interfaces.IForum)
+def _ForumPropertyAdpater(forum):
+	result = CaseInsensitiveDict({'type':'Forum'})
+	result['title'] = unicode(forum.title)
+	result['oid'] = externalization.to_external_ntiid_oid(forum)
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(frm_interfaces.ITopic)
 def _TopicPropertyAdpater(topic):
 	result = CaseInsensitiveDict({'type':'Topic'})

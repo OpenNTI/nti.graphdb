@@ -35,7 +35,11 @@
 	<adapter for="nti.dataserver.interfaces.INote"
 			 factory=".adapters_labels._NoteLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
-			 
+			
+	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IForum"
+			 factory=".adapters_labels._ForumLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+			  
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.ITopic"
 			 factory=".adapters_labels._TopicLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />

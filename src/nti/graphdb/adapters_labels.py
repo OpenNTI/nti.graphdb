@@ -60,6 +60,11 @@ def _CommentLabelAdpater(obj):
 	return result
 
 @interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(frm_interfaces.IForum)
+def _ForumLabelAdpater(modeled):
+	return ("forum",)
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(frm_interfaces.ITopic)
 def _TopicLabelAdpater(topic):
 	tags = set(discriminators.get_tags(topic, ()))

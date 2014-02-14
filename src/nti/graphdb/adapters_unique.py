@@ -73,6 +73,11 @@ class _ModeledContentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 	pass
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(nti_interfaces.ITitledContent)
+class _TitledContentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
+	pass
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(frm_interfaces.ITopic)
 class _TopicUniqueAttributeAdpater(object):
 
