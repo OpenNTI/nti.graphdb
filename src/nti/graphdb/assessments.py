@@ -196,12 +196,14 @@ def set_grade_to_assignment(db, username, assignmentId, value):
 		db.update_relationship(rel, props)
 
 def process_grade_modified(db, grade):
-	queue = get_job_queue()
-	job = create_job(set_grade_to_assignment, db=db,
-					 username=grade.Username,
-					 assignmentId=grade.AssignmentId,
-					 value=grade.value)
-	queue.put(job)
+	assignmentId = grade.AssignmentId
+	if assignmentId:
+		queue = get_job_queue()
+		job = create_job(set_grade_to_assignment, db=db,
+						 username=grade.Username,
+						 assignmentId=grade.AssignmentId,
+						 value=grade.value)
+		queue.put(job)
 
 @component.adapter(gb_interfaces.IGrade,
 				   lce_interfaces.IObjectModifiedEvent)
@@ -216,8 +218,6 @@ def _grade_added(grade, event):
 	_grade_modified(grade, event)
 
 # utils
-
-from zope.generations.utility import findObjectsMatching
 
 def get_course_enrollments(user):
 	container = []
@@ -235,22 +235,20 @@ def init_asssignments(db, user):
 		history = component.getMultiAdapter(
 									(course, user),
 									appa_interfaces.IUsersCourseAssignmentHistory)
-		for assignmentId, _ in history.items():
-			add_assignment_taken_relationship(db, user.username, assignmentId)
+		for _, item in history.items():
+			grade = gb_interfaces.IGrade(item, None)
+			if grade is not None and grade.value is not None:
+				process_grade_modified(db, grade)
+			else:
+				process_assignment_taken(db, item)
 
-def init_questions(db, user):
-
-	condition = lambda x : 	assessment_interfaces.IQAssessedQuestion.providedBy(x) or \
-							assessment_interfaces.IQAssessedQuestionSet.providedBy(x)
-
-	for assessed in findObjectsMatching(user, condition):
-		oid = externalization.to_external_ntiid_oid(assessed)
-		is_question_set = assessment_interfaces.IQAssessedQuestionSet.providedBy(assessed)
-		func = _process_assessed_question_set if is_question_set \
-											  else _process_assessed_question
-		func(db, oid)
-
-def init(db, user):
-	if nti_interfaces.IUser.providedBy(user):
-		init_questions(db, user)
-		init_asssignments(db, user)
+def init(db, obj):
+	result = True
+	if 	assessment_interfaces.IQAssessedQuestionSet.providedBy(obj) or \
+		assessment_interfaces.IQAssessedQuestionSet.providedBy(obj):
+		_queue_question_event(db, obj)
+	elif nti_interfaces.IUser.providedBy(obj):
+		init_asssignments(db, obj)
+	else:
+		result = False
+	return result

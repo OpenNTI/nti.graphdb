@@ -12,19 +12,22 @@ logger = __import__('logging').getLogger(__name__)
 
 import simplejson as json
 
+import zope.intid
 from zope import component
 
 from pyramid.view import view_config
 import pyramid.httpexceptions as hexc
 
-from nti.dataserver import users
 from nti.dataserver import authorization as nauth
 from nti.dataserver import interfaces as nti_interfaces
+
+from nti.externalization.oids import to_external_oid
 
 from nti.utils.maps import CaseInsensitiveDict
 
 from . import views
 from . import ratings
+from . import flagging
 from . import threadables
 from . import assessments
 from . import connections
@@ -46,18 +49,34 @@ def username_search(search_term):
 	usernames = list(_users.iterkeys(min_inclusive, max_exclusive, excludemax=True))
 	return usernames
 
-def init(db, entity):
-	ratings.init(db, entity)
-	threadables.init(db, entity)
-	connections.init(db, entity)
-	discussions.init(db, entity)
-	assessments.init(db, entity)
+def all_objects_iids(users=()):
+	intids = component.getUtility(zope.intid.IIntIds)
+	usernames = {getattr(user, 'username', user) for user in users or ()}
+	for uid, obj in intids.items():
+		try:
+			if nti_interfaces.IEntity.providedBy(obj):
+				if not usernames or obj.username in usernames:
+					yield uid, obj
+			else:
+				creator = getattr(obj, 'creator', None)
+				if not usernames or getattr(creator, 'username', creator) in usernames:
+					yield uid, obj
+		except TypeError as e:
+			oid = to_external_oid(obj)
+			logger.error("Error getting creator for %s(%s,%s). %s",
+						 type(obj), uid, oid, e)
+
+def init(db, obj):
+	ratings.init(db, obj)
+	flagging.init(db, obj)
+	threadables.init(db, obj)
+	connections.init(db, obj)
+	discussions.init(db, obj)
+	assessments.init(db, obj)
 
 def init_db(db, usernames=()):
-	for username in usernames:
-		entity = users.Entity.get_entity(username)
-		if entity is not None:
-			init(db, entity)
+	for _, obj in all_objects_iids(usernames):
+		init(db, obj)
 
 @view_config(route_name='objects.generic.traversal',
 			 name='init_graphdb',
@@ -75,9 +94,7 @@ def init_graphdb(request):
 	elif usernames:
 		usernames = usernames.split()
 	else:
-		dataserver = component.getUtility(nti_interfaces.IDataserver)
-		_users = nti_interfaces.IShardLayout(dataserver).users_folder
-		usernames = _users.iterkeys()
+		usernames = ()
 	db = component.getUtility(graph_interfaces.IGraphDB, name=site)
 	init_db(db, usernames)
 	return hexc.HTTPNoContent()

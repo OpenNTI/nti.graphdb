@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*
 """
-graphdb modeled content related functionality
-
 $Id$
 """
 from __future__ import print_function, unicode_literals, absolute_import, division
@@ -11,11 +9,9 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
-from zope.generations.utility import findObjectsProviding
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
-from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
 from nti.externalization import externalization
 
@@ -80,11 +76,14 @@ def _add_inReplyTo_relationship(db, oid):
 	if in_replyTo is not None:
 		author = threadable.creator
 		rel_type = relationships.Reply()
+
 		# get the key/value to id the inReplyTo relationship
 		irt_PK = _get_inReplyTo_PK(threadable)
+
 		# create a relationship between author and the threadable being replied to
 		properties = component.getMultiAdapter((author, threadable, rel_type),
 												graph_interfaces.IPropertyAdapter)
+
 		result = db.create_relationship(author, in_replyTo, rel_type,
 										properties=properties,
 										key=irt_PK.key, value=irt_PK.value)
@@ -107,30 +106,9 @@ def _threadable_added(threadable, event):
 
 # utils
 
-def init(db, entity):
-	
-	def _add_threadable_rel(obj):
-		if nti_interfaces.IThreadable.providedBy(obj) and obj.inReplyTo:
-			oid = to_external_ntiid_oid(obj)
-			_add_inReplyTo_relationship(db, oid)
-			_add_threadable_rel.count += 1
-	_add_threadable_rel.count = 0
-
-	if nti_interfaces.IUser.providedBy(entity):
-		for obj in findObjectsProviding(entity, nti_interfaces.IThreadable):
-			_add_threadable_rel(obj)
-
-		blog = frm_interfaces.IPersonalBlog(entity)
-		for topic in blog.values():
-			for comment in topic.values():
-				_add_threadable_rel(comment)
-
-	elif nti_interfaces.ICommunity.providedBy(entity):
-		board = frm_interfaces.ICommunityBoard(entity)
-		for forum in board.values():
-			for topic in forum.values():
-				for comment in topic.values():
-					_add_threadable_rel(comment)
-
-	return _add_threadable_rel.count
-
+def init(db, obj):
+	result = False
+	if nti_interfaces.IThreadable.providedBy(obj) and obj.inReplyTo:
+		_process_threadable_inReplyTo(db, obj)
+		result = True
+	return result

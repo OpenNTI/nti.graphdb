@@ -52,10 +52,9 @@ def remove_flagged_relationship(db, username, oid):
 			result = True
 	return result
 
-def _process_flagging_event(flaggable, is_flagged=True):
-	db = get_graph_db()
-	username = get_current_user()
-	if username and db is not None:
+def _process_flagging_event(db, flaggable, username=None, is_flagged=True):
+	username = username or get_current_user()
+	if username:
 		oid = externalization.to_external_ntiid_oid(flaggable)
 		queue = get_job_queue()
 		if is_flagged:
@@ -68,13 +67,30 @@ def _process_flagging_event(flaggable, is_flagged=True):
 
 @component.adapter(nti_interfaces.IFlaggable, nti_interfaces.IObjectFlaggedEvent)
 def _object_flagged(flaggable, event):
-	_process_flagging_event(flaggable)
+	db = get_graph_db()
+	if db is not None:
+		_process_flagging_event(db, flaggable)
 
 @component.adapter(nti_interfaces.IFlaggable, nti_interfaces.ObjectUnflaggedEvent)
 def _object_unflagged(flaggable, event):
-	_process_flagging_event(flaggable, False)
+	db = get_graph_db()
+	if db is not None:
+		_process_flagging_event(db, flaggable, is_flagged=False)
 
 # utils
 
-def init(db, entity):
-	pass
+def init(db, obj):
+	result = False
+	if nti_interfaces.IFlaggable.providedBy(obj):
+		store = nti_interfaces.IGlobalFlagStorage(obj)
+		if store.is_flagged(obj):
+			creator = getattr(obj, 'creator', None)
+			# asume all sharedWith users have flagged object
+			flaggers = list(getattr(obj, 'sharedWith', ()))
+			if not flaggers and creator:
+				flaggers.append(creator)
+			flaggers = {getattr(x,'username', x) for x in flaggers}
+			for flagger in flaggers:
+				_process_flagging_event(db, obj, flagger)
+			result = len(flaggers) > 0
+	return result

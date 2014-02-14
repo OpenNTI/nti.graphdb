@@ -7,21 +7,17 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
-from hamcrest import is_
 from hamcrest import is_in
 from hamcrest import has_length
 from hamcrest import assert_that
 
 from nti.dataserver.users import User
-from nti.dataserver.users import Community
 from nti.dataserver.users import FriendsList
-from nti.dataserver.users import DynamicFriendsList
 
 from nti.graphdb import connections
 from nti.graphdb import relationships
 from nti.graphdb.neo4j import database
 
-import nti.dataserver.tests.mock_dataserver as mock_dataserver
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
 from nti.graphdb.tests import ConfiguringTestBase
@@ -88,24 +84,4 @@ class TestFriendShips(ConfiguringTestBase):
 
 		result = connections.update_friendships(self.db, user1)
 		assert_that(result, has_length(1))
-
-	@WithMockDSTrans
-	def test_install(self):
-		ds = mock_dataserver.current_mock_ds
-		user1 = self._create_random_user()
-		user2 = self._create_random_user()
-		self._create_friendslist(user1, "mycontacts1", user2)
-
-		c = Community.create_community(ds, username=self._random_username())
-		for u in (user1, user2):
-			u.record_dynamic_membership(c)
-			u.follow(c)
-
-		dfl = DynamicFriendsList(username=self._random_username())
-		dfl.creator = user1 # Creator must be set
-		user1.addContainedObject(dfl)
-		dfl.addFriend(user2)
-
-		rels = connections.init(self.db, user1)
-		assert_that(rels, is_(4))
 

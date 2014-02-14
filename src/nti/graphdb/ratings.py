@@ -9,11 +9,15 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
+from zope.annotation import interfaces as an_interfaces
 
 from pyramid.security import authenticated_userid
 from pyramid.threadlocal import get_current_request
 
+from contentratings.category import BASE_KEY
+from contentratings.storage import UserRatingStorage
 from contentratings.interfaces import IObjectRatedEvent
+
 
 from nti.dataserver import users
 from nti.dataserver.rating import IObjectUnratedEvent
@@ -65,9 +69,9 @@ def remove_like_relationship(db, username, oid):
 	result = _remove_relationship(db, username, oid, relationships.Like())
 	return result
 
-def _process_like_event(db, username, oid, like=True):
+def _process_like_event(db, username, oid, is_like=True):
 	queue = get_job_queue()
-	if like:
+	if is_like:
 		job = create_job(add_like_relationship, db=db, username=username, oid=oid)
 	else:
 		job = create_job(remove_like_relationship, db=db, username=username, oid=oid)
@@ -112,12 +116,6 @@ def _topic_rated(topic, event):
 
 # utils
 
-from zope.annotation import interfaces as an_interfaces
-from zope.generations.utility import findObjectsMatching
-
-from contentratings.category import BASE_KEY
-from contentratings.storage import UserRatingStorage
-
 def _get_storage(context, cat_name):
 	key = getattr(UserRatingStorage, 'annotation_key', BASE_KEY)
 	key = str(key + '.' + cat_name)
@@ -125,58 +123,41 @@ def _get_storage(context, cat_name):
 	storage = annotations.get(key)
 	return storage
 
+def _get_ratings(context, category):
+	storage = _get_storage(context, LIKE_CAT_NAME)
+	if storage is not None:
+		return storage.all_user_ratings()
+	return ()
+
 def _record_likeable(db, obj):
 	result = 0
-	storage = _get_storage(obj, LIKE_CAT_NAME)
-	if storage is not None:
-		oid = externalization.to_external_ntiid_oid(obj)
-		for rating in storage.all_user_ratings():
-			username = rating.userid or u''
-			if 	users.Entity.get_entity(username) is not None and \
-				add_like_relationship(db, username, oid) is not None:
-				result += 1
+	queue = get_job_queue()
+	oid = externalization.to_external_ntiid_oid(obj)
+	for rating in _get_ratings(obj, LIKE_CAT_NAME):
+		username = rating.userid or u''
+		if users.Entity.get_entity(username) is not None:
+			job = create_job(add_like_relationship, db=db, username=username, oid=oid)
+			queue.put(job)
+			result += 1
 	return result
 
 def _record_ratings(db, obj):
 	result = 0
-	storage = _get_storage(obj, RATING_CAT_NAME)
-	if storage is not None:
-		oid = externalization.to_external_ntiid_oid(obj)
-		for rating in storage.all_user_ratings():
-			username = rating.userid or u''
-			if 	users.Entity.get_entity(username) is not None and \
-				add_rate_relationship(db, username, oid, float(rating)):
-				result += 1
+	queue = get_job_queue()
+	oid = externalization.to_external_ntiid_oid(obj)
+	for rating in _get_ratings(obj, RATING_CAT_NAME):
+		username = rating.userid or u''
+		if users.Entity.get_entity(username) is not None:
+			job = create_job(add_rate_relationship, db=db, username=username,
+							 oid=oid, rating=rating)
+			queue.put(job)
+			result += 1
 	return result
 
-def init(db, entity):
-	def condition(x):
-		return  nti_interfaces.ILikeable.providedBy(x) or \
-				nti_interfaces.IModeledContent.providedBy(x)
-
+def init(db, obj):
 	result = 0
-	if nti_interfaces.IUser.providedBy(entity):
-		for obj in findObjectsMatching(entity, condition):
-			result += _record_ratings(db, obj)
-			if nti_interfaces.ILikeable.providedBy(obj):
-				result += _record_likeable(db, obj)
-
-		blog = frm_interfaces.IPersonalBlog(entity)
-		for topic in blog.values():
-			result += _record_ratings(db, topic)
-			result += _record_likeable(db, topic)
-			for comment in topic.values():
-				result += _record_ratings(db, comment)
-				result += _record_likeable(db, comment)
-
-	elif nti_interfaces.ICommunity.providedBy(entity):
-		board = frm_interfaces.ICommunityBoard(entity)
-		for forum in board.values():
-			for topic in forum.values():
-				result += _record_ratings(db, topic)
-				result += _record_likeable(db, topic)
-				for comment in topic.values():
-					result += _record_ratings(db, comment)
-					result += _record_likeable(db, comment)
-
-	return result
+	if nti_interfaces.ILikeable.providedBy(obj):
+		result = _record_likeable(db, obj)
+	if nti_interfaces.IRatable.providedBy(obj):
+		result = _record_ratings(db, obj)
+	return result > 0

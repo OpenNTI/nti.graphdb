@@ -278,36 +278,15 @@ def _forum_removed(forum, event):
 
 # utils
 
-def _record_author(db, topic):
-	oid = to_external_ntiid_oid(topic)
-	adapted = graph_interfaces.IUniqueAttributeAdapter(topic)
-	result, _ = add_topic_node(db, oid, adapted.key, adapted.value)
+def init(db, obj):
+	result = True
+	if frm_interfaces.IForum.providedBy(obj):
+		_process_forum_add_mod_event(db, obj, graph_interfaces.ADD_EVENT)
+	elif frm_interfaces.ITopic.providedBy(obj):
+		_process_topic_add_mod_event(db, obj, graph_interfaces.ADD_EVENT)
+	elif frm_interfaces.IPersonalBlogComment.providedBy(obj) or \
+		 frm_interfaces.IGeneralForumComment(obj):
+		_process_comment_event(db, obj, graph_interfaces.ADD_EVENT)
+	else:
+		result = False
 	return result
-
-def _record_comment(db, comment):
-	oid = to_external_ntiid_oid(comment)
-	comment_rel_pk = get_comment_relationship_PK(comment)
-	result = _add_comment_relationship(db, oid, comment_rel_pk)
-	return result
-
-def init(db, entity):
-	result = 0
-	if nti_interfaces.IUser.providedBy(entity):
-		blog = frm_interfaces.IPersonalBlog(entity)
-		for topic in blog.values():
-			if _record_author(db, topic) is not None:
-				result += 1
-			for comment in topic.values():
-				if _record_comment(db, comment) is not None:
-					result += 1
-	elif nti_interfaces.ICommunity.providedBy(entity):
-		board = frm_interfaces.ICommunityBoard(entity)
-		for forum in board.values():
-			for topic in forum.values():
-				if _record_author(db, topic) is not None:
-					result += 1
-				for comment in topic.values():
-					if _record_comment(db, comment) is not None:
-						result += 1
-	return result
-

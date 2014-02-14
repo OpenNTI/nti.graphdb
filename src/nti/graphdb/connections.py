@@ -111,7 +111,7 @@ def update_friendships(db, entity):
 								 relationships.FriendOf())
 	return result
 
-def _process_friendslist_event(db, obj, event):
+def _process_friendslist_event(db, obj):
 	if nti_interfaces.IDynamicSharingTargetFriendsList.providedBy(obj):
 		return # pragma no cover
 
@@ -124,19 +124,19 @@ def _process_friendslist_event(db, obj, event):
 def _friendslist_added(obj, event):
 	db = get_graph_db()
 	if db is not None:
-		_process_friendslist_event(db, obj, event)
+		_process_friendslist_event(db, obj)
 
 @component.adapter(nti_interfaces.IFriendsList, lce_interfaces.IObjectModifiedEvent)
 def _friendslist_modified(obj, event):
 	db = get_graph_db()
 	if db is not None:
-		_process_friendslist_event(db, obj, event)
+		_process_friendslist_event(db, obj)
 
 @component.adapter(nti_interfaces.IFriendsList, lce_interfaces.IObjectRemovedEvent)
 def _friendslist_deleted(obj, event):
 	db = get_graph_db()
 	if db is not None:
-		_process_friendslist_event(db, obj, event)
+		_process_friendslist_event(db, obj)
 
 # membership
 
@@ -295,10 +295,37 @@ def update_following(db, entity):
 								 relationships.Follow())
 	return result
 
-def init(db, user):
-	result = 0
-	if nti_interfaces.IUser.providedBy(user):
-		for func in (update_friendships, update_memberships, update_following):
-			rels = func(db, user)
-			result += len(rels)
+# utils
+
+def _process_following(db, user):
+	source = user.username
+	queue = get_job_queue()
+	for followed in getattr(user, 'entities_followed', ()):
+		followed = getattr(followed, 'username', followed)
+		job = create_job(process_follow, db=db, source=source, followed=followed)
+		queue.put(job)
+
+def _process_memberships(db, user):
+	source = user.username
+	queue = get_job_queue()
+	everyone = users.Entity.get_entity('Everyone')
+	for target in getattr(user, 'dynamic_memberships', ()):
+		if target != everyone:
+			target = externalization.to_external_ntiid_oid(target)
+			job = create_job(process_start_membership, db=db, source=source,
+							 target=target)
+			queue.put(job)
+
+def _process_friendships(db, user):
+	queue = get_job_queue()
+	job = create_job(update_friendships, db=db, entity=user.username)
+	queue.put(job)
+
+def init(db, obj):
+	result = False
+	if nti_interfaces.IUser.providedBy(obj):
+		_process_following(db, obj)
+		_process_memberships(db, obj)
+		_process_friendships(db, obj)
+		result = True
 	return result

@@ -109,24 +109,3 @@ class TestDiscussions(ConfiguringTestBase):
 
 		rels = self.db.match(start=user, rel_type=relationships.CommentOn())
 		assert_that(rels, has_length(1))
-
-	@mock_dataserver.WithMockDSTrans
-	def test_install(self):
-		user = self._create_random_user()
-		blog = frm_interfaces.IPersonalBlog(user)
-		entry = PersonalBlogEntry()
-		entry.creator = user
-		blog['bleach'] = entry
-		entry.__parent__ = blog
-		entry.createdTime = entry.lastModified = 42
-		mock_dataserver.current_transaction.add(entry)
-
-		comment = PersonalBlogComment()
-		comment.creator = user
-		entry['comment316072059'] = comment
-		comment.__parent__ = entry
-		comment.createdTime = comment.lastModified = 43
-		mock_dataserver.current_transaction.add(comment)
-
-		rels = discussions.init(self.db, user)
-		assert_that(rels, is_(2))
