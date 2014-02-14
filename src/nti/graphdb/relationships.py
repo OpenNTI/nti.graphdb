@@ -90,3 +90,17 @@ class Author(_Singleton):
 	def __str__(self):
 		return "HAS_AUTHORED"
 	__repr__ = __str__
+
+@interface.implementer(graph_interfaces.IShared)
+class Shared(_Singleton):
+
+	def __str__(self):
+		return "HAS_SHARED"
+	__repr__ = __str__
+
+@interface.implementer(graph_interfaces.IIsSharedTo)
+class IsSharedTo(_Singleton):
+
+	def __str__(self):
+		return "IS_SHARED_TO"
+	__repr__ = __str__

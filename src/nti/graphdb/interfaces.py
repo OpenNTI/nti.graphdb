@@ -182,3 +182,9 @@ class IReply(IRelationshipType):
 
 class IAuthor(IRelationshipType):
 	pass
+
+class IShared(IRelationshipType):
+	pass
+
+class IIsSharedTo(IRelationshipType):
+	pass
