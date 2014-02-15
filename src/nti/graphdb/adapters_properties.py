@@ -111,8 +111,9 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 	result['topic'] = post.__parent__.NTIID
 	return result
 
+# IPersonalBlogComment, IGeneralForumComment
 @interface.implementer(graph_interfaces.IPropertyAdapter)
-def _CommentRelationshipPropertyAdpater(_from, _post, _rel):  # IPersonalBlogComment, IGeneralForumComment
+def _CommentRelationshipPropertyAdpater(_from, _post, _rel):
 	result = CaseInsensitiveDict({'created': _post.createdTime})
 	return result
 

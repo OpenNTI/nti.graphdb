@@ -65,6 +65,9 @@
 	<subscriber handler=".threadables._threadable_removed" />
 	<subscriber handler=".threadables._threadable_modified" />
 	
+	<subscriber handler=".sharing._shareable_added" />
+	<subscriber handler=".sharing._shareable_modified" />
+	
 	<subscriber handler=".flagging._object_flagged" />
 	<subscriber handler=".flagging._object_unflagged" />
 	

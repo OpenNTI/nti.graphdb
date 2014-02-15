@@ -173,8 +173,8 @@ def _add_comment_relationship(db, oid, comment_rel_pk):
 	result = None
 	comment = ntiids.find_object_with_ntiid(oid)
 	if comment is not None:
-		# comment are special case. we build a relationship between the commenting user and
-		# the topic. We force key/value to identify the relationship
+		# comment are special case. we build a relationship between the commenting user
+		# and the topic. We force key/value to identify the relationship
 		# Note we don't create a comment node.
 		author = comment.creator
 		topic = comment.__parent__
