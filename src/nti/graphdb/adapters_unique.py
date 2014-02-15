@@ -95,7 +95,7 @@ class _CommentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 	pass
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-class _CommentRelationshipUniqueAttributeAdpater(object):
+class _EntityObjectRelationshipUniqueAttributeAdpater(object):
 
 	def __init__(self, entity, to, rel):
 		self.to = to
@@ -111,6 +111,8 @@ class _CommentRelationshipUniqueAttributeAdpater(object):
 		oid = externalization.to_external_ntiid_oid(self.to)
 		result = '%s,%s' % (self.rel, oid)
 		return result
+
+_CommentRelationshipUniqueAttributeAdpater = _EntityObjectRelationshipUniqueAttributeAdpater
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _RelationshipUniqueAttributeAdpater(object):
