@@ -115,6 +115,23 @@ class _EntityObjectRelationshipUniqueAttributeAdpater(object):
 _CommentRelationshipUniqueAttributeAdpater = _EntityObjectRelationshipUniqueAttributeAdpater
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+class _ObjectEntityRelationshipUniqueAttributeAdpater(object):
+
+	def __init__(self, obj, entity, rel):
+		self.obj = obj
+		self.rel = rel
+		self.entity = entity
+
+	@property
+	def key(self):
+		return externalization.to_external_ntiid_oid(self.obj)
+
+	@property
+	def value(self):
+		result = '%s,%s' % (self.rel, self.entity.username)
+		return result
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _RelationshipUniqueAttributeAdpater(object):
 
 	def __init__(self, _from, _to, _rel):
@@ -196,50 +213,32 @@ class _QuestionMembershipUniqueAttributeAdpater(_NTIIDMembershipUniqueAttributeA
 class _AssignmentMembershipUniqueAttributeAdpater(_NTIIDMembershipUniqueAttributeAdpater):
 	pass
 
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-class _UserObjectUniqueAttributeAdpater(object):
-
-	def __init__(self, entity, to, rel):
-		self.to = to
-		self.rel = rel
-		self.entity = entity
-
-	@property
-	def key(self):
-		return self.entity.username
-
-	@property
-	def value(self):
-		oid = externalization.to_external_ntiid_oid(self.to)
-		result = '%s,%s' % (self.rel, oid)
-		return result
-
-@component.adapter(nti_interfaces.IEntity,
+@component.adapter(nti_interfaces.IUser,
 				   nti_interfaces.ILikeable,
 				   graph_interfaces.ILike)
-class _LikeUniqueAttributeAdpater(_UserObjectUniqueAttributeAdpater):
+class _LikeUniqueAttributeAdpater(_EntityObjectRelationshipUniqueAttributeAdpater):
 	pass
 
-@component.adapter(nti_interfaces.IEntity,
+@component.adapter(nti_interfaces.IUser,
 				   nti_interfaces.IRatable,
 				   graph_interfaces.IRate)
-class _RateUniqueAttributeAdpater(_UserObjectUniqueAttributeAdpater):
+class _RateUniqueAttributeAdpater(_EntityObjectRelationshipUniqueAttributeAdpater):
 	pass
 
-@component.adapter(nti_interfaces.IEntity,
+@component.adapter(nti_interfaces.IUser,
 				   nti_interfaces.IFlaggable,
 				   graph_interfaces.IFlagged)
-class _FlaggUniqueAttributeAdpater(_UserObjectUniqueAttributeAdpater):
+class _FlaggUniqueAttributeAdpater(_EntityObjectRelationshipUniqueAttributeAdpater):
 	pass
 
-@component.adapter(nti_interfaces.IEntity,
+@component.adapter(nti_interfaces.IUser,
 				   nti_interfaces.IThreadable,
 				   graph_interfaces.IReply)
-class _InReplyToUniqueAttributeAdpater(_UserObjectUniqueAttributeAdpater):
+class _InReplyToUniqueAttributeAdpater(_EntityObjectRelationshipUniqueAttributeAdpater):
 	pass
 
-_AuthorshipUniqueAttributeAdpater = _UserObjectUniqueAttributeAdpater
-_AssessedRelationshipUniqueAttributeAdpater = _UserObjectUniqueAttributeAdpater
+_AuthorshipUniqueAttributeAdpater = _EntityObjectRelationshipUniqueAttributeAdpater
+_AssessedRelationshipUniqueAttributeAdpater = _EntityObjectRelationshipUniqueAttributeAdpater
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(nti_interfaces.IUser,

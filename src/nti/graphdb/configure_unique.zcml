@@ -84,11 +84,11 @@
 			 factory=".adapters_unique._NTIIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
-	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.ITakeAssessment"
+	<adapter for="nti.dataserver.interfaces.IUser nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.ITakeAssessment"
 			 factory=".adapters_unique._AssessedRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
-	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssessedQuestion .interfaces.ITakeAssessment"
+	<adapter for="nti.dataserver.interfaces.IUser nti.assessment.interfaces.IQAssessedQuestion .interfaces.ITakeAssessment"
 			 factory=".adapters_unique._AssessedRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			  
@@ -100,29 +100,33 @@
 			 factory=".adapters_unique._AssignmentMembershipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
-	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssignment .interfaces.ITakeAssessment"
+	<adapter for="nti.dataserver.interfaces.IUser nti.assessment.interfaces.IQAssignment .interfaces.ITakeAssessment"
 			 factory=".adapters_unique._AssignmentTakenUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 					
-	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.ILikeable .interfaces.ILike"
+	<adapter for="nti.dataserver.interfaces.IUser nti.dataserver.interfaces.ILikeable .interfaces.ILike"
 			 factory=".adapters_unique._LikeUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
-	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IRatable .interfaces.IRate"
+	<adapter for="nti.dataserver.interfaces.IUser nti.dataserver.interfaces.IRatable .interfaces.IRate"
 			 factory=".adapters_unique._RateUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
-	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IFlaggable .interfaces.IFlagged"
+	<adapter for="nti.dataserver.interfaces.IUser nti.dataserver.interfaces.IFlaggable .interfaces.IFlagged"
 			 factory=".adapters_unique._FlaggUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			  
-	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IThreadable .interfaces.IReply"
+	<adapter for="nti.dataserver.interfaces.IUser nti.dataserver.interfaces.IThreadable .interfaces.IReply"
 			 factory=".adapters_unique._InReplyToUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 		
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IContained .interfaces.IRelationshipType"
 			 factory=".adapters_unique._EntityObjectRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
-			 	  
+
+	<adapter for="nti.dataserver.interfaces.IContained nti.dataserver.interfaces.IEntity .interfaces.IRelationshipType"
+			 factory=".adapters_unique._ObjectEntityRelationshipUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			  	  
 </configure>
 
