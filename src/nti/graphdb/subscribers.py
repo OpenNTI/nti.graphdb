@@ -18,6 +18,7 @@ def onChange(datasvr, msg, target=None, broadcast=None, **kwargs):
 
 @component.adapter(IDatabaseOpenedWithRoot)
 def _set_change_listener(database_event):
-	dataserver = component.getUtility(nti_interfaces.IDataserver)
-	dataserver.add_change_listener(onChange)
+	dataserver = component.queryUtility(nti_interfaces.IDataserver)
+	if dataserver is not None:
+		dataserver.add_change_listener(onChange)
 
