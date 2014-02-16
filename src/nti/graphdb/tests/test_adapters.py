@@ -131,14 +131,15 @@ class TestAdapters(ConfiguringTestBase):
 		labels = graph_interfaces.ILabelAdapter(entry, None)
 		assert_that(labels, is_not(none()))
 		assert_that(labels, has_length(3))
-		assert_that(labels, is_(('topic', 'bankai', 'shikai')))
+		assert_that(labels, is_((u'bankai', u'shikai', u'topic')))
 
 		props = graph_interfaces.IPropertyAdapter(entry, None)
 		assert_that(props, is_not(none()))
-		assert_that(props, has_length(5))
+		assert_that(props, has_length(6))
 		assert_that(props, has_entry('author', u'user1@bar'))
 		assert_that(props, has_entry('ntiid', is_not(none())))
 		assert_that(props, has_entry('oid', is_not(none())))
+		assert_that(props, has_entry('forum', is_not(none())))
 		assert_that(props, has_entry('title', u''))
 		assert_that(props, has_entry('type', u'Topic'))
 		
@@ -149,9 +150,10 @@ class TestAdapters(ConfiguringTestBase):
 
 		props = graph_interfaces.IPropertyAdapter(comment, None)
 		assert_that(props, is_not(none()))
-		assert_that(props, has_length(3))
+		assert_that(props, has_length(4))
 		assert_that(props, has_entry('author', u'user1@bar'))
 		assert_that(props, has_entry('oid', is_not(none())))
+		assert_that(props, has_entry('topic', is_not(none())))
 		assert_that(props, has_entry('type', u'Comment'))
 
 

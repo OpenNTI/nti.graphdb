@@ -68,7 +68,8 @@ def _ForumLabelAdpater(modeled):
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(frm_interfaces.ITopic)
 def _TopicLabelAdpater(topic):
-	chained = itertools.chain(['topic'], topic.tags or (), topic.headline.tags or ())
+	htags = getattr(topic.headline, 'tags', ())
+	chained = itertools.chain(['topic'], topic.tags or (), htags or ())
 	result = {w.lower() for w in chained}
 	result = tuple(sorted(result))
 	return result
