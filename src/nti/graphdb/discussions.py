@@ -8,9 +8,12 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import six
+
 from zope import component
 from zope.lifecycleevent import interfaces as lce_interfaces
 
+from nti.dataserver.users import User
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
@@ -27,6 +30,12 @@ from . import interfaces as graph_interfaces
 
 def to_external_ntiid_oid(obj):
 	return externalization.to_external_ntiid_oid(obj)
+
+def get_creator(obj):
+	creator = obj.creator
+	if isinstance(creator, six.string_types):
+		creator = User.get_entity(creator)
+	return creator
 
 def get_primary_key(obj):
 	adapted = graph_interfaces.IUniqueAttributeAdapter(obj)
@@ -109,7 +118,7 @@ def add_membership_relationship(db, child, parent):
 # topics
 
 def _add_authorship_relationship(db, topic):
-	creator = topic.creator
+	creator = get_creator(topic)
 	rel_type = relationships.Author()
 	properties = component.getMultiAdapter(
 								(creator, topic, rel_type),
@@ -162,7 +171,7 @@ def _topic_removed(topic, event):
 # comments
 
 def get_comment_relationship_PK(comment):
-	author = comment.creator
+	author = get_creator(comment)
 	rel_type = relationships.CommentOn()
 	adapted = component.getMultiAdapter(
 							(author, comment, rel_type),
@@ -176,7 +185,7 @@ def _add_comment_relationship(db, oid, comment_rel_pk):
 		# comment are special case. we build a relationship between the commenting user
 		# and the topic. We force key/value to identify the relationship
 		# Note we don't create a comment node.
-		author = comment.creator
+		author = get_creator(comment)
 		topic = comment.__parent__
 		rel_type = relationships.CommentOn()
 		properties = component.getMultiAdapter(

@@ -8,9 +8,12 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import six
+
 from zope import component
 from zope.lifecycleevent import interfaces as lce_interfaces
 
+from nti.dataserver.users import User
 from nti.dataserver import interfaces as nti_interfaces
 
 from nti.externalization import externalization
@@ -27,8 +30,14 @@ from . import interfaces as graph_interfaces
 def to_external_ntiid_oid(obj):
 	return externalization.to_external_ntiid_oid(obj)
 
+def get_creator(obj):
+	creator = obj.creator
+	if isinstance(creator, six.string_types):
+		creator = User.get_entity(creator)
+	return creator
+
 def _get_inReplyTo_PK(obj):
-	author = obj.creator
+	author = get_creator(obj)
 	adapted = component.getMultiAdapter((author, obj, relationships.Reply()),
 										graph_interfaces.IUniqueAttributeAdapter)
 	return utils.PrimaryKey(adapted.key, adapted.value)
@@ -74,7 +83,7 @@ def _add_inReplyTo_relationship(db, oid):
 	threadable = ntiids.find_object_with_ntiid(oid)
 	in_replyTo = threadable.inReplyTo if threadable is not None else None
 	if in_replyTo is not None:
-		author = threadable.creator
+		author = get_creator(threadable)
 		rel_type = relationships.Reply()
 
 		# get the key/value to id the inReplyTo relationship

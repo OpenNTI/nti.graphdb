@@ -18,7 +18,6 @@ from contentratings.category import BASE_KEY
 from contentratings.storage import UserRatingStorage
 from contentratings.interfaces import IObjectRatedEvent
 
-
 from nti.dataserver import users
 from nti.dataserver.rating import IObjectUnratedEvent
 from nti.dataserver import interfaces as nti_interfaces
