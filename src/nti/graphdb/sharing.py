@@ -8,17 +8,37 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import six
+
 from zope import component
 from zope.lifecycleevent import interfaces as lce_interfaces
 
+from nti.dataserver.users import User
 from nti.dataserver import interfaces as nti_interfaces
+
+from nti.ntiids import ntiids
 
 # from . import utils
 # from . import create_job
 from . import get_graph_db
 # from . import get_job_queue
-# from . import relationships
+from . import relationships
 # from . import interfaces as graph_interfaces
+
+def get_entity(entity):
+	if isinstance(entity, six.string_types):
+		entity = User.get_entity(entity)
+	return entity
+
+def _create_sharedTo_rels(db, oid, sharedWith=()):
+	result = []
+	obj = ntiids.find_object_with_ntiid(oid)
+	if obj and sharedWith:
+		rel_type = relationships.IsSharedTo()
+		for entity in sharedWith:
+			entity = get_entity(entity)
+			result.append(db.create_relationship(obj, entity, rel_type))
+	return result
 
 def _process_shareable(db, obj):
 	sharedWith = getattr(obj, 'sharedWith', ())
