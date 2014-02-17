@@ -17,6 +17,8 @@ from zope import interface
 
 from nti.assessment import interfaces as asm_interfaces
 
+from nti.chatserver import interfaces as chat_interfaces
+
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.users import interfaces as user_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
@@ -101,6 +103,17 @@ def _TopicPropertyAdpater(topic):
 	result['ntiid'] = topic.NTIID
 	result['oid'] = externalization.to_external_ntiid_oid(topic)
 	result['forum'] = externalization.to_external_ntiid_oid(topic.__parent__)
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(chat_interfaces.IMeeting)
+def _MeetingPropertyAdpater(meeting):
+	result = CaseInsensitiveDict({'type':'Meeting'})
+	result['creator'] = meeting.creator
+	result['roomId'] = meeting.RoomId
+	result['created'] = meeting.CreatedTime
+	result['moderated'] = meeting.Moderated
+	result['oid'] = externalization.to_external_ntiid_oid(meeting)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)

@@ -56,6 +56,10 @@
 			 factory=".adapters_properties._CommentPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 	
+	<adapter for="nti.chatserver.interfaces.IMeeting"
+			 factory=".adapters_properties._MeetingPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
 	<adapter for="* * .interfaces.IRelationshipType"
 			 factory=".adapters_properties._CreatedTimePropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

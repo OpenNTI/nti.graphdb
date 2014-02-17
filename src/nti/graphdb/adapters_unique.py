@@ -15,6 +15,8 @@ from zope import interface
 
 from nti.assessment import interfaces as asm_interfaces
 
+from nti.chatserver import interfaces as chat_interfaces
+
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
@@ -92,6 +94,11 @@ class _TopicUniqueAttributeAdpater(object):
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _CommentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
+	pass
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(chat_interfaces.IMeeting)
+class _MeetingUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 	pass
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)

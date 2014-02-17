@@ -17,6 +17,8 @@ from zope import interface
 
 from nti.assessment import interfaces as asm_interfaces
 
+from nti.chatserver import interfaces as chat_interfaces
+
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
@@ -90,4 +92,10 @@ def _QuestionLabelAdpater(question):
 @component.adapter(asm_interfaces.IQAssignment)
 def _AssignmentLabelAdpater(question):
 	result = ('assignment',)
+	return result
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(chat_interfaces.IMeeting)
+def _MeetingLabelAdpater(meeting):
+	result = ('meeting',)
 	return result
