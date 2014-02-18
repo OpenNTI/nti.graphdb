@@ -16,12 +16,14 @@ from zope.lifecycleevent import interfaces as lce_interfaces
 from nti.dataserver.users import User
 from nti.dataserver import interfaces as nti_interfaces
 
+from nti.externalization import externalization
+
 from nti.ntiids import ntiids
 
 # from . import utils
-# from . import create_job
+from . import create_job
 from . import get_graph_db
-# from . import get_job_queue
+from . import get_job_queue
 from . import relationships
 # from . import interfaces as graph_interfaces
 
@@ -30,20 +32,25 @@ def get_entity(entity):
 		entity = User.get_entity(entity)
 	return entity
 
-def _create_sharedTo_rels(db, oid, sharedWith=()):
+def _create_isSharedTo_rels(db, oid, sharedWith=()):
 	result = []
 	obj = ntiids.find_object_with_ntiid(oid)
 	if obj and sharedWith:
 		rel_type = relationships.IsSharedTo()
 		for entity in sharedWith:
 			entity = get_entity(entity)
-			result.append(db.create_relationship(obj, entity, rel_type))
+			if entity is not None:
+				result.append(db.create_relationship(obj, entity, rel_type))
 	return result
 
 def _process_shareable(db, obj):
 	sharedWith = getattr(obj, 'sharedWith', ())
-	if not sharedWith:
-		return
+	if sharedWith:
+		oid = externalization.to_external_ntiid_oid(obj)
+		sharedWith = [getattr(x, 'username', x) for x in sharedWith]
+		job = create_job(_create_isSharedTo_rels, db=db, oid=oid, sharedWith=sharedWith)
+		queue = get_job_queue()
+		queue.put(job)
 
 @component.adapter(nti_interfaces.IReadableShared, lce_interfaces.IObjectAddedEvent)
 def _shareable_added(obj, event):
