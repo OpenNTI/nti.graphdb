@@ -55,13 +55,23 @@ def _create_isSharedTo_rels(db, oid, sharedWith=()):
 				result.append(db.create_relationship(obj, entity, rel_type))
 	return result
 
+def _create_shared_rel(db, oid):
+	obj = ntiids.find_object_with_ntiid(oid)
+	if obj is not None:
+		creator = get_entity(obj.creator)
+		rel = db.create_relationship(creator, obj, relationships.Shared())
+		return (obj, rel)
+	return (None, None)
+
 def _process_shareable(db, obj, sharedWith=()):
 	sharedWith = sharedWith or getattr(obj, 'sharedWith', ())
 	if sharedWith:
+		queue = get_job_queue()
 		oid = externalization.to_external_ntiid_oid(obj)
 		sharedWith = [getattr(x, 'username', x) for x in sharedWith]
 		job = create_job(_create_isSharedTo_rels, db=db, oid=oid, sharedWith=sharedWith)
-		queue = get_job_queue()
+		queue.put(job)
+		job = create_job(_create_shared_rel, db=db, oid=oid)
 		queue.put(job)
 
 @component.adapter(nti_interfaces.IReadableShared, lce_interfaces.IObjectAddedEvent)
