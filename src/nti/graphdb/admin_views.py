@@ -107,9 +107,12 @@ def init_graphdb(request):
 def start_reactor(request):
 	reactor = component.queryUtility(async_interfaces.IJobReactor)
 	if reactor is not None:
-		return hexc.HTTPConflict(detail="Reactor already running")
-	else:
-		reactor = JobReactor()
-		component.provideUtility(reactor, async_interfaces.IJobReactor)
-		request.nti_gevent_spawn(reactor)
-		return hexc.HTTPNoContent()
+		if not reactor.stop:
+			return hexc.HTTPConflict(detail="Reactor already running")
+		else:
+			component.getSiteManager().unregisterUtility(async_interfaces.IJobReactor)
+
+	reactor = JobReactor()
+	component.provideUtility(reactor, async_interfaces.IJobReactor)
+	request.nti_gevent_spawn(reactor)
+	return hexc.HTTPNoContent()
