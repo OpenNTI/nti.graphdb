@@ -25,12 +25,24 @@ from . import create_job
 from . import get_graph_db
 from . import get_job_queue
 from . import relationships
-# from . import interfaces as graph_interfaces
+from . import interfaces as graph_interfaces
 
 def get_entity(entity):
 	if isinstance(entity, six.string_types):
 		entity = User.get_entity(entity)
 	return entity
+
+def _delete_isSharedTo_rels(db, oid, sharedWith=()):
+	obj = ntiids.find_object_with_ntiid(oid)
+	if obj and sharedWith:
+		rel_type = relationships.IsSharedTo()
+		for entity in sharedWith:
+			entity = get_entity(entity)
+			if entity is None:
+				continue
+			adapted = component.getMultiAdapter((obj, entity, rel_type),
+												graph_interfaces.IUniqueAttributeAdapter)
+			db.delete_indexed_relationship(adapted.key, adapted.value)
 
 def _create_isSharedTo_rels(db, oid, sharedWith=()):
 	result = []
@@ -43,8 +55,8 @@ def _create_isSharedTo_rels(db, oid, sharedWith=()):
 				result.append(db.create_relationship(obj, entity, rel_type))
 	return result
 
-def _process_shareable(db, obj):
-	sharedWith = getattr(obj, 'sharedWith', ())
+def _process_shareable(db, obj, sharedWith=()):
+	sharedWith = sharedWith or getattr(obj, 'sharedWith', ())
 	if sharedWith:
 		oid = externalization.to_external_ntiid_oid(obj)
 		sharedWith = [getattr(x, 'username', x) for x in sharedWith]
@@ -59,8 +71,11 @@ def _shareable_added(obj, event):
 		_process_shareable(db, obj)
 
 def _process_modified_event(db, obj, oldSharingTargets=()):
-	# sharingTargets = getattr(obj, 'sharingTargets')
-	pass
+	sharingTargets = getattr(obj, 'sharingTargets', ())
+	oldSharingTargets = [getattr(x, 'username', x) for x in oldSharingTargets]
+	oid = externalization.to_external_ntiid_oid(obj)
+	_delete_isSharedTo_rels(db, oid, oldSharingTargets)  # delete old
+	_process_shareable(db, obj, sharingTargets)  # create new
 
 @component.adapter(nti_interfaces.IContained, nti_interfaces.IObjectSharingModifiedEvent)
 def _shareable_modified(obj, event):
