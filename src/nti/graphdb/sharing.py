@@ -80,11 +80,18 @@ def _shareable_added(obj, event):
 	if db is not None:
 		_process_shareable(db, obj)
 
+def _process_delete_rels(db, obj, oldSharingTargets=()):
+	oldSharingTargets = [getattr(x, 'username', x) for x in oldSharingTargets]
+	if oldSharingTargets:
+		queue = get_job_queue()
+		oid = externalization.to_external_ntiid_oid(obj)
+		job = create_job(_delete_isSharedTo_rels, db=db, oid=oid,
+						 sharedWith=oldSharingTargets)
+		queue.put(job)
+
 def _process_modified_event(db, obj, oldSharingTargets=()):
 	sharingTargets = getattr(obj, 'sharingTargets', ())
-	oldSharingTargets = [getattr(x, 'username', x) for x in oldSharingTargets]
-	oid = externalization.to_external_ntiid_oid(obj)
-	_delete_isSharedTo_rels(db, oid, oldSharingTargets)  # delete old
+	_process_delete_rels(db, obj, oldSharingTargets)  # delete old
 	_process_shareable(db, obj, sharingTargets)  # create new
 
 @component.adapter(nti_interfaces.IContained, nti_interfaces.IObjectSharingModifiedEvent)
