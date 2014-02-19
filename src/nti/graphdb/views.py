@@ -17,7 +17,6 @@ from zope.traversing.interfaces import IPathAdapter
 
 from pyramid.view import view_config
 from pyramid import httpexceptions as hexc
-from pyramid.security import authenticated_userid
 
 from nti.dataserver import users
 from nti.dataserver import authorization as nauth
@@ -60,7 +59,7 @@ class SuggestFriendsView(object):
 		provider = db.provider
 
 		# validate user
-		username = request.params.get('username') or  authenticated_userid(request)
+		username = request.params.get('username') or request.authenticated_userid
 		user = users.User.get_user(username)
 		if user is None:
 			raise hexc.HTTPNotFound("user not found")

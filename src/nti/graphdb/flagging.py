@@ -10,7 +10,6 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import component
 
-from pyramid.security import authenticated_userid
 from pyramid.threadlocal import get_current_request
 
 from nti.dataserver import users
@@ -27,7 +26,7 @@ from . import relationships
 
 def get_current_user():
 	request = get_current_request()
-	username = authenticated_userid(request) if request else None
+	username = request.authenticated_userid if request is not None else None
 	return username
 
 def add_flagged_relationship(db, username, oid):

@@ -11,7 +11,6 @@ logger = __import__('logging').getLogger(__name__)
 from zope import component
 from zope.annotation import interfaces as an_interfaces
 
-from pyramid.security import authenticated_userid
 from pyramid.threadlocal import get_current_request
 
 from contentratings.category import BASE_KEY
@@ -37,7 +36,7 @@ RATING_CAT_NAME = 'rating'
 
 def get_current_user():
 	request = get_current_request()
-	username = authenticated_userid(request) if request else None
+	username = request.authenticated_userid if request is not None else None
 	return username
 
 def _add_relationship(db, username, oid, rel_type, properties=None):
