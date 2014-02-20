@@ -10,6 +10,7 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import time
 import simplejson as json
 
 import zope.intid
@@ -22,6 +23,7 @@ from nti.dataserver import authorization as nauth
 from nti.dataserver import interfaces as nti_interfaces
 
 from nti.externalization.oids import to_external_oid
+from nti.externalization.datastructures import LocatedExternalDict
 
 from nti.utils.maps import CaseInsensitiveDict
 
@@ -68,20 +70,22 @@ def all_objects_iids(users=()):
 						 type(obj), uid, oid, e)
 
 def init(db, obj):
-	ratings.init(db, obj)
-	sharing.init(db, obj)
-	flagging.init(db, obj)
-	threadables.init(db, obj)
-	connections.init(db, obj)
-	discussions.init(db, obj)
-	assessments.init(db, obj)
+	result = False
+	for module in (ratings, sharing, flagging, threadables, connections,
+				   discussions, assessments):
+		result = module.init(db, obj) or result
+	return result
 
 def init_db(db, usernames=()):
+	count = 0
 	for _, obj in all_objects_iids(usernames):
-		init(db, obj)
+		if init(db, obj):
+			count += 1
+	return count
 
 @view_config(route_name='objects.generic.traversal',
 			 name='init_graphdb',
+			 renderer='rest',
 			 request_method='POST',
 			 context=views.GraphPathAdapter,
 			 permission=nauth.ACT_MODERATE)
@@ -98,8 +102,14 @@ def init_graphdb(request):
 	else:
 		usernames = ()
 	db = component.getUtility(graph_interfaces.IGraphDB, name=site)
-	init_db(db, usernames)
-	return hexc.HTTPNoContent()
+
+	now = time.time()
+	total = init_db(db, usernames)
+
+	result = LocatedExternalDict()
+	result['Elapsed'] = time.time() - now
+	result['Total'] = total
+	return result
 
 @view_config(route_name='objects.generic.traversal',
 			 name='start_reactor',
