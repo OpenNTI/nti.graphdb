@@ -20,7 +20,6 @@ from nti.externalization import externalization
 
 from nti.ntiids import ntiids
 
-# from . import utils
 from . import create_job
 from . import get_graph_db
 from . import get_job_queue
