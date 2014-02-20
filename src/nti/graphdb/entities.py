@@ -55,18 +55,18 @@ def _process_entity_added(db, entity):
 	job = create_job(_add_entity, db=db, oid=oid)
 	queue.put(job)
 
-@component.adapter(nti_interfaces.IEntity, lce_interfaces.IObjectRemovedEvent)
-def _entity_removed(entity, event):
-	db = get_graph_db()
-	queue = get_job_queue()
-	if db is not None and queue is not None:
-		_process_entity_removed(db, entity)
-
 @component.adapter(nti_interfaces.IEntity, lce_interfaces.IObjectAddedEvent)
 def _entity_added(entity, event):
 	db = get_graph_db()
-	if db is not None:
+	queue = get_job_queue()
+	if db is not None and queue is not None:
 		_process_entity_added(db, entity)
+
+@component.adapter(nti_interfaces.IEntity, lce_interfaces.IObjectRemovedEvent)
+def _entity_removed(entity, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_entity_removed(db, entity)
 
 # utils
 

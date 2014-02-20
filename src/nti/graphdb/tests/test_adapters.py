@@ -47,7 +47,7 @@ class TestAdapters(ConfiguringTestBase):
 
 		props = graph_interfaces.IPropertyAdapter(user, None)
 		assert_that(props, is_not(none()))
-		assert_that(props, has_length(5))
+		assert_that(props, has_length(6))
 		assert_that(props, has_entry('username', 'owner@bar'))
 		assert_that(props, has_entry('alias', 'owner'))
 		assert_that(props, has_entry('name', 'na marsh'))
@@ -66,7 +66,7 @@ class TestAdapters(ConfiguringTestBase):
 
 		props = graph_interfaces.IPropertyAdapter(comm, None)
 		assert_that(props, is_not(none()))
-		assert_that(props, has_length(5))
+		assert_that(props, has_length(6))
 		assert_that(props, has_entry('username', 'cs'))
 		assert_that(props, has_entry('alias', 'ComSci'))
 		assert_that(props, has_entry('name', 'OUCS'))
@@ -81,7 +81,8 @@ class TestAdapters(ConfiguringTestBase):
 
 		props = graph_interfaces.IPropertyAdapter(obj, None)
 		assert_that(props, is_not(none()))
-		assert_that(props, has_length(0))
+		assert_that(props, has_length(1))
+		assert_that(props, has_entry('created', is_not(none())))
 
 	@WithMockDSTrans
 	def test_unique_entity_attr_adapter(self):
@@ -135,7 +136,7 @@ class TestAdapters(ConfiguringTestBase):
 
 		props = graph_interfaces.IPropertyAdapter(entry, None)
 		assert_that(props, is_not(none()))
-		assert_that(props, has_length(6))
+		assert_that(props, has_length(7))
 		assert_that(props, has_entry('author', u'user1@bar'))
 		assert_that(props, has_entry('ntiid', is_not(none())))
 		assert_that(props, has_entry('oid', is_not(none())))
