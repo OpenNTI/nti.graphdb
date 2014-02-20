@@ -294,7 +294,7 @@ def init(db, obj):
 	elif frm_interfaces.ITopic.providedBy(obj):
 		_process_topic_add_mod_event(db, obj, graph_interfaces.ADD_EVENT)
 	elif frm_interfaces.IPersonalBlogComment.providedBy(obj) or \
-		 frm_interfaces.IGeneralForumComment(obj):
+		 frm_interfaces.IGeneralForumComment.providedBy(obj):
 		_process_comment_event(db, obj, graph_interfaces.ADD_EVENT)
 	else:
 		result = False
