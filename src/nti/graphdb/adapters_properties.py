@@ -35,12 +35,14 @@ def get_ntiid(obj):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(interface.Interface)
 def _GenericPropertyAdpater(obj):
-	return CaseInsensitiveDict()
+	result = CaseInsensitiveDict({'created':time.time()})
+	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IEntity)
 def _EntityPropertyAdpater(entity):
 	result = CaseInsensitiveDict({"username":entity.username})
+	result['created'] = entity.createdTime
 	names = user_interfaces.IFriendlyNamed(entity, None)
 	alias = getattr(names, 'alias', None)
 	name = getattr(names, 'realname', None)
@@ -91,6 +93,7 @@ _RedactionPropertyAdpater = _ModeledContentPropertyAdpater
 def _ForumPropertyAdpater(forum):
 	result = CaseInsensitiveDict({'type':'Forum'})
 	result['title'] = unicode(forum.title)
+	result['created'] = forum.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(forum)
 	return result
 
@@ -101,6 +104,7 @@ def _TopicPropertyAdpater(topic):
 	result['author'] = getattr(topic.creator, 'username', topic.creator)
 	result['title'] = unicode(topic.title)
 	result['ntiid'] = topic.NTIID
+	result['created'] = topic.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(topic)
 	result['forum'] = externalization.to_external_ntiid_oid(topic.__parent__)
 	return result
@@ -122,6 +126,7 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 	result['author'] = getattr(post.creator, 'username', post.creator)
 	result['oid'] = externalization.to_external_ntiid_oid(post)
 	result['topic'] = post.__parent__.NTIID
+	result['created'] = post.createdTime
 	return result
 
 # IPersonalBlogComment, IGeneralForumComment
@@ -135,6 +140,7 @@ def _CommentRelationshipPropertyAdpater(_from, _post, _rel):
 def _QuestionSetPropertyAdpater(obj):
 	result = CaseInsensitiveDict({'type':'QuestionSet'})
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
+	result['created'] = time.time()
 	return result
 	
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -142,6 +148,7 @@ def _QuestionSetPropertyAdpater(obj):
 def _QuestionPropertyAdpater(obj):
 	result = CaseInsensitiveDict({'type':'Question'})
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
+	result['created'] = time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -149,6 +156,7 @@ def _QuestionPropertyAdpater(obj):
 def _AssignmentPropertyAdpater(obj):
 	result = CaseInsensitiveDict({'type':'Assignment'})
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
+	result['created'] = time.time()
 	return result
 
 def _question_stats(question):
