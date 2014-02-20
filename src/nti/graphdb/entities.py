@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*
+"""
+$Id$
+"""
+from __future__ import print_function, unicode_literals, absolute_import, division
+__docformat__ = "restructuredtext en"
+
+logger = __import__('logging').getLogger(__name__)
+
+from zope import component
+from zope.lifecycleevent import interfaces as lce_interfaces
+
+from nti.dataserver import interfaces as nti_interfaces
+
+from nti.externalization import externalization
+
+from nti.ntiids import ntiids
+
+from . import create_job
+from . import get_graph_db
+from . import get_job_queue
+from . import interfaces as graph_interfaces
+
+def to_external_ntiid_oid(obj):
+	return externalization.to_external_ntiid_oid(obj)
+
+def _remove_entity(db, key, value):
+	node = db.get_indexed_node(key, value)
+	if node is not None:
+		db.delete_node(node)
+		logger.debug("Node %s,%s deleted" % (key, value))
+		return True
+	return False
+
+def _add_entity(db, oid):
+	entity = ntiids.find_object_with_ntiid(oid)
+	if entity is not None:
+		node = db.get_or_create_node(entity)
+		return entity, node
+	return None, None
+
+def _process_entity_removed(db, entity):
+	adapted = graph_interfaces.IUniqueAttributeAdapter(entity)
+	queue = get_job_queue()
+	job = create_job(_remove_entity,
+					 db=db,
+					 key=adapted.key,
+					 value=adapted.value)
+	queue.put(job)
+
+def _process_entity_added(db, entity):
+	oid = to_external_ntiid_oid(entity)
+	queue = get_job_queue()
+	job = create_job(_add_entity, db=db, oid=oid)
+	queue.put(job)
+
+@component.adapter(nti_interfaces.IEntity, lce_interfaces.IObjectRemovedEvent)
+def _entity_removed(entity, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_entity_removed(db, entity)
+
+@component.adapter(nti_interfaces.IEntity, lce_interfaces.IObjectAddedEvent)
+def _entity_added(entity, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_entity_added(db, entity)
+
+# utils
+
+def init(db, obj):
+	result = False
+	if nti_interfaces.IEntity.providedBy(obj):
+		_process_entity_added(db, obj)
+		result = True
+	return result
