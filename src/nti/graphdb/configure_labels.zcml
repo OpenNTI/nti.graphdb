@@ -71,6 +71,10 @@
 	<adapter for="nti.chatserver.interfaces.IMeeting"
 			 factory=".adapters_labels._MeetingLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
-			 
+			
+	<adapter for="nti.contentsearch.interfaces.ISearchQuery"
+			 factory=".adapters_labels._SearchQueryLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+			  
 </configure>
 

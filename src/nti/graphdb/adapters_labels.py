@@ -19,6 +19,8 @@ from nti.chatserver import interfaces as chat_interfaces
 
 from nti.contentlibrary import interfaces as lib_interfaces
 
+from nti.contentsearch import interfaces as search_interfaces
+
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
@@ -103,4 +105,10 @@ def _AssignmentLabelAdpater(question):
 @component.adapter(chat_interfaces.IMeeting)
 def _MeetingLabelAdpater(meeting):
 	result = ('meeting',)
+	return result
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(search_interfaces.ISearchQuery)
+def _SearchQueryLabelAdpater(query):
+	result = ('searchquery',)
 	return result

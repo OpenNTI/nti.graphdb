@@ -186,3 +186,6 @@ class IShared(IRelationshipType):
 
 class IIsSharedTo(IRelationshipType):
 	pass
+
+class ISearch(IRelationshipType):
+	pass

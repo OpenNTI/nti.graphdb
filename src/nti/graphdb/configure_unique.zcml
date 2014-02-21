@@ -68,6 +68,10 @@
 			 factory=".adapters_unique._ContentUnitAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 	  
+	<adapter for="nti.contentsearch.interfaces.ISearchQuery"
+			 factory=".adapters_unique._SearchQueryUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.ITopic .interfaces.IAuthor"
 			 factory=".adapters_unique._AuthorshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />

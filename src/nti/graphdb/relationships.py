@@ -102,3 +102,10 @@ class IsSharedTo(_Singleton):
 	def __str__(self):
 		return "IS_SHARED_TO"
 	__repr__ = __str__
+
+@interface.implementer(graph_interfaces.ISearch)
+class Search(_Singleton):
+
+	def __str__(self):
+		return "HAS_SEARCHED"
+	__repr__ = __str__

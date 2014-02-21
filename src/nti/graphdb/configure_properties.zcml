@@ -64,6 +64,10 @@
 			 factory=".adapters_properties._ContentUnitPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
+	<adapter for="nti.contentsearch.interfaces.ISearchQuery"
+			 factory=".adapters_properties._SearchQueryPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
 	<adapter for="* * .interfaces.IRelationshipType"
 			 factory=".adapters_properties._CreatedTimePropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

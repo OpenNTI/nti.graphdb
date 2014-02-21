@@ -19,6 +19,8 @@ from nti.chatserver import interfaces as chat_interfaces
 
 from nti.contentlibrary import interfaces as lib_interfaces
 
+from nti.contentsearch import interfaces as search_interfaces
+
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.users import interfaces as user_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
@@ -167,6 +169,16 @@ def _AssignmentPropertyAdpater(obj):
 	result = CaseInsensitiveDict({'type':'Assignment'})
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
 	result['created'] = time.time()
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(search_interfaces.ISearchQuery)
+def _SearchQueryPropertyAdpater(obj):
+	result = CaseInsensitiveDict({'type':'SearchQuery'})
+	result['term'] = obj.term.lower()
+	result['created'] = time.time()
+	result['IsPhraseSearch'] = obj.IsPhraseSearch
+	result['IsPrefixSearch'] = obj.IsPrefixSearch
 	return result
 
 def _question_stats(question):

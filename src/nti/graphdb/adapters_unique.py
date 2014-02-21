@@ -17,6 +17,8 @@ from nti.chatserver import interfaces as chat_interfaces
 
 from nti.contentlibrary import interfaces as lib_interfaces
 
+from nti.contentsearch import interfaces as search_interfaces
+
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
@@ -197,6 +199,21 @@ class _NTIIDUniqueAttributeAdpater(object):
 	@property
 	def value(self):
 		return get_ntiid(self.obj)
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(search_interfaces.ISearchQuery)
+class _SearchQueryUniqueAttributeAdpater(object):
+
+	key = "term"
+
+	def __init__(self, obj):
+		self.obj = obj
+
+	@property
+	def value(self):
+		# TODO: Better way?
+		result = self.obj.term.lower()
+		return result
 
 class _NTIIDMembershipUniqueAttributeAdpater(object):
 
