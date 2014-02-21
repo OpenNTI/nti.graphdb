@@ -59,23 +59,20 @@ def _process_entity_added(db, entity):
 def _entity_added(entity, event):
 	db = get_graph_db()
 	queue = get_job_queue()
-	if	db is not None and queue is not None and \
-		not nti_interfaces.IDynamicSharingTargetFriendsList.providedBy(entity):
+	if db is not None and queue is not None:
 		_process_entity_added(db, entity)
 
 @component.adapter(nti_interfaces.IEntity, lce_interfaces.IObjectRemovedEvent)
 def _entity_removed(entity, event):
 	db = get_graph_db()
-	if	db is not None and \
-		not nti_interfaces.IDynamicSharingTargetFriendsList.providedBy(entity):
+	if db is not None:
 		_process_entity_removed(db, entity)
 
 # utils
 
 def init(db, obj):
 	result = False
-	if 	nti_interfaces.IEntity.providedBy(obj) and \
-		not nti_interfaces.IDynamicSharingTargetFriendsList.providedBy(obj):
+	if nti_interfaces.IEntity.providedBy(obj):
 		_process_entity_added(db, obj)
 		result = True
 	return result
