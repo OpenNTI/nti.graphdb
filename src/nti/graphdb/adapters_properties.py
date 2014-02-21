@@ -77,6 +77,7 @@ def _ModeledContentPropertyAdpater(modeled):
 	result['creator'] = getattr(modeled.creator, 'username', modeled.creator)
 	result['created'] = modeled.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(modeled)
+	result['containerId'] = getattr(modeled, 'containerId', None)
 	return result
 
 @component.adapter(nti_interfaces.INote)
