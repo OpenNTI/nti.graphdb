@@ -15,6 +15,8 @@ from nti.assessment import interfaces as asm_interfaces
 
 from nti.chatserver import interfaces as chat_interfaces
 
+from nti.contentlibrary import interfaces as lib_interfaces
+
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
@@ -98,6 +100,14 @@ class _CommentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 @component.adapter(chat_interfaces.IMeeting)
 class _MeetingUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 	pass
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(lib_interfaces.IContentUnit)
+class _ContentUnitAttributeAdpater(_OIDUniqueAttributeAdpater):
+
+	@property
+	def value(self):
+		return self.obj.ntiid
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _EntityObjectRelationshipUniqueAttributeAdpater(object):

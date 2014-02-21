@@ -52,6 +52,10 @@
 			 factory=".adapters_labels._CommentLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 
+	<adapter for="nti.contentlibrary.interfaces.IContentUnit"
+			 factory=".adapters_labels._ContentUnitLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+			 
 	<adapter for="nti.assessment.interfaces.IQuestionSet"
 			 factory=".adapters_labels._QuestionSetLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />

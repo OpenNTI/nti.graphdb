@@ -60,6 +60,10 @@
 			 factory=".adapters_properties._MeetingPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
+	<adapter for="nti.contentlibrary.interfaces.IContentUnit"
+			 factory=".adapters_properties._ContentUnitPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
 	<adapter for="* * .interfaces.IRelationshipType"
 			 factory=".adapters_properties._CreatedTimePropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

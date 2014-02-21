@@ -17,6 +17,8 @@ from nti.assessment import interfaces as asm_interfaces
 
 from nti.chatserver import interfaces as chat_interfaces
 
+from nti.contentlibrary import interfaces as lib_interfaces
+
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
@@ -74,6 +76,11 @@ def _TopicLabelAdpater(topic):
 	result = tuple(sorted(result))
 	return result
 	
+@interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(lib_interfaces.IContentUnit)
+def _ContentUnitLabelAdpater(topic):
+	return ("contentunit",)
+
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(asm_interfaces.IQuestionSet)
 def _QuestionSetLabelAdpater(obj):
