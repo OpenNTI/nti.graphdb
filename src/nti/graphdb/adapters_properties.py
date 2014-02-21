@@ -131,7 +131,7 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(lib_interfaces.IContentUnit)
-def _ContentUnitAttributeAdpater(unit):
+def _ContentUnitPropertyAdpater(unit):
 	result = CaseInsensitiveDict({'type':'ContentUnit'})
 	result['title'] = unit.title
 	result['oid'] = unit.ntiid
