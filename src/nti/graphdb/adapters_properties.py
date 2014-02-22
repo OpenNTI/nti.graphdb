@@ -208,7 +208,7 @@ def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssessedQuestionSet,
-				  graph_interfaces.ITakeAssessment)
+				   graph_interfaces.ITakeAssessment)
 def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
 	result = CaseInsensitiveDict({'taker' : user.username})
 	result['created'] = questionSet.createdTime
@@ -249,3 +249,13 @@ _RateRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 _FollowRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 _FlaggedRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 _AuthorshipRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(nti_interfaces.IUser, search_interfaces.ISearchResults,
+				   graph_interfaces.ISearch)
+def _SearchRelationshipPropertyAdpater(user, results, rel):
+	result = CaseInsensitiveDict({'created' :  time.time()})
+	result['searchTime'] = results.HitMetaData.SearchTime
+	result['totalHitCount'] = results.HitMetaData.TotalHitCount
+	result['created'] = time.time()
+	return result
