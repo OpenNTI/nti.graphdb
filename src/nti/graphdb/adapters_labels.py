@@ -79,6 +79,11 @@ def _TopicLabelAdpater(topic):
 	return result
 	
 @interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(frm_interfaces.IHeadlinePost)
+def _HeadlinePostLabelAdpater(post):
+	return graph_interfaces.ILabelAdapter(post.__parent__)
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(lib_interfaces.IContentUnit)
 def _ContentUnitLabelAdpater(topic):
 	return ("contentunit",)

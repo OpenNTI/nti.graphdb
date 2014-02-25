@@ -51,7 +51,11 @@
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.ITopic"
 			 factory=".adapters_unique._TopicUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
-			
+	
+	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IHeadlinePost"
+			 factory=".adapters_unique._HeadlinePostUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			 		
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IPersonalBlogComment"
 			 factory=".adapters_unique._CommentUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />

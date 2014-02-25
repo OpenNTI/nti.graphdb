@@ -15,6 +15,7 @@ from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver.users import User
 from nti.dataserver import interfaces as nti_interfaces
+from nti.dataserver.contenttypes.forums import interfaces as forum_interfaces
 
 from nti.externalization import externalization
 
@@ -31,8 +32,14 @@ def get_entity(entity):
 		entity = User.get_entity(entity)
 	return entity
 
-def _delete_isSharedTo_rels(db, oid, sharedWith=()):
+def get_underlying(oid):
 	obj = ntiids.find_object_with_ntiid(oid)
+	if forum_interfaces.IHeadlinePost.providedBy(obj):
+		obj = obj.__parent__
+	return obj
+
+def _delete_isSharedTo_rels(db, oid, sharedWith=()):
+	obj = get_underlying(oid)
 	if obj and sharedWith:
 		rel_type = relationships.IsSharedTo()
 		for entity in sharedWith:
@@ -45,7 +52,7 @@ def _delete_isSharedTo_rels(db, oid, sharedWith=()):
 
 def _create_isSharedTo_rels(db, oid, sharedWith=()):
 	result = []
-	obj = ntiids.find_object_with_ntiid(oid)
+	obj = get_underlying(oid)
 	if obj and sharedWith:
 		rel_type = relationships.IsSharedTo()
 		for entity in sharedWith:
@@ -55,7 +62,7 @@ def _create_isSharedTo_rels(db, oid, sharedWith=()):
 	return result
 
 def _create_shared_rel(db, oid):
-	obj = ntiids.find_object_with_ntiid(oid)
+	obj = get_underlying(oid)
 	if obj is not None:
 		creator = get_entity(obj.creator)
 		rel = db.create_relationship(creator, obj, relationships.Shared())

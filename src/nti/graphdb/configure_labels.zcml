@@ -43,7 +43,11 @@
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.ITopic"
 			 factory=".adapters_labels._TopicLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
-			 		 
+	
+	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IHeadlinePost"
+			 factory=".adapters_labels._HeadlinePostLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+			 		 		 
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment"
 			 factory=".adapters_labels._CommentLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />

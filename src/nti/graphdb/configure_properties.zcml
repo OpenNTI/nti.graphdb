@@ -47,7 +47,11 @@
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.ITopic"
 			 factory=".adapters_properties._TopicPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
-			 
+		
+	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IHeadlinePost"
+			 factory=".adapters_properties._HeadlinePostPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 	 
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment"
 			 factory=".adapters_properties._CommentPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

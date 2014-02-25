@@ -95,6 +95,13 @@ class _TopicUniqueAttributeAdpater(object):
 		return self.obj.NTIID
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(frm_interfaces.IHeadlinePost)
+class _HeadlinePostUniqueAttributeAdpater(_TopicUniqueAttributeAdpater):
+
+	def __init__(self, obj):
+		super(_HeadlinePostUniqueAttributeAdpater, self).__init__(obj.__parent__)
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _CommentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 	pass
 

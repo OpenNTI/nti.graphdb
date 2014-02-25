@@ -111,6 +111,11 @@ def _TopicPropertyAdpater(topic):
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(frm_interfaces.IHeadlinePost)
+def _HeadlinePostPropertyAdpater(post):
+	return graph_interfaces.IPropertyAdapter(post.__parent__)
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(chat_interfaces.IMeeting)
 def _MeetingPropertyAdpater(meeting):
 	result = {'type':'Meeting'}
