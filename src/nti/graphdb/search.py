@@ -27,7 +27,7 @@ def to_external_ntiid_oid(obj):
 	return externalization.to_external_ntiid_oid(obj)
 
 @component.adapter(search_interfaces.ISearchCompletedEvent)
-def _search_completed(entity, event):
+def _search_completed(entity):
 	db = get_graph_db()
 	if db is not None:
 		pass
