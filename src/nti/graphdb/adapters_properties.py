@@ -27,8 +27,6 @@ from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
 from nti.externalization import externalization
 
-from nti.utils.maps import CaseInsensitiveDict
-
 from . import interfaces as graph_interfaces
 
 def get_ntiid(obj):
@@ -37,13 +35,13 @@ def get_ntiid(obj):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(interface.Interface)
 def _GenericPropertyAdpater(obj):
-	result = CaseInsensitiveDict({'created':time.time()})
+	result = {'created':time.time()}
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IEntity)
 def _EntityPropertyAdpater(entity):
-	result = CaseInsensitiveDict({"username":entity.username})
+	result = {"username":entity.username}
 	result['created'] = entity.createdTime
 	names = user_interfaces.IFriendlyNamed(entity, None)
 	alias = getattr(names, 'alias', None)
@@ -75,7 +73,7 @@ def _DFLPropertyAdpater(dfl):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IModeledContent)
 def _ModeledContentPropertyAdpater(modeled):
-	result = CaseInsensitiveDict({'type':modeled.__class__.__name__})
+	result = {'type':modeled.__class__.__name__}
 	result['creator'] = getattr(modeled.creator, 'username', modeled.creator)
 	result['created'] = modeled.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(modeled)
@@ -94,7 +92,7 @@ _RedactionPropertyAdpater = _ModeledContentPropertyAdpater
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(frm_interfaces.IForum)
 def _ForumPropertyAdpater(forum):
-	result = CaseInsensitiveDict({'type':'Forum'})
+	result = {'type':'Forum'}
 	result['title'] = unicode(forum.title)
 	result['created'] = forum.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(forum)
@@ -103,7 +101,7 @@ def _ForumPropertyAdpater(forum):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(frm_interfaces.ITopic)
 def _TopicPropertyAdpater(topic):
-	result = CaseInsensitiveDict({'type':'Topic'})
+	result = {'type':'Topic'}
 	result['author'] = getattr(topic.creator, 'username', topic.creator)
 	result['title'] = unicode(topic.title)
 	result['ntiid'] = topic.NTIID
@@ -115,7 +113,7 @@ def _TopicPropertyAdpater(topic):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(chat_interfaces.IMeeting)
 def _MeetingPropertyAdpater(meeting):
-	result = CaseInsensitiveDict({'type':'Meeting'})
+	result = {'type':'Meeting'}
 	result['creator'] = meeting.creator
 	result['roomId'] = meeting.RoomId
 	result['created'] = meeting.CreatedTime
@@ -125,7 +123,7 @@ def _MeetingPropertyAdpater(meeting):
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
-	result = CaseInsensitiveDict({'type':'Comment'})
+	result = {'type':'Comment'}
 	result['author'] = getattr(post.creator, 'username', post.creator)
 	result['oid'] = externalization.to_external_ntiid_oid(post)
 	result['topic'] = post.__parent__.NTIID
@@ -135,7 +133,7 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(lib_interfaces.IContentUnit)
 def _ContentUnitPropertyAdpater(unit):
-	result = CaseInsensitiveDict({'type':'ContentUnit'})
+	result = {'type':'ContentUnit'}
 	result['title'] = unit.title
 	result['oid'] = unit.ntiid
 	result['created'] = time.time()
@@ -144,13 +142,13 @@ def _ContentUnitPropertyAdpater(unit):
 # IPersonalBlogComment, IGeneralForumComment
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(_from, _post, _rel):
-	result = CaseInsensitiveDict({'created': _post.createdTime})
+	result = {'created': _post.createdTime}
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(asm_interfaces.IQuestionSet)
 def _QuestionSetPropertyAdpater(obj):
-	result = CaseInsensitiveDict({'type':'QuestionSet'})
+	result = {'type':'QuestionSet'}
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
 	result['created'] = time.time()
 	return result
@@ -158,7 +156,7 @@ def _QuestionSetPropertyAdpater(obj):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(asm_interfaces.IQuestion)
 def _QuestionPropertyAdpater(obj):
-	result = CaseInsensitiveDict({'type':'Question'})
+	result = {'type':'Question'}
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
 	result['created'] = time.time()
 	return result
@@ -166,7 +164,7 @@ def _QuestionPropertyAdpater(obj):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(asm_interfaces.IQAssignment)
 def _AssignmentPropertyAdpater(obj):
-	result = CaseInsensitiveDict({'type':'Assignment'})
+	result = {'type':'Assignment'}
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
 	result['created'] = time.time()
 	return result
@@ -174,7 +172,7 @@ def _AssignmentPropertyAdpater(obj):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(search_interfaces.ISearchQuery)
 def _SearchQueryPropertyAdpater(obj):
-	result = CaseInsensitiveDict({'type':'SearchQuery'})
+	result = {'type':'SearchQuery'}
 	result['term'] = obj.term.lower()
 	result['created'] = time.time()
 	result['IsPhraseSearch'] = obj.IsPhraseSearch
@@ -197,7 +195,7 @@ def _question_stats(question):
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssessedQuestion,
 				   graph_interfaces.ITakeAssessment)
 def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
-	result = CaseInsensitiveDict({'taker' : user.username})
+	result = {'taker' : user.username}
 	result['created'] = question.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(question)
 	is_correct, is_incorrect, partial = _question_stats(question)
@@ -210,7 +208,7 @@ def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssessedQuestionSet,
 				   graph_interfaces.ITakeAssessment)
 def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
-	result = CaseInsensitiveDict({'taker' : user.username})
+	result = {'taker' : user.username}
 	result['created'] = questionSet.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(questionSet)
 	correct = incorrect = 0
@@ -229,13 +227,13 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssignment,
 				   graph_interfaces.ITakeAssessment)
 def _AssignmentRelationshipPropertyAdpater(user, asm, rel):
-	result = CaseInsensitiveDict({'taker' : user.username})
+	result = {'taker' : user.username}
 	result['created'] = time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CreatedTimePropertyAdpater(_from, _to, _rel):
-	result = CaseInsensitiveDict({'created':time.time()})
+	result = {'created':time.time()}
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -254,8 +252,12 @@ _AuthorshipRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 @component.adapter(nti_interfaces.IUser, search_interfaces.ISearchResults,
 				   graph_interfaces.ISearch)
 def _SearchRelationshipPropertyAdpater(user, results, rel):
-	result = CaseInsensitiveDict({'created' :  time.time()})
+	result = {'created' :  time.time()}
+	result['location'] = results.Query.location
 	result['searchTime'] = results.HitMetaData.SearchTime
 	result['totalHitCount'] = results.HitMetaData.TotalHitCount
-	result['created'] = time.time()
+	# top 5 containers
+	items = results.HitMetaData.ContainerCount.items()
+	for x, y in sorted(items, key=lambda x: x[1], reverse=True)[:5]:
+		result[x] = y
 	return result
