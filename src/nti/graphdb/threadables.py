@@ -56,7 +56,7 @@ def _remove_threadable(db, key, value, irt_PK=None):
 	remove_modeled(db, key, value)
 
 def _proces_threadable_removed(db, threadable):
-	irt_PK = _get_inReplyTo_PK(threadable)
+	irt_PK = _get_inReplyTo_PK(threadable) if threadable.inReplyTo is not None else None
 	adapted = graph_interfaces.IUniqueAttributeAdapter(threadable)
 	queue = get_job_queue()
 	job = create_job(_remove_threadable, db=db,
