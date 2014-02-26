@@ -119,9 +119,8 @@ def start_reactor(request):
 	reactor = component.queryUtility(async_interfaces.IJobReactor)
 	if reactor is not None:
 		if reactor.isRunning:
-			return hexc.HTTPConflict(detail="Reactor already running")
-		else:
-			component.getSiteManager().unregisterUtility(reactor, async_interfaces.IJobReactor)
+			reactor.halt()  # stop
+		component.getSiteManager().unregisterUtility(reactor, async_interfaces.IJobReactor)
 
 	reactor = JobReactor()
 	component.provideUtility(reactor, async_interfaces.IJobReactor)
