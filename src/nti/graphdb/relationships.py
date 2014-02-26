@@ -82,6 +82,13 @@ class Reply(_Singleton):
 		return "HAS_REPLIED_TO"
 	__repr__ = __str__
 
+@interface.implementer(graph_interfaces.IIsReplyOf)
+class IsReplyOf(_Singleton):
+
+	def __str__(self):
+		return "IS_REPLY_OF"
+	__repr__ = __str__
+
 @interface.implementer(graph_interfaces.IAuthor)
 class Author(_Singleton):
 

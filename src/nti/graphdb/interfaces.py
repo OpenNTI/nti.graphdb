@@ -178,6 +178,9 @@ class IFlagged(IRelationshipType):
 class IReply(IRelationshipType):
 	pass
 
+class IIsReplyOf(IRelationshipType):
+	pass
+
 class IAuthor(IRelationshipType):
 	pass
 

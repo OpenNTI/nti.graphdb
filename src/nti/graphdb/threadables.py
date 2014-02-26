@@ -83,6 +83,10 @@ def _add_inReplyTo_relationship(db, oid):
 	threadable = ntiids.find_object_with_ntiid(oid)
 	in_replyTo = threadable.inReplyTo if threadable is not None else None
 	if in_replyTo is not None:
+		# create parent/child relationship
+		rel_type = relationships.IsReplyOf()
+		db.create_relationship(threadable, in_replyTo, rel_type)
+
 		author = get_creator(threadable)
 		rel_type = relationships.Reply()
 
