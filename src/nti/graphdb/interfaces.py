@@ -198,3 +198,6 @@ class IAssignmentFeedback(IRelationshipType):
 
 class ISearch(IRelationshipType):
 	pass
+
+class ITaggedTo(IRelationshipType):
+	pass

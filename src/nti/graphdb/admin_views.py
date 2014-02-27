@@ -28,6 +28,7 @@ from nti.utils.maps import CaseInsensitiveDict
 from . import views
 from . import ratings
 from . import sharing
+from . import tagging
 from . import entities
 from . import flagging
 from . import threadables
@@ -70,8 +71,8 @@ def all_objects_iids(users=()):
 
 def init(db, obj):
 	result = False
-	for module in (entities, connections, threadables, sharing, flagging,
-				   ratings, discussions, assessments):
+	for module in (entities, connections, threadables, sharing, tagging,
+				   flagging, ratings, discussions, assessments):
 		result = module.init(db, obj) or result
 	return result
 

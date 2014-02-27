@@ -130,3 +130,10 @@ class Search(_Singleton):
 	def __str__(self):
 		return "HAS_SEARCHED"
 	__repr__ = __str__
+
+@interface.implementer(graph_interfaces.ITaggedTo)
+class TaggedTo(_Singleton):
+
+	def __str__(self):
+		return "IS_TAGGED_TO"
+	__repr__ = __str__
