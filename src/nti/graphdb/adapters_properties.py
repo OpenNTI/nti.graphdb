@@ -41,7 +41,7 @@ def _GenericPropertyAdpater(obj):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IEntity)
 def _EntityPropertyAdpater(entity):
-	result = {"username":entity.username}
+	result = {"username":entity.username, "creator":entity.username}
 	result['created'] = entity.createdTime
 	names = user_interfaces.IFriendlyNamed(entity, None)
 	alias = getattr(names, 'alias', None)
@@ -102,7 +102,7 @@ def _ForumPropertyAdpater(forum):
 @component.adapter(frm_interfaces.ITopic)
 def _TopicPropertyAdpater(topic):
 	result = {'type':'Topic'}
-	result['author'] = getattr(topic.creator, 'username', topic.creator)
+	result['creator'] = getattr(topic.creator, 'username', topic.creator)
 	result['title'] = unicode(topic.title)
 	result['ntiid'] = topic.NTIID
 	result['created'] = topic.createdTime
@@ -129,7 +129,7 @@ def _MeetingPropertyAdpater(meeting):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 	result = {'type':'Comment'}
-	result['author'] = getattr(post.creator, 'username', post.creator)
+	result['creator'] = getattr(post.creator, 'username', post.creator)
 	result['oid'] = externalization.to_external_ntiid_oid(post)
 	result['topic'] = post.__parent__.NTIID
 	result['created'] = post.createdTime
@@ -200,7 +200,7 @@ def _question_stats(question):
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssessedQuestion,
 				   graph_interfaces.ITakeAssessment)
 def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
-	result = {'taker' : user.username}
+	result = {'creator' : user.username}
 	result['created'] = question.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(question)
 	is_correct, is_incorrect, partial = _question_stats(question)
@@ -213,7 +213,7 @@ def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssessedQuestionSet,
 				   graph_interfaces.ITakeAssessment)
 def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
-	result = {'taker' : user.username}
+	result = {'creator' : user.username}
 	result['created'] = questionSet.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(questionSet)
 	correct = incorrect = 0
@@ -232,7 +232,7 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
 @component.adapter(nti_interfaces.IUser, asm_interfaces.IQAssignment,
 				   graph_interfaces.ITakeAssessment)
 def _AssignmentRelationshipPropertyAdpater(user, asm, rel):
-	result = {'taker' : user.username}
+	result = {'creator' : user.username}
 	result['created'] = time.time()
 	return result
 
