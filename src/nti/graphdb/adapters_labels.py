@@ -13,6 +13,8 @@ import itertools
 from zope import component
 from zope import interface
 
+from nti.app.assessment import interfaces as app_asm_interfaces
+
 from nti.assessment import interfaces as asm_interfaces
 
 from nti.chatserver import interfaces as chat_interfaces
@@ -105,6 +107,11 @@ def _QuestionLabelAdpater(question):
 def _AssignmentLabelAdpater(question):
 	result = ('assignment',)
 	return result
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(app_asm_interfaces.IUsersCourseAssignmentHistoryItemFeedback)
+def _AssignmentFeedbackLabelAdpater(modeled):
+	return ("assignmentFeedback",)
 
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(chat_interfaces.IMeeting)

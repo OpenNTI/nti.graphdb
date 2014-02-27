@@ -13,6 +13,8 @@ import time
 from zope import component
 from zope import interface
 
+from nti.app.assessment import interfaces as app_asm_interfaces
+
 from nti.assessment import interfaces as asm_interfaces
 
 from nti.chatserver import interfaces as chat_interfaces
@@ -172,6 +174,13 @@ def _AssignmentPropertyAdpater(obj):
 	result = {'type':'Assignment'}
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
 	result['created'] = time.time()
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(app_asm_interfaces.IUsersCourseAssignmentHistoryItemFeedback)
+def _AssignmentFeedbackPropertyAdpater(modeled):
+	result = _ModeledContentPropertyAdpater(modeled)
+	result['type'] = 'AssignmentFeedback'
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
