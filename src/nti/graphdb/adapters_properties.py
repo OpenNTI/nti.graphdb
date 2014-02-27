@@ -251,22 +251,26 @@ def _CreatedTimePropertyAdpater(_from, _to, _rel):
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
-def _RepliedRelationshipPropertyAdpater(entity, obj, rel_type):
+def _EntityObjectRelationshipPropertyAdpater(entity, obj, rel_type):
 	result = _CreatedTimePropertyAdpater(entity, obj, rel_type)
+	result['creator'] = entity.username
 	result['oid'] = externalization.to_external_ntiid_oid(obj)
 	return result
 
-_LikeRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
-_RateRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
+_LikeRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
+_RateRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
+_RepliedRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
+_FlaggedRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
+_AuthorshipRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
+
 _FollowRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
-_FlaggedRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
-_AuthorshipRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IUser, search_interfaces.ISearchResults,
 				   graph_interfaces.ISearch)
 def _SearchRelationshipPropertyAdpater(user, results, rel):
 	result = {'created' :  time.time()}
+	result['creator'] = user.username
 	result['location'] = results.Query.location
 	result['searchTime'] = results.HitMetaData.SearchTime
 	result['totalHitCount'] = results.HitMetaData.TotalHitCount
