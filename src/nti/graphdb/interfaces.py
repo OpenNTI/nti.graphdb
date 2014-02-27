@@ -193,5 +193,8 @@ class IIsSharedTo(IRelationshipType):
 class IFeedback(IRelationshipType):
 	pass
 
+class IAssignmentFeedback(IRelationshipType):
+	pass
+
 class ISearch(IRelationshipType):
 	pass

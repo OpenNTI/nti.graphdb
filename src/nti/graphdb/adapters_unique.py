@@ -11,6 +11,8 @@ logger = __import__('logging').getLogger(__name__)
 from zope import component
 from zope import interface
 
+from nti.app.assessment import interfaces as app_asm_interfaces
+
 from nti.assessment import interfaces as asm_interfaces
 
 from nti.chatserver import interfaces as chat_interfaces
@@ -119,6 +121,11 @@ class _ContentUnitAttributeAdpater(_OIDUniqueAttributeAdpater):
 		return self.obj.ntiid
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(app_asm_interfaces.IUsersCourseAssignmentHistoryItemFeedback)
+class _AssignmenFeedbackUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
+	pass
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _EntityObjectRelationshipUniqueAttributeAdpater(object):
 
 	def __init__(self, entity, to, rel):
@@ -195,7 +202,6 @@ class _ObjectRelationshipUniqueAttributeAdpater(object):
 		return result
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-@component.adapter(asm_interfaces.IQuestionSet)
 class _NTIIDUniqueAttributeAdpater(object):
 
 	key = "oid"
@@ -299,3 +305,4 @@ class _AssignmentTakenUniqueAttributeAdpater(object):
 		ntiid = get_ntiid(self.asm)
 		result = '%s,%s' % (self.rel, ntiid)
 		return result
+

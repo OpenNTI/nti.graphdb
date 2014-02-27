@@ -13,6 +13,8 @@ import time
 from zope import component
 from zope import interface
 
+from pyramid.traversal import find_interface
+
 from nti.app.assessment import interfaces as app_asm_interfaces
 
 from nti.assessment import interfaces as asm_interfaces
@@ -79,7 +81,9 @@ def _ModeledContentPropertyAdpater(modeled):
 	result['creator'] = getattr(modeled.creator, 'username', modeled.creator)
 	result['created'] = modeled.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(modeled)
-	result['containerId'] = getattr(modeled, 'containerId', None)
+	containerId = getattr(modeled, 'containerId', None)
+	if containerId:
+		result['containerId'] = containerId
 	return result
 
 @component.adapter(nti_interfaces.INote)
@@ -142,8 +146,8 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 def _ContentUnitPropertyAdpater(unit):
 	result = {'type':'ContentUnit'}
 	result['title'] = unit.title
-	result['oid'] = unit.ntiid
 	result['created'] = time.time()
+	result['oid'] = result['ntiid'] = unit.ntiid
 	return result
 
 # IPersonalBlogComment, IGeneralForumComment
@@ -178,9 +182,11 @@ def _AssignmentPropertyAdpater(obj):
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(app_asm_interfaces.IUsersCourseAssignmentHistoryItemFeedback)
-def _AssignmentFeedbackPropertyAdpater(modeled):
-	result = _ModeledContentPropertyAdpater(modeled)
+def _AssignmentFeedbackPropertyAdpater(feedback):
+	result = _ModeledContentPropertyAdpater(feedback)
 	result['type'] = 'AssignmentFeedback'
+	item = find_interface(feedback, app_asm_interfaces.IUsersCourseAssignmentHistoryItem)
+	result['assignmentId'] = getattr(item, '__name__', None)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -212,6 +218,7 @@ def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
 	result = {'creator' : user.username}
 	result['created'] = question.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(question)
+	result['questionId'] = result['oid']
 	is_correct, is_incorrect, partial = _question_stats(question)
 	result['correct'] = is_correct
 	result['incorrect'] = is_incorrect
@@ -225,6 +232,7 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
 	result = {'creator' : user.username}
 	result['created'] = questionSet.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(questionSet)
+	result['questionSetId'] = result['oid']
 	correct = incorrect = 0
 	questions = questionSet.questions
 	for question in questions:
@@ -243,6 +251,8 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
 def _AssignmentRelationshipPropertyAdpater(user, asm, rel):
 	result = {'creator' : user.username}
 	result['created'] = time.time()
+	result['oid'] = externalization.to_external_ntiid_oid(asm)
+	result['assignmentId'] = result['oid']
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)

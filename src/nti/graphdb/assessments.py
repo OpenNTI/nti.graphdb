@@ -13,6 +13,9 @@ import six
 from zope import component
 from zope.lifecycleevent import interfaces as lce_interfaces
 
+from pyramid.traversal import find_interface
+from pyramid.threadlocal import get_current_request
+
 from nti.app.assessment import interfaces as appa_interfaces
 
 from nti.app.products.courseware import interfaces as cw_interfaces
@@ -20,6 +23,8 @@ from nti.app.products.courseware import interfaces as cw_interfaces
 from nti.app.products.gradebook import interfaces as gb_interfaces
 
 from nti.assessment import interfaces as assessment_interfaces
+
+from nti.contenttypes.courses.interfaces import ICourseInstance
 
 from nti.dataserver import users
 from nti.dataserver import interfaces as nti_interfaces
@@ -217,6 +222,90 @@ def _grade_modified(grade, event):
 def _grade_added(grade, event):
 	_grade_modified(grade, event)
 
+# feedback
+
+def get_current_user():
+	request = get_current_request()
+	username = request.authenticated_userid if request is not None else None
+	return username
+
+def _pick_instructor(course):
+	instructors = course.instructors if course is not None else None
+	for instructor in instructors or ():
+		entity = instructor if nti_interfaces.IEntity.providedBy(instructor) \
+							else users.User.get_entity(str(instructor))
+		if entity is not None:
+			return entity
+	return None
+			
+def set_asm_feedback(db, oid, username=None):
+	feedback = ntiids.find_object_with_ntiid(oid)
+	user = users.User.get_entity(username) if username else None
+	if feedback is not None:
+		creator = feedback.creator
+		if user is None or user == creator:
+			direction = 1  # feedback from student to professor
+			item = find_interface(feedback,
+								  appa_interfaces.IUsersCourseAssignmentHistoryItem)
+			course = ICourseInstance(item, None)
+			instructor = _pick_instructor(course)  # pick first found
+			if user is None:
+				direction = 2  # feedback from professor to student
+		else:
+			direction = 2
+			instructor = user  # feedback from professor to student
+
+		if not instructor:
+			return
+
+		rel_type = relationships.AssigmentFeedback()
+		properties = graph_interfaces.IPropertyAdapter(feedback)
+		unique = graph_interfaces.IUniqueAttributeAdapter(feedback)
+
+		if direction == 1:
+			rel = db.create_relationship(creator, instructor, rel_type,
+										 properties=properties,
+										 key=unique.key, value=unique.value)
+		else:
+			rel = db.create_relationship(instructor, creator, rel_type,
+										 properties=properties,
+										 key=unique.key, value=unique.value)
+		return rel
+
+def _process_feedback_added(db, feedback, user=None):
+	username = getattr(user, 'username', user)
+	oid = externalization.to_external_ntiid_oid(feedback)
+	queue = get_job_queue()
+	job = create_job(set_asm_feedback, db=db,
+					 oid=oid, username=username)
+	queue.put(job)
+
+@component.adapter(appa_interfaces.IUsersCourseAssignmentHistoryItemFeedback,
+				   lce_interfaces.IObjectAddedEvent)
+def _feedback_added(feedback, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_feedback_added(db, feedback, get_current_user())
+
+def del_asm_feedback(db, key, value):
+	if db.delete_indexed_relationship(key, value):
+		logger.debug("Assignment feedback relationship %s deleted" % value)
+		return True
+	return False
+
+def _process_feedback_removed(db, feedback):
+	unique = graph_interfaces.IUniqueAttributeAdapter(feedback)
+	queue = get_job_queue()
+	job = create_job(del_asm_feedback, db=db, key=unique.key, value=unique.value)
+	queue.put(job)
+
+@component.adapter(appa_interfaces.IUsersCourseAssignmentHistoryItemFeedback,
+				   lce_interfaces.IObjectRemovedEvent)
+def _feedback_removed(feedback, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_feedback_removed(db, feedback)
+
 # utils
 
 def get_course_enrollments(user):
@@ -249,6 +338,8 @@ def init(db, obj):
 		_queue_question_event(db, obj)
 	elif nti_interfaces.IUser.providedBy(obj):
 		init_asssignments(db, obj)
+	elif appa_interfaces.IUsersCourseAssignmentHistoryItemFeedback.providedBy(obj):
+		_process_feedback_added(db, obj)
 	else:
 		result = False
 	return result

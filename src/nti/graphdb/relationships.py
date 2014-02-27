@@ -117,6 +117,13 @@ class Feedback(_Singleton):
 		return "HAS_FEEDBACKED"
 	__repr__ = __str__
 
+@interface.implementer(graph_interfaces.IAssignmentFeedback)
+class AssigmentFeedback(_Singleton):
+
+	def __str__(self):
+		return "ASM_FEEDBACKED"
+	__repr__ = __str__
+
 @interface.implementer(graph_interfaces.ISearch)
 class Search(_Singleton):
 

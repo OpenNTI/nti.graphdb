@@ -99,6 +99,10 @@
 	<adapter for="nti.assessment.interfaces.IQAssignment"
 			 factory=".adapters_unique._NTIIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
+	
+	<adapter for="nti.app.assessment.interfaces.IUsersCourseAssignmentHistoryItemFeedback"
+			 factory=".adapters_unique._AssignmenFeedbackUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />		 
 			 
 	<adapter for="nti.dataserver.interfaces.IUser nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.ITakeAssessment"
 			 factory=".adapters_unique._AssessedRelationshipUniqueAttributeAdpater"
@@ -119,7 +123,7 @@
 	<adapter for="nti.dataserver.interfaces.IUser nti.assessment.interfaces.IQAssignment .interfaces.ITakeAssessment"
 			 factory=".adapters_unique._AssignmentTakenUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
-					
+					  
 	<adapter for="nti.dataserver.interfaces.IUser nti.dataserver.interfaces.ILikeable .interfaces.ILike"
 			 factory=".adapters_unique._LikeUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
