@@ -114,7 +114,7 @@ class IsSharedTo(_Singleton):
 class Feedback(_Singleton):
 
 	def __str__(self):
-		return "HAS_GIVEN_FEEDBACK"
+		return "HAS_FEEDBACKED"
 	__repr__ = __str__
 
 @interface.implementer(graph_interfaces.ISearch)

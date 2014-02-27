@@ -23,6 +23,10 @@
 			  
 	<include package=".async" file="configure.zcml" />
 	
+	<!-- database -->
+	
+	<include package=".neo4j" file="configure.zcml" />
+	
 	<!-- adapters -->
 	
 	<include package="." file="configure_labels.zcml" />
