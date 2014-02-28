@@ -217,7 +217,8 @@ def _question_stats(question):
 def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
 	result = {'creator' : user.username}
 	result['created'] = question.createdTime
-	result['questionId'] = result['oid'] = get_ntiid(question)
+	result['oid'] = externalization.to_external_ntiid_oid(question)
+	result['questionId'] = question.questionId
 	is_correct, is_incorrect, partial = _question_stats(question)
 	result['correct'] = is_correct
 	result['incorrect'] = is_incorrect
@@ -230,7 +231,8 @@ def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
 def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
 	result = {'creator' : user.username}
 	result['created'] = questionSet.createdTime
-	result['questionSetId'] = result['oid'] = get_ntiid(questionSet)
+	result['oid'] = externalization.to_external_ntiid_oid(questionSet)
+	result['questionSetId'] = questionSet.questionSetId
 	correct = incorrect = 0
 	questions = questionSet.questions
 	for question in questions:
