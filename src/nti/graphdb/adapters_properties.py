@@ -217,8 +217,7 @@ def _question_stats(question):
 def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
 	result = {'creator' : user.username}
 	result['created'] = question.createdTime
-	result['oid'] = externalization.to_external_ntiid_oid(question)
-	result['questionId'] = result['oid']
+	result['questionId'] = result['oid'] = get_ntiid(question)
 	is_correct, is_incorrect, partial = _question_stats(question)
 	result['correct'] = is_correct
 	result['incorrect'] = is_incorrect
@@ -231,8 +230,7 @@ def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
 def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
 	result = {'creator' : user.username}
 	result['created'] = questionSet.createdTime
-	result['oid'] = externalization.to_external_ntiid_oid(questionSet)
-	result['questionSetId'] = result['oid']
+	result['questionSetId'] = result['oid'] = get_ntiid(questionSet)
 	correct = incorrect = 0
 	questions = questionSet.questions
 	for question in questions:
@@ -251,8 +249,7 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
 def _AssignmentRelationshipPropertyAdpater(user, asm, rel):
 	result = {'creator' : user.username}
 	result['created'] = time.time()
-	result['oid'] = externalization.to_external_ntiid_oid(asm)
-	result['assignmentId'] = result['oid']
+	result['assignmentId'] = result['oid'] = get_ntiid(asm)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
