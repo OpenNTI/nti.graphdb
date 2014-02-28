@@ -20,7 +20,6 @@ import pyramid.httpexceptions as hexc
 from nti.dataserver import authorization as nauth
 from nti.dataserver import interfaces as nti_interfaces
 
-from nti.externalization.oids import to_external_oid
 from nti.externalization.datastructures import LocatedExternalDict
 
 from nti.utils.maps import CaseInsensitiveDict
@@ -65,9 +64,7 @@ def all_objects_iids(users=()):
 				if not usernames or getattr(creator, 'username', creator) in usernames:
 					yield uid, obj
 		except TypeError as e:
-			oid = to_external_oid(obj)
-			logger.error("Error getting creator for %s(%s,%s). %s",
-						 type(obj), uid, oid, e)
+			logger.error("Error processing object %s(%s); %s", type(obj), uid, e)
 
 def init(db, obj):
 	result = False
