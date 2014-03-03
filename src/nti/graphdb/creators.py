@@ -8,7 +8,6 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import interface
 from zope import component
 from zope.lifecycleevent import interfaces as lce_interfaces
 
@@ -71,7 +70,7 @@ def _object_removed(contained, event):
 	if db is not None:
 		_process_created_removed(db, contained)
 
-interface.moduleProvides(graph_interfaces.IObjectProcessor)
+component.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = False

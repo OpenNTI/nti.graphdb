@@ -9,7 +9,6 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
-from zope import interface
 
 from pyramid.threadlocal import get_current_request
 
@@ -78,7 +77,7 @@ def _object_unflagged(flaggable, event):
 	if db is not None:
 		_process_flagging_event(db, flaggable, is_flagged=False)
 
-interface.moduleProvides(graph_interfaces.IObjectProcessor)
+component.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = False

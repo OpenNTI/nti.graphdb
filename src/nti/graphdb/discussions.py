@@ -9,7 +9,6 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
-from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
@@ -275,7 +274,7 @@ def _forum_removed(forum, event):
 			_remove_topic(db, topic)
 		_process_discussion_remove_events(db, [get_primary_key(forum)])
 
-interface.moduleProvides(graph_interfaces.IObjectProcessor)
+component.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = True

@@ -52,7 +52,7 @@ def _search_completed(event):
 	if db is not None:
 		_process_search_event(db, event)
 
-# utils
+component.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
-	pass
+	return False

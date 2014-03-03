@@ -25,17 +25,6 @@ from nti.externalization.datastructures import LocatedExternalDict
 from nti.utils.maps import CaseInsensitiveDict
 
 from . import views
-from . import ratings
-from . import sharing
-from . import tagging
-from . import creators
-from . import entities
-from . import flagging
-from . import containers
-from . import threadables
-from . import assessments
-from . import connections
-from . import discussions
 from . import get_job_queue
 from . import interfaces as graph_interfaces
 
@@ -71,8 +60,7 @@ def all_objects_iids(users=()):
 
 def init(db, obj):
 	result = False
-	for module in (entities, connections, creators, containers, threadables, sharing,
-				   tagging, flagging, ratings, discussions, assessments):
+	for _, module in component.getUtilitiesFor(graph_interfaces.IObjectProcessor):
 		result = module.init(db, obj) or result
 	return result
 

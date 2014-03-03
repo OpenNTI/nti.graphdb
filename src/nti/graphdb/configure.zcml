@@ -100,6 +100,22 @@
 	<subscriber handler=".creators._object_created" />
 	<subscriber handler=".creators._object_removed" />
 	
+	<!-- utils -->
+	
+	<utility component=".entities" provides=".interfaces.IObjectProcessor" name="entities"/>
+	<utility component=".connections" provides=".interfaces.IObjectProcessor" name="connections"/>
+	<utility component=".creators" provides=".interfaces.IObjectProcessor" name="creators"/>
+	<utility component=".containers" provides=".interfaces.IObjectProcessor" name="containers"/>
+	<utility component=".threadables" provides=".interfaces.IObjectProcessor" name="threadables"/>
+	<utility component=".sharing" provides=".interfaces.IObjectProcessor" name="sharing"/>
+	<utility component=".tagging" provides=".interfaces.IObjectProcessor" name="tagging"/>
+	<utility component=".flagging" provides=".interfaces.IObjectProcessor" name="flagging"/>
+	<utility component=".ratings" provides=".interfaces.IObjectProcessor" name="ratings"/>
+	<utility component=".discussions" provides=".interfaces.IObjectProcessor" name="discussions"/>
+	<utility component=".assessments" provides=".interfaces.IObjectProcessor" name="assessments"/>
+		
+	<!-- graph stores -->
+	
 	<include package="." file="meta.zcml" />
 		
 	<configure zcml:condition="have devmode">

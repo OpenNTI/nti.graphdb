@@ -100,7 +100,7 @@ def _contained_removed(contained, event):
 	if db is not None:
 		_process_contained_removed(db, contained)
 
-interface.moduleProvides(graph_interfaces.IObjectProcessor)
+component.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = False

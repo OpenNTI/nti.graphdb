@@ -9,7 +9,6 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
-from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
@@ -110,7 +109,7 @@ def _threadable_added(threadable, event):
 	if db is not None and threadable.inReplyTo:
 		_process_threadable_inReplyTo(db, threadable)
 
-interface.moduleProvides(graph_interfaces.IObjectProcessor)
+component.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = False

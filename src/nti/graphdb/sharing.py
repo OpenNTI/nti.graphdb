@@ -9,7 +9,6 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
-from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
@@ -100,7 +99,7 @@ def _shareable_modified(obj, event):
 	if db is not None:
 		_process_modified_event(db, obj, event.oldSharingTargets)
 
-interface.moduleProvides(graph_interfaces.IObjectProcessor)
+component.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = False
