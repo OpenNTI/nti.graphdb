@@ -57,11 +57,12 @@ def _default_container_adapter(containerId):
 
 def _add_contained_membership(db, oid, containerId):
 	obj = ntiids.find_object_with_ntiid(oid)
-	container = graph_interfaces.IContainer(containerId)
-	result = db.create_relationship(obj, container, relationships.Contained())
-	if result is not None:
-		logger.debug("containment relationship %s retreived/created" % result)
-		return True
+	if obj is not None:
+		container = graph_interfaces.IContainer(containerId)
+		result = db.create_relationship(obj, container, relationships.Contained())
+		if result is not None:
+			logger.debug("containment relationship %s retreived/created" % result)
+			return True
 	return False
 
 def _process_contained_added(db, contained):
@@ -93,7 +94,7 @@ def _process_contained_removed(db, contained):
 	job = create_job(_remove_node, db=db, key=adapted.key, value=adapted.value)
 	queue.put(job)
 
-@component.adapter(nti_interfaces.IContained, lce_interfaces.IObjectAddedEvent)
+@component.adapter(nti_interfaces.IContained, lce_interfaces.IObjectRemovedEvent)
 def _contained_removed(contained, event):
 	db = get_graph_db()
 	if db is not None:
