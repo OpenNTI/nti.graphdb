@@ -35,6 +35,7 @@ from . import threadables
 from . import assessments
 from . import connections
 from . import discussions
+from . import get_job_queue
 from . import interfaces as graph_interfaces
 
 from .async.reactor import JobReactor
@@ -107,6 +108,18 @@ def init_graphdb(request):
 	result = LocatedExternalDict()
 	result['Elapsed'] = time.time() - now
 	result['Total'] = total
+	return result
+
+@view_config(route_name='objects.generic.traversal',
+			 name='queue_info',
+			 renderer='rest',
+			 request_method='GET',
+			 context=views.GraphPathAdapter,
+			 permission=nauth.ACT_MODERATE)
+def queue_info(request):
+	queue = get_job_queue()
+	result = LocatedExternalDict()
+	result['size'] = len(queue)
 	return result
 
 @view_config(route_name='objects.generic.traversal',

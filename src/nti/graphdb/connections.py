@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
+from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import users
@@ -320,6 +321,8 @@ def _process_friendships(db, user):
 	queue = get_job_queue()
 	job = create_job(update_friendships, db=db, entity=user.username)
 	queue.put(job)
+
+interface.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = False

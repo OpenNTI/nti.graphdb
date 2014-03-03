@@ -11,6 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 import six
 
 from zope import component
+from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver.users import User
@@ -285,7 +286,7 @@ def _forum_removed(forum, event):
 			_remove_topic(db, topic)
 		_process_discussion_remove_events(db, [get_primary_key(forum)])
 
-# utils
+interface.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = True

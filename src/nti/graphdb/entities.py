@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
+from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
@@ -69,7 +70,7 @@ def _entity_removed(entity, event):
 	if db is not None and not nti_interfaces.IFriendsList.providedBy(entity):
 		_process_entity_removed(db, entity)
 
-# utils
+interface.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = False

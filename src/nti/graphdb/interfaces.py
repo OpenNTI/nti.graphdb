@@ -106,6 +106,13 @@ class IContainer(interface.Interface):
 	"""
 	id = nti_schema.ValidTextLine(title="container id")
 
+class IObjectProcessor(interface.Interface):
+
+	def init(db, obj):
+		"""
+		build relationships for the specified object
+		"""
+
 class IRelationshipType(interface.Interface):
 	"""
 	Marker interface for a relationship

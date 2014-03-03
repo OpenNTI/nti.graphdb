@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
+from zope import interface
 
 from pyramid.threadlocal import get_current_request
 
@@ -23,6 +24,7 @@ from . import create_job
 from . import get_graph_db
 from . import get_job_queue
 from . import relationships
+from . import interfaces as graph_interfaces
 
 def get_current_user():
 	request = get_current_request()
@@ -76,7 +78,7 @@ def _object_unflagged(flaggable, event):
 	if db is not None:
 		_process_flagging_event(db, flaggable, is_flagged=False)
 
-# utils
+interface.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = False

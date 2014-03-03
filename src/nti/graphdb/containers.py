@@ -98,3 +98,12 @@ def _contained_removed(contained, event):
 	db = get_graph_db()
 	if db is not None:
 		_process_contained_removed(db, contained)
+
+interface.moduleProvides(graph_interfaces.IObjectProcessor)
+
+def init(db, obj):
+	result = False
+	if nti_interfaces.IContained.providedBy(obj):
+		_process_contained_added(db, obj)
+		result = True
+	return result

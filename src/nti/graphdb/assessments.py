@@ -11,6 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 import six
 
 from zope import component
+from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from pyramid.traversal import find_interface
@@ -330,6 +331,8 @@ def init_asssignments(db, user):
 				process_grade_modified(db, grade)
 			else:
 				process_assignment_taken(db, item)
+
+interface.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = True

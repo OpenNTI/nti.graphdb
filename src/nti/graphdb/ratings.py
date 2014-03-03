@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
+from zope import interface
 from zope.annotation import interfaces as an_interfaces
 
 from pyramid.threadlocal import get_current_request
@@ -30,6 +31,7 @@ from . import create_job
 from . import get_graph_db
 from . import get_job_queue
 from . import relationships
+from . import interfaces as graph_interfaces
 
 LIKE_CAT_NAME = 'likes'
 RATING_CAT_NAME = 'rating'
@@ -151,6 +153,8 @@ def _record_ratings(db, obj):
 			queue.put(job)
 			result += 1
 	return result
+
+interface.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = 0

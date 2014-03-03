@@ -11,6 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 import six
 
 from zope import component
+from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver.users import User
@@ -120,7 +121,7 @@ def _threadable_added(threadable, event):
 	if db is not None and threadable.inReplyTo:
 		_process_threadable_inReplyTo(db, threadable)
 
-# utils
+interface.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = False

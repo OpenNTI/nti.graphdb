@@ -11,6 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 import six
 
 from zope import component
+from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver.users import User
@@ -106,7 +107,7 @@ def _shareable_modified(obj, event):
 	if db is not None:
 		_process_modified_event(db, obj, event.oldSharingTargets)
 
-# utils
+interface.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = False
