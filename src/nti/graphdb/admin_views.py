@@ -30,6 +30,7 @@ from . import sharing
 from . import tagging
 from . import entities
 from . import flagging
+from . import containers
 from . import threadables
 from . import assessments
 from . import connections
@@ -68,8 +69,8 @@ def all_objects_iids(users=()):
 
 def init(db, obj):
 	result = False
-	for module in (entities, connections, threadables, sharing, tagging,
-				   flagging, ratings, discussions, assessments):
+	for module in (entities, connections, containers, threadables, sharing,
+				   tagging, flagging, ratings, discussions, assessments):
 		result = module.init(db, obj) or result
 	return result
 
