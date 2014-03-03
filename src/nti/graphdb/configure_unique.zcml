@@ -148,6 +148,10 @@
 			 factory=".adapters_unique._ContainedRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
+	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.ICreated .interfaces.ICreated"
+			 factory=".adapters_unique._EntityObjectRelationshipUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IContained .interfaces.IRelationshipType"
 			 factory=".adapters_unique._EntityObjectRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />

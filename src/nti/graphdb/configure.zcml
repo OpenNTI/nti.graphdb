@@ -97,6 +97,9 @@
 	<subscriber handler=".containers._contained_added" />
 	<subscriber handler=".containers._contained_removed" />
 	
+	<subscriber handler=".creators._object_created" />
+	<subscriber handler=".creators._object_removed" />
+	
 	<include package="." file="meta.zcml" />
 		
 	<configure zcml:condition="have devmode">

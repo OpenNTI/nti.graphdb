@@ -16,9 +16,9 @@ from pyramid.threadlocal import get_current_request
 from nti.dataserver import users
 from nti.dataserver import interfaces as nti_interfaces
 
-from nti.externalization import externalization
-
 from nti.ntiids import ntiids
+
+from .common import to_external_ntiid_oid
 
 from . import create_job
 from . import get_graph_db
@@ -56,7 +56,7 @@ def remove_flagged_relationship(db, username, oid):
 def _process_flagging_event(db, flaggable, username=None, is_flagged=True):
 	username = username or get_current_user()
 	if username:
-		oid = externalization.to_external_ntiid_oid(flaggable)
+		oid = to_external_ntiid_oid(flaggable)
 		queue = get_job_queue()
 		if is_flagged:
 			job = create_job(add_flagged_relationship, db=db, username=username,

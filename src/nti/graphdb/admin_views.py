@@ -28,6 +28,7 @@ from . import views
 from . import ratings
 from . import sharing
 from . import tagging
+from . import creators
 from . import entities
 from . import flagging
 from . import containers
@@ -70,7 +71,7 @@ def all_objects_iids(users=()):
 
 def init(db, obj):
 	result = False
-	for module in (entities, connections, containers, threadables, sharing,
+	for module in (entities, connections, creators, containers, threadables, sharing,
 				   tagging, flagging, ratings, discussions, assessments):
 		result = module.init(db, obj) or result
 	return result

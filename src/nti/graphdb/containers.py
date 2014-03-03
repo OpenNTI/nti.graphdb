@@ -14,9 +14,9 @@ from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
 
-from nti.externalization import externalization
-
 from nti.ntiids import ntiids
+
+from .common import to_external_ntiid_oid
 
 from . import create_job
 from . import get_graph_db
@@ -68,7 +68,7 @@ def _add_contained_membership(db, oid, containerId):
 def _process_contained_added(db, contained):
 	containerId = getattr(contained, 'containerId', None)
 	if containerId:
-		oid = externalization.to_external_ntiid_oid(contained)
+		oid = to_external_ntiid_oid(contained)
 		queue = get_job_queue()
 		job = create_job(_add_contained_membership, db=db, oid=oid,
 						 containerId=containerId)

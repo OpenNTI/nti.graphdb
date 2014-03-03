@@ -30,9 +30,9 @@ from nti.contenttypes.courses.interfaces import ICourseInstance
 from nti.dataserver import users
 from nti.dataserver import interfaces as nti_interfaces
 
-from nti.externalization import externalization
-
 from nti.ntiids import ntiids
+
+from .common import to_external_ntiid_oid
 
 from . import create_job
 from . import get_graph_db
@@ -130,7 +130,7 @@ def _process_assessed_question(db, oid):
 		_add_assessed_relationship(db, question)
 
 def _queue_question_event(db, assessed):
-	oid = externalization.to_external_ntiid_oid(assessed)
+	oid = to_external_ntiid_oid(assessed)
 	is_question_set = assessment_interfaces.IQAssessedQuestionSet.providedBy(assessed)
 	queue = get_job_queue()
 	if is_question_set:
@@ -275,7 +275,7 @@ def set_asm_feedback(db, oid, username=None):
 
 def _process_feedback_added(db, feedback, user=None):
 	username = getattr(user, 'username', user)
-	oid = externalization.to_external_ntiid_oid(feedback)
+	oid = to_external_ntiid_oid(feedback)
 	queue = get_job_queue()
 	job = create_job(set_asm_feedback, db=db,
 					 oid=oid, username=username)

@@ -8,19 +8,17 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-import six
-
 from zope import component
 from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
-from nti.dataserver.users import User
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as forum_interfaces
 
-from nti.externalization import externalization
-
 from nti.ntiids import ntiids
+
+from .common import get_entity
+from .common import to_external_ntiid_oid
 
 from . import create_job
 from . import get_graph_db
@@ -29,11 +27,6 @@ from . import relationships
 from . import interfaces as graph_interfaces
 
 _ENTITY_TYPES = {ntiids.TYPE_NAMED_ENTITY, ntiids.TYPE_NAMED_ENTITY.lower()}
-
-def get_entity(entity):
-	if isinstance(entity, six.string_types):
-		entity = User.get_entity(entity)
-	return entity
 
 def get_underlying(oid):
 	obj = ntiids.find_object_with_ntiid(oid)
@@ -65,7 +58,7 @@ def _process_added_event(db, obj, tags=()):
 
 	if username_tags:
 		queue = get_job_queue()
-		oid = externalization.to_external_ntiid_oid(obj)
+		oid = to_external_ntiid_oid(obj)
 		job = create_job(_create_isTaggedTo_rels, db=db, oid=oid,
 						 user_tags=list(username_tags))
 		queue.put(job)
@@ -88,7 +81,7 @@ def _delete_isTaggedTo_rels(db, oid):
 
 def _process_delete_rels(db, obj):
 	queue = get_job_queue()
-	oid = externalization.to_external_ntiid_oid(obj)
+	oid = to_external_ntiid_oid(obj)
 	job = create_job(_delete_isTaggedTo_rels, db=db, oid=oid)
 	queue.put(job)
 

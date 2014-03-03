@@ -14,17 +14,14 @@ from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
 
-from nti.externalization import externalization
-
 from nti.ntiids import ntiids
+
+from .common import to_external_ntiid_oid
 
 from . import create_job
 from . import get_graph_db
 from . import get_job_queue
 from . import interfaces as graph_interfaces
-
-def to_external_ntiid_oid(obj):
-	return externalization.to_external_ntiid_oid(obj)
 
 def _remove_entity(db, key, value):
 	node = db.get_indexed_node(key, value)

@@ -16,18 +16,11 @@ from nti.dataserver.users import User
 
 from nti.contentsearch import interfaces as search_interfaces
 
-from nti.externalization import externalization
-
-# from nti.ntiids import ntiids
-
 from . import create_job
 from . import get_graph_db
 from . import get_job_queue
 from . import relationships
 from . import interfaces as graph_interfaces
-
-def to_external_ntiid_oid(obj):
-	return externalization.to_external_ntiid_oid(obj)
 
 def _create_search_relationship(db, username, query=None, properties=None):
 	user = User.get_entity(username)

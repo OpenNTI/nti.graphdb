@@ -8,18 +8,16 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-import six
-
 from zope import component
 from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
-from nti.dataserver.users import User
 from nti.dataserver import interfaces as nti_interfaces
 
-from nti.externalization import externalization
-
 from nti.ntiids import ntiids
+
+from .common import get_creator
+from .common import to_external_ntiid_oid
 
 from . import utils
 from . import create_job
@@ -27,15 +25,6 @@ from . import get_graph_db
 from . import get_job_queue
 from . import relationships
 from . import interfaces as graph_interfaces
-
-def to_external_ntiid_oid(obj):
-	return externalization.to_external_ntiid_oid(obj)
-
-def get_creator(obj):
-	creator = obj.creator
-	if isinstance(creator, six.string_types):
-		creator = User.get_entity(creator)
-	return creator
 
 def _get_primary_key(obj):
 	author = get_creator(obj)

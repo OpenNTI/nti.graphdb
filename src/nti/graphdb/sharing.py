@@ -8,30 +8,23 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-import six
-
 from zope import component
 from zope import interface
 from zope.lifecycleevent import interfaces as lce_interfaces
 
-from nti.dataserver.users import User
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as forum_interfaces
 
-from nti.externalization import externalization
-
 from nti.ntiids import ntiids
+
+from .common import get_entity
+from .common import to_external_ntiid_oid
 
 from . import create_job
 from . import get_graph_db
 from . import get_job_queue
 from . import relationships
 from . import interfaces as graph_interfaces
-
-def get_entity(entity):
-	if isinstance(entity, six.string_types):
-		entity = User.get_entity(entity)
-	return entity
 
 def get_underlying(oid):
 	obj = ntiids.find_object_with_ntiid(oid)
@@ -74,7 +67,7 @@ def _process_shareable(db, obj, sharedWith=()):
 	sharedWith = sharedWith or getattr(obj, 'sharedWith', ())
 	if sharedWith:
 		queue = get_job_queue()
-		oid = externalization.to_external_ntiid_oid(obj)
+		oid = to_external_ntiid_oid(obj)
 		sharedWith = [getattr(x, 'username', x) for x in sharedWith]
 		job = create_job(_create_isSharedTo_rels, db=db, oid=oid, sharedWith=sharedWith)
 		queue.put(job)
@@ -91,7 +84,7 @@ def _process_delete_rels(db, obj, oldSharingTargets=()):
 	oldSharingTargets = [getattr(x, 'username', x) for x in oldSharingTargets]
 	if oldSharingTargets:
 		queue = get_job_queue()
-		oid = externalization.to_external_ntiid_oid(obj)
+		oid = to_external_ntiid_oid(obj)
 		job = create_job(_delete_isSharedTo_rels, db=db, oid=oid,
 						 sharedWith=oldSharingTargets)
 		queue.put(job)

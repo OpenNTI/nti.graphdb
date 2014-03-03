@@ -15,9 +15,10 @@ from zope.lifecycleevent import interfaces as lce_interfaces
 from nti.dataserver import users
 from nti.dataserver import interfaces as nti_interfaces
 
-from nti.externalization import externalization
-
 from nti.ntiids import ntiids
+
+from .common import get_entity
+from .common import to_external_ntiid_oid
 
 from . import create_job
 from . import get_graph_db
@@ -45,11 +46,6 @@ class _Relationship(object):
 		xhash ^= hash(self._to)
 		return xhash
 
-def _get_entity(entity):
-	if not nti_interfaces.IEntity.providedBy(entity):
-		entity = users.User.get_user(str(entity))
-	return entity
-
 def _get_graph_connections(db, entity, rel_type):
 	result = set()
 	rels = db.match(start=entity, rel_type=rel_type)
@@ -63,7 +59,7 @@ def _get_graph_connections(db, entity, rel_type):
 
 def _update_connections(db, entity, graph_relations_func, db_relations_func, rel_type):
 	# computer db/graph relationships
-	entity = _get_entity(entity)
+	entity = get_entity(entity)
 	stored_db_relations = db_relations_func(entity)
 	current_graph_relations = graph_relations_func(db, entity)
 	to_add = stored_db_relations - current_graph_relations
@@ -186,7 +182,7 @@ def _process_membership_event(db, event):
 		return # pragma no cover
 
 	source = source.username
-	target = externalization.to_external_ntiid_oid(target)
+	target = to_external_ntiid_oid(target)
 	start_membership = nti_interfaces.IStartDynamicMembershipEvent.providedBy(event)
 
 	queue = get_job_queue()
@@ -312,7 +308,7 @@ def _process_memberships(db, user):
 	everyone = users.Entity.get_entity('Everyone')
 	for target in getattr(user, 'dynamic_memberships', ()):
 		if target != everyone:
-			target = externalization.to_external_ntiid_oid(target)
+			target = to_external_ntiid_oid(target)
 			job = create_job(process_start_membership, db=db, source=source,
 							 target=target)
 			queue.put(job)

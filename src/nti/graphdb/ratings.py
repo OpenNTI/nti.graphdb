@@ -23,9 +23,9 @@ from nti.dataserver.rating import IObjectUnratedEvent
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
-from nti.externalization import externalization
-
 from nti.ntiids import ntiids
+
+from .common import to_external_ntiid_oid
 
 from . import create_job
 from . import get_graph_db
@@ -101,7 +101,7 @@ def _object_rated(modeled, event):
 	db = get_graph_db()
 	username = get_current_user()
 	if username and db is not None:
-		oid = externalization.to_external_ntiid_oid(modeled)
+		oid = to_external_ntiid_oid(modeled)
 		if event.category == LIKE_CAT_NAME:
 			like = event.rating != 0
 			_process_like_event(db, username, oid, like)
@@ -132,7 +132,7 @@ def _get_ratings(context, category):
 def _record_likeable(db, obj):
 	result = 0
 	queue = get_job_queue()
-	oid = externalization.to_external_ntiid_oid(obj)
+	oid = to_external_ntiid_oid(obj)
 	for rating in _get_ratings(obj, LIKE_CAT_NAME):
 		username = rating.userid or u''
 		if users.Entity.get_entity(username) is not None:
@@ -144,7 +144,7 @@ def _record_likeable(db, obj):
 def _record_ratings(db, obj):
 	result = 0
 	queue = get_job_queue()
-	oid = externalization.to_external_ntiid_oid(obj)
+	oid = to_external_ntiid_oid(obj)
 	for rating in _get_ratings(obj, RATING_CAT_NAME):
 		username = rating.userid or u''
 		if users.Entity.get_entity(username) is not None:
