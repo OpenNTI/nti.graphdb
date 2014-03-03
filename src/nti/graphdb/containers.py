@@ -10,7 +10,18 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 from zope import component
+from zope.lifecycleevent import interfaces as lce_interfaces
 
+from nti.dataserver import interfaces as nti_interfaces
+
+from nti.externalization import externalization
+
+from nti.ntiids import ntiids
+
+from . import create_job
+from . import get_graph_db
+from . import get_job_queue
+from . import relationships
 from . import interfaces as graph_interfaces
 
 @interface.implementer(graph_interfaces.IContainer)
@@ -20,6 +31,10 @@ class Container(object):
 
 	def __init__(self, containerId):
 		self.id = containerId
+
+	@property
+	def containerId(self):
+		return self.id
 
 	def __eq__(self, other):
 		try:
@@ -39,3 +54,47 @@ class Container(object):
 @component.adapter(basestring)
 def _default_container_adapter(containerId):
 	return Container(containerId)
+
+def _add_contained_membership(db, oid, containerId):
+	obj = ntiids.find_object_with_ntiid(oid)
+	container = graph_interfaces.IContainer(containerId)
+	result = db.create_relationship(obj, container, relationships.Contained())
+	if result is not None:
+		logger.debug("containment relationship %s retreived/created" % result)
+		return True
+	return False
+
+def _process_contained_added(db, contained):
+	containerId = getattr(contained, 'containerId', None)
+	if containerId:
+		oid = externalization.to_external_ntiid_oid(contained)
+		queue = get_job_queue()
+		job = create_job(_add_contained_membership, db=db, oid=oid,
+						 containerId=containerId)
+		queue.put(job)
+
+@component.adapter(nti_interfaces.IContained, lce_interfaces.IObjectAddedEvent)
+def _contained_added(contained, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_contained_added(db, contained)
+
+def _remove_node(db, key, value):
+	node = db.get_indexed_node(key, value)
+	if node is not None:
+		db.delete_node(node)
+		logger.debug("Node %s,%s deleted" % (key, value))
+		return True
+	return False
+
+def _process_contained_removed(db, contained):
+	adapted = graph_interfaces.IUniqueAttributeAdapter(contained)
+	queue = get_job_queue()
+	job = create_job(_remove_node, db=db, key=adapted.key, value=adapted.value)
+	queue.put(job)
+
+@component.adapter(nti_interfaces.IContained, lce_interfaces.IObjectAddedEvent)
+def _contained_removed(contained, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_contained_removed(db, contained)

@@ -36,13 +36,13 @@ def get_creator(obj):
 		creator = User.get_entity(creator)
 	return creator
 
-def _get_inReplyTo_PK(obj):
+def _get_primary_key(obj):
 	author = get_creator(obj)
 	adapted = component.getMultiAdapter((author, obj, relationships.Reply()),
 										graph_interfaces.IUniqueAttributeAdapter)
 	return utils.PrimaryKey(adapted.key, adapted.value)
 
-def remove_modeled(db, key, value):
+def _remove_node(db, key, value):
 	node = db.get_indexed_node(key, value)
 	if node is not None:
 		db.delete_node(node)
@@ -53,10 +53,10 @@ def remove_modeled(db, key, value):
 def _remove_threadable(db, key, value, irt_PK=None):
 	if irt_PK is not None:
 		db.delete_indexed_relationship(irt_PK.key, irt_PK.value)
-	remove_modeled(db, key, value)
+	_remove_node(db, key, value)
 
 def _proces_threadable_removed(db, threadable):
-	irt_PK = _get_inReplyTo_PK(threadable) if threadable.inReplyTo is not None else None
+	irt_PK = _get_primary_key(threadable) if threadable.inReplyTo is not None else None
 	adapted = graph_interfaces.IUniqueAttributeAdapter(threadable)
 	queue = get_job_queue()
 	job = create_job(_remove_threadable, db=db,
@@ -94,7 +94,7 @@ def _add_inReplyTo_relationship(db, oid):
 		rel_type = relationships.Reply()
 
 		# get the key/value to id the inReplyTo relationship
-		irt_PK = _get_inReplyTo_PK(threadable)
+		irt_PK = _get_primary_key(threadable)
 
 		# create a relationship between author and the author being replied to
 		properties = component.getMultiAdapter((t_author, threadable, rel_type),
@@ -104,7 +104,7 @@ def _add_inReplyTo_relationship(db, oid):
 										properties=properties,
 										key=irt_PK.key, value=irt_PK.value)
 		if result is not None:
-			logger.debug("replyTo relationship %s retrived/created" % result)
+			logger.debug("replyTo relationship %s retreived/created" % result)
 			return True
 	return False
 

@@ -94,6 +94,9 @@
 	<subscriber handler=".assessments._feedback_added" />
 	<subscriber handler=".assessments._feedback_removed" />
 	
+	<subscriber handler=".containers._contained_added" />
+	<subscriber handler=".containers._contained_removed" />
+	
 	<include package="." file="meta.zcml" />
 		
 	<configure zcml:condition="have devmode">

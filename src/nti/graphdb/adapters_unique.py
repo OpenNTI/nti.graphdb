@@ -314,3 +314,22 @@ class _AssignmentTakenUniqueAttributeAdpater(object):
 		result = '%s,%s' % (self.rel, ntiid)
 		return result
 
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(nti_interfaces.IContained,
+				   graph_interfaces.IContainer,
+				   graph_interfaces.IContained)
+class _ContainedRelationshipUniqueAttributeAdpater(object):
+
+	def __init__(self, obj, container, rel):
+		self.obj = obj
+		self.rel = rel
+		self.container = container
+
+	@property
+	def key(self):
+		return externalization.to_external_ntiid_oid(self.obj)
+
+	@property
+	def value(self):
+		result = '%s,%s' % (self.rel, self.container.id)
+		return result
