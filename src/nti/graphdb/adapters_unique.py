@@ -214,6 +214,14 @@ class _NTIIDUniqueAttributeAdpater(object):
 		return get_ntiid(self.obj)
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(graph_interfaces.IContainer)
+class _ContainerUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
+
+	@property
+	def value(self):
+		return self.obj.id
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(search_interfaces.ISearchQuery)
 class _SearchQueryUniqueAttributeAdpater(object):
 

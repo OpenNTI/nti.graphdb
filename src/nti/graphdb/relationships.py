@@ -137,3 +137,17 @@ class TaggedTo(_Singleton):
 	def __str__(self):
 		return "IS_TAGGED_TO"
 	__repr__ = __str__
+
+@interface.implementer(graph_interfaces.IContained)
+class Contained(_Singleton):
+
+	def __str__(self):
+		return "IS_CONTAINED"
+	__repr__ = __str__
+
+@interface.implementer(graph_interfaces.ICreated)
+class Created(_Singleton):
+
+	def __str__(self):
+		return "HAS_CREATED"
+	__repr__ = __str__

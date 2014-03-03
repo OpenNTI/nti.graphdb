@@ -99,6 +99,13 @@ class IGraphNode(interface.Interface):
 							 required=False,
 							 min_length=0)
 
+
+class IContainer(interface.Interface):
+	"""
+	Marker interface for a container
+	"""
+	id = nti_schema.ValidTextLine(title="container id")
+
 class IRelationshipType(interface.Interface):
 	"""
 	Marker interface for a relationship
@@ -200,4 +207,10 @@ class ISearch(IRelationshipType):
 	pass
 
 class ITaggedTo(IRelationshipType):
+	pass
+
+class IContained(IRelationshipType):
+	pass
+
+class ICreated(IRelationshipType):
 	pass

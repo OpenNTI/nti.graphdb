@@ -28,11 +28,15 @@
 	<include package=".neo4j" file="configure.zcml" />
 	
 	<!-- adapters -->
-	
+		 		
+	<adapter factory=".containers._default_container_adapter"
+			 provides=".interfaces.IContainer"
+			 for="basestring" />
+			 
 	<include package="." file="configure_labels.zcml" />
 	<include package="." file="configure_unique.zcml" />
 	<include package="." file="configure_properties.zcml" />
-			 		  
+			   
 	<!-- subscribers -->
 	 
 	<subscriber handler=".subscribers._set_change_listener" />

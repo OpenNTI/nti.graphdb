@@ -83,6 +83,10 @@
 	<adapter for="nti.contentsearch.interfaces.ISearchQuery"
 			 factory=".adapters_labels._SearchQueryLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
-			  
+		
+	<adapter for=".interfaces.IContainer"
+			 factory=".adapters_labels._ContainerLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+
 </configure>
 

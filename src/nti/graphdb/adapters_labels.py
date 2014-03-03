@@ -124,3 +124,9 @@ def _MeetingLabelAdpater(meeting):
 def _SearchQueryLabelAdpater(query):
 	result = ('searchquery',)
 	return result
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(graph_interfaces.IContainer)
+def _ContainerLabelAdpater(container):
+	result = ('container',)
+	return result

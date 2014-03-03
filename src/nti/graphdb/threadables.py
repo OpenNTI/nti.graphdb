@@ -87,17 +87,20 @@ def _add_inReplyTo_relationship(db, oid):
 		rel_type = relationships.IsReplyOf()
 		db.create_relationship(threadable, in_replyTo, rel_type)
 
-		author = get_creator(threadable)
+		t_author = get_creator(threadable)
+		i_author = get_creator(in_replyTo)
+		if not i_author or not t_author:
+			return
 		rel_type = relationships.Reply()
 
 		# get the key/value to id the inReplyTo relationship
 		irt_PK = _get_inReplyTo_PK(threadable)
 
-		# create a relationship between author and the threadable being replied to
-		properties = component.getMultiAdapter((author, threadable, rel_type),
+		# create a relationship between author and the author being replied to
+		properties = component.getMultiAdapter((t_author, threadable, rel_type),
 												graph_interfaces.IPropertyAdapter)
 
-		result = db.create_relationship(author, in_replyTo, rel_type,
+		result = db.create_relationship(t_author, i_author, rel_type,
 										properties=properties,
 										key=irt_PK.key, value=irt_PK.value)
 		if result is not None:

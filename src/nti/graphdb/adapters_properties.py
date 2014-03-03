@@ -150,6 +150,14 @@ def _ContentUnitPropertyAdpater(unit):
 	result['oid'] = result['ntiid'] = unit.ntiid
 	return result
 
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(graph_interfaces.IContainer)
+def _ContainerPropertyAdpater(container):
+	result = {'type':'Container'}
+	result['oid'] = container.id
+	result['created'] = time.time()
+	return result
+
 # IPersonalBlogComment, IGeneralForumComment
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(_from, _post, _rel):
@@ -261,7 +269,7 @@ def _CreatedTimePropertyAdpater(_from, _to, _rel):
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _EntityObjectRelationshipPropertyAdpater(entity, obj, rel_type):
-	result = _CreatedTimePropertyAdpater(entity, obj, rel_type)
+	result = {'created':getattr(obj, 'createdTime', time.time())}
 	result['creator'] = entity.username
 	result['oid'] = externalization.to_external_ntiid_oid(obj)
 	return result
