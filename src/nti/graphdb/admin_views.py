@@ -93,9 +93,12 @@ def init_graphdb(request):
 
 	now = time.time()
 	total = init_db(db, usernames)
+	elapsed = time.time() - now
+
+	logger.info("Total objects processed %s(%s)", total, elapsed)
 
 	result = LocatedExternalDict()
-	result['Elapsed'] = time.time() - now
+	result['Elapsed'] = elapsed
 	result['Total'] = total
 	return result
 
