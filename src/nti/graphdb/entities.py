@@ -56,14 +56,13 @@ def _process_entity_added(db, entity):
 def _entity_added(entity, event):
 	db = get_graph_db()
 	queue = get_job_queue()
-	if 	db is not None and queue is not None and \
-		not nti_interfaces.IFriendsList.providedBy(entity):
+	if 	db is not None and queue is not None:  # check queue b/c of Everyone comm
 		_process_entity_added(db, entity)
 
 @component.adapter(nti_interfaces.IEntity, lce_interfaces.IObjectRemovedEvent)
 def _entity_removed(entity, event):
 	db = get_graph_db()
-	if db is not None and not nti_interfaces.IFriendsList.providedBy(entity):
+	if db is not None:
 		_process_entity_removed(db, entity)
 
 component.moduleProvides(graph_interfaces.IObjectProcessor)
