@@ -14,6 +14,8 @@ import simplejson as json
 import zope.intid
 from zope import component
 
+from ZODB.POSException import POSKeyError
+
 from pyramid.view import view_config
 import pyramid.httpexceptions as hexc
 
@@ -55,7 +57,7 @@ def all_objects_iids(users=()):
 				creator = getattr(obj, 'creator', None)
 				if not usernames or getattr(creator, 'username', creator) in usernames:
 					yield uid, obj
-		except TypeError as e:
+		except (TypeError, POSKeyError) as e:
 			logger.error("Error processing object %s(%s); %s", type(obj), uid, e)
 
 def init(db, obj):
@@ -66,8 +68,9 @@ def init(db, obj):
 
 def init_db(db, usernames=()):
 	count = 0
-	for _, obj in all_objects_iids(usernames):
+	for uid, obj in all_objects_iids(usernames):
 		if init(db, obj):
+			logger.info(uid)
 			count += 1
 	return count
 
