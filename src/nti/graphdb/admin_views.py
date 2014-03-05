@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 import time
+import transaction
 import simplejson as json
 
 import zope.intid
@@ -71,6 +72,8 @@ def init_db(db, usernames=()):
 	for _, obj in all_objects_iids(usernames):
 		if init(db, obj):
 			count += 1
+			if count % 10000 == 0:
+				transaction.savepoint()
 	return count
 
 @view_config(route_name='objects.generic.traversal',
