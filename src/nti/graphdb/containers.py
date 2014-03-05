@@ -57,8 +57,9 @@ def _default_container_adapter(containerId):
 
 def _add_contained_membership(db, oid, containerId):
 	obj = ntiids.find_object_with_ntiid(oid)
+	container = ntiids.find_object_with_ntiid(containerId)
 	if obj is not None:
-		container = graph_interfaces.IContainer(containerId)
+		container = container or graph_interfaces.IContainer(containerId)
 		result = db.create_relationship(obj, container, relationships.Contained())
 		if result is not None:
 			logger.debug("containment relationship %s retreived/created" % result)
