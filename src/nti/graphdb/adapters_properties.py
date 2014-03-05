@@ -96,6 +96,15 @@ _HighlightPropertyAdpater = _ModeledContentPropertyAdpater
 _RedactionPropertyAdpater = _ModeledContentPropertyAdpater
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(frm_interfaces.IBoard)
+def _BoardPropertyAdpater(board):
+	result = {'type':'Board'}
+	result['title'] = unicode(board.title)
+	result['created'] = board.createdTime
+	result['oid'] = externalization.to_external_ntiid_oid(board)
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(frm_interfaces.IForum)
 def _ForumPropertyAdpater(forum):
 	result = {'type':'Forum'}

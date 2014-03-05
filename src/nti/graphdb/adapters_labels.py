@@ -81,6 +81,11 @@ def _TopicLabelAdpater(topic):
 	return result
 	
 @interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(frm_interfaces.IBoard)
+def _BoardLabelAdpater(modeled):
+	return ("board",)
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(frm_interfaces.IHeadlinePost)
 def _HeadlinePostLabelAdpater(post):
 	return graph_interfaces.ILabelAdapter(post.__parent__)

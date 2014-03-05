@@ -40,6 +40,10 @@
 			 factory=".adapters_properties._NotePropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 		
+	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IBoard"
+			 factory=".adapters_properties._BoardPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IForum"
 			 factory=".adapters_properties._ForumPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

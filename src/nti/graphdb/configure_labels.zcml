@@ -56,6 +56,10 @@
 			 factory=".adapters_labels._CommentLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 			 
+	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IBoard"
+			 factory=".adapters_labels._BoardLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+			 
 	<adapter for="nti.contentlibrary.interfaces.IContentUnit"
 			 factory=".adapters_labels._ContentUnitLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
