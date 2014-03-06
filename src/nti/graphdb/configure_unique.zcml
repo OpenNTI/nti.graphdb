@@ -39,7 +39,11 @@
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IEntity .interfaces.IFollow"
 			 factory=".adapters_unique._FollowUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
-			 
+			
+	<adapter for="nti.dataserver.interfaces.ICreated"
+			 factory=".adapters_unique._CreatedUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			  
 	<adapter for="nti.dataserver.interfaces.IModeledContent"
 			 factory=".adapters_unique._ModeledContentUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />

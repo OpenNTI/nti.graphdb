@@ -31,7 +31,11 @@
 	<adapter for="nti.dataserver.interfaces.IUser"
 			 factory=".adapters_properties._UserPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
-			
+		
+	<adapter for="nti.dataserver.interfaces.ICreated"
+			 factory=".adapters_properties._CreatedPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
 	<adapter for="nti.dataserver.interfaces.IModeledContent"
 			 factory=".adapters_properties._ModeledContentPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
@@ -39,7 +43,19 @@
 	<adapter for="nti.dataserver.interfaces.ITitledContent"
 			 factory=".adapters_properties._TitledContentPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
-			  
+		
+	<adapter for="nti.dataserver.interfaces.INote"
+			 factory=".adapters_properties._NotePropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+		
+	<adapter for="nti.dataserver.interfaces.IHighlight"
+			 factory=".adapters_properties._HighlightPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			
+	<adapter for="nti.dataserver.interfaces.IRedaction"
+			 factory=".adapters_properties._RedactionPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			  	 	  
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IBoard"
 			 factory=".adapters_properties._BoardPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
@@ -71,7 +87,11 @@
 	<adapter for="nti.contentlibrary.interfaces.IContentUnit"
 			 factory=".adapters_properties._ContentUnitPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
-			 
+
+	<adapter for="nti.store.interfaces.IPurchaseAttempt"
+			 factory=".adapters_properties._PurchaseAttemptPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 	 
 	<adapter for="nti.contentsearch.interfaces.ISearchQuery"
 			 factory=".adapters_properties._SearchQueryPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

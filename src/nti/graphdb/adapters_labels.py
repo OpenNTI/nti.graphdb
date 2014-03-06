@@ -26,6 +26,8 @@ from nti.contentsearch import interfaces as search_interfaces
 from nti.dataserver import interfaces as nti_interfaces
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
+from nti.store import interfaces as store_interfaces
+
 from . import interfaces as graph_interfaces
 
 #### labels
@@ -135,3 +137,8 @@ def _SearchQueryLabelAdpater(query):
 def _ContainerLabelAdpater(container):
 	result = ('container',)
 	return result
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(store_interfaces.IPurchaseAttempt)
+def _PurchaseAttemptLabelAdpater(pa):
+	return (pa.__class__.__name__.lower(),)

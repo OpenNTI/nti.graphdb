@@ -92,5 +92,9 @@
 			 factory=".adapters_labels._ContainerLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 
+	<adapter for="nti.store.interfaces.IPurchaseAttempt"
+			 factory=".adapters_labels._PurchaseAttemptLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+			 
 </configure>
 

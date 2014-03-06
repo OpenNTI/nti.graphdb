@@ -50,13 +50,6 @@ class _OIDUniqueAttributeAdpater(object):
 		return result
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-class _EndRelationshipUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
-
-	def __init__(self, _from, _to, _rel):
-		# a relationship is identified by the end object oid
-		super(_EndRelationshipUniqueAttributeAdpater, self).__init__(_to)
-
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(nti_interfaces.IEntity)
 class _EntityUniqueAttributeAdpater(object):
 
@@ -69,6 +62,7 @@ class _EntityUniqueAttributeAdpater(object):
 	def value(self):
 		return self.obj.username
 
+_CreatedUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
 _TitledContentUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
 _ModeledContentUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
 
@@ -104,6 +98,48 @@ class _ContentUnitAttributeAdpater(_OIDUniqueAttributeAdpater):
 		return self.obj.ntiid
 
 _AssignmenFeedbackUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+class _NTIIDUniqueAttributeAdpater(object):
+
+	key = "oid"
+
+	def __init__(self, obj):
+		self.obj = obj
+
+	@property
+	def value(self):
+		return get_ntiid(self.obj)
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(graph_interfaces.IContainer)
+class _ContainerUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
+
+	@property
+	def value(self):
+		return self.obj.id
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+@component.adapter(search_interfaces.ISearchQuery)
+class _SearchQueryUniqueAttributeAdpater(object):
+
+	key = "term"
+
+	def __init__(self, obj):
+		self.obj = obj
+
+	@property
+	def value(self):
+		# TODO: Better way?
+		result = self.obj.term.lower()
+		return result
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+class _EndRelationshipUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
+
+	def __init__(self, _from, _to, _rel):
+		# a relationship is identified by the end object oid
+		super(_EndRelationshipUniqueAttributeAdpater, self).__init__(_to)
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _EntityObjectRelationshipUniqueAttributeAdpater(object):
@@ -179,41 +215,6 @@ class _ObjectRelationshipUniqueAttributeAdpater(object):
 	def value(self):
 		oid = externalization.to_external_ntiid_oid(self.parent)
 		result = '%s,%s' % (self.rel, oid)
-		return result
-
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-class _NTIIDUniqueAttributeAdpater(object):
-
-	key = "oid"
-
-	def __init__(self, obj):
-		self.obj = obj
-
-	@property
-	def value(self):
-		return get_ntiid(self.obj)
-
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-@component.adapter(graph_interfaces.IContainer)
-class _ContainerUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
-
-	@property
-	def value(self):
-		return self.obj.id
-
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-@component.adapter(search_interfaces.ISearchQuery)
-class _SearchQueryUniqueAttributeAdpater(object):
-
-	key = "term"
-
-	def __init__(self, obj):
-		self.obj = obj
-
-	@property
-	def value(self):
-		# TODO: Better way?
-		result = self.obj.term.lower()
 		return result
 
 class _NTIIDMembershipUniqueAttributeAdpater(object):

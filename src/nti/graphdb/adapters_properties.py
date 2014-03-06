@@ -31,6 +31,8 @@ from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
 from nti.externalization import externalization
 
+from nti.store import interfaces as store_interfaces
+
 from . import interfaces as graph_interfaces
 
 def get_ntiid(obj):
@@ -75,16 +77,21 @@ def _DFLPropertyAdpater(dfl):
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
-@component.adapter(nti_interfaces.IModeledContent)
-def _ModeledContentPropertyAdpater(modeled):
-	result = {'type':modeled.__class__.__name__}
-	result['oid'] = externalization.to_external_ntiid_oid(modeled)
-	result['created'] = getattr(modeled, 'createdTime', time.time())
-	# optional properties
-	creator = getattr(modeled, 'creator', None)
+@component.adapter(nti_interfaces.ICreated)
+def _CreatedPropertyAdpater(created):
+	result = {'type':created.__class__.__name__}
+	result['oid'] = externalization.to_external_ntiid_oid(created)
+	result['created'] = getattr(created, 'createdTime', None) or time.time()
+	creator = getattr(created, 'creator', None)
 	creator = getattr(creator, 'username', creator)
 	if creator:
 		result['creator'] = creator
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(nti_interfaces.IModeledContent)
+def _ModeledContentPropertyAdpater(modeled):
+	result = _CreatedPropertyAdpater(modeled)
 	containerId = getattr(modeled, 'containerId', None)
 	if containerId:
 		result['containerId'] = containerId
@@ -171,6 +178,14 @@ def _ContainerPropertyAdpater(container):
 	result = {'type':'Container'}
 	result['oid'] = container.id
 	result['created'] = time.time()
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(store_interfaces.IPurchaseAttempt)
+def _PurchaseAttemptPropertyAdpater(pa):
+	result = _CreatedPropertyAdpater(pa)
+	items = {x.NTIID for x in pa.Order.Items}
+	result['items'] = ','.join(items)
 	return result
 
 # IPersonalBlogComment, IGeneralForumComment
@@ -301,13 +316,30 @@ _FollowRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 @component.adapter(nti_interfaces.IUser, search_interfaces.ISearchResults,
 				   graph_interfaces.ISearch)
 def _SearchRelationshipPropertyAdpater(user, results, rel):
-	result = {'created' :  time.time()}
+	result = {'created': time.time()}
 	result['creator'] = user.username
-	result['location'] = results.Query.location
+	
+	# query properties
+	if results.Query.location:
+		result['location'] = results.Query.location
+
+	searchOn = sorted(results.Query.searchOn or ())
+	if searchOn:
+		result['searchOn'] = ','.join(searchOn)
+		
+	creator = results.Query.creator
+	if creator:
+		result['searchCreator'] = creator
+
+	for name in ('creationTime', 'modificationTime'):
+		value = getattr(results.Query, name, None)
+		if value is not None:
+			result[name] = value
+
+	# meta data properties
 	result['searchTime'] = results.HitMetaData.SearchTime
 	result['totalHitCount'] = results.HitMetaData.TotalHitCount
-	# top 5 containers
-	items = results.HitMetaData.ContainerCount.items()
+	items = results.HitMetaData.ContainerCount.items()  # top 5 containers
 	for x, y in sorted(items, key=lambda x: x[1], reverse=True)[:5]:
 		result[x] = y
 	return result
