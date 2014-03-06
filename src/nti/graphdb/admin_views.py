@@ -18,7 +18,6 @@ from zope import component
 from ZODB.POSException import POSKeyError
 
 from pyramid.view import view_config
-import pyramid.httpexceptions as hexc
 
 from nti.dataserver import authorization as nauth
 from nti.dataserver import interfaces as nti_interfaces
@@ -30,9 +29,6 @@ from nti.utils.maps import CaseInsensitiveDict
 from . import views
 from . import get_job_queue
 from . import interfaces as graph_interfaces
-
-from .async.reactor import GraphReactor
-from .async import interfaces as async_interfaces
 
 def _make_min_max_btree_range(search_term):
 	min_inclusive = search_term # start here
@@ -118,20 +114,3 @@ def queue_info(request):
 	result = LocatedExternalDict()
 	result['size'] = len(queue)
 	return result
-
-@view_config(route_name='objects.generic.traversal',
-			 name='start_reactor',
-			 request_method='POST',
-			 context=views.GraphPathAdapter,
-			 permission=nauth.ACT_MODERATE)
-def start_reactor(request):
-	reactor = component.queryUtility(async_interfaces.IGraphReactor)
-	if reactor is not None:
-		if reactor.isRunning:
-			reactor.halt()  # stop
-		component.getSiteManager().unregisterUtility(reactor, async_interfaces.IGraphReactor)
-
-	reactor = GraphReactor()
-	component.provideUtility(reactor, async_interfaces.IGraphReactor)
-	request.nti_gevent_spawn(reactor)
-	return hexc.HTTPNoContent()
