@@ -186,6 +186,7 @@ def _PurchaseAttemptPropertyAdpater(pa):
 	result = _CreatedPropertyAdpater(pa)
 	items = {x.NTIID for x in pa.Order.Items}
 	result['items'] = ','.join(items)
+	result['state'] = pa.State
 	return result
 
 # IPersonalBlogComment, IGeneralForumComment
