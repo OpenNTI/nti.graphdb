@@ -29,4 +29,4 @@ def get_creator(obj):
         return None
 
 def to_external_ntiid_oid(obj):
-    return externalization.to_external_ntiid_oid(obj)
+    return externalization.to_external_ntiid_oid(obj, intid_check=False)
