@@ -35,7 +35,11 @@
 	<adapter for="nti.dataserver.interfaces.IModeledContent"
 			 factory=".adapters_properties._ModeledContentPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
-			 
+			
+	<adapter for="nti.dataserver.interfaces.ITitledContent"
+			 factory=".adapters_properties._TitledContentPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			  
 	<adapter for="nti.dataserver.interfaces.INote"
 			 factory=".adapters_properties._NotePropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

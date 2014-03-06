@@ -78,20 +78,26 @@ def _DFLPropertyAdpater(dfl):
 @component.adapter(nti_interfaces.IModeledContent)
 def _ModeledContentPropertyAdpater(modeled):
 	result = {'type':modeled.__class__.__name__}
-	result['creator'] = getattr(modeled.creator, 'username', modeled.creator)
-	result['created'] = modeled.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(modeled)
+	result['created'] = getattr(modeled, 'createdTime', time.time())
+	# optional properties
+	creator = getattr(modeled, 'creator', None)
+	creator = getattr(creator, 'username', creator)
+	if creator:
+		result['creator'] = creator
 	containerId = getattr(modeled, 'containerId', None)
 	if containerId:
 		result['containerId'] = containerId
 	return result
 
-@component.adapter(nti_interfaces.INote)
-def _NotePropertyAdpater(note):
-	result = _ModeledContentPropertyAdpater(note)
-	result['title'] = unicode(note.title)
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(nti_interfaces.ITitledContent)
+def _TitledContentPropertyAdpater(content):
+	result = _ModeledContentPropertyAdpater(content)
+	result['title'] = unicode(content.title) or u''
 	return result
 
+_NotePropertyAdpater = _TitledContentPropertyAdpater
 _HighlightPropertyAdpater = _ModeledContentPropertyAdpater
 _RedactionPropertyAdpater = _ModeledContentPropertyAdpater
 
