@@ -11,11 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 from zope import component
 from zope import interface
 
-from nti.app.assessment import interfaces as app_asm_interfaces
-
 from nti.assessment import interfaces as asm_interfaces
-
-from nti.chatserver import interfaces as chat_interfaces
 
 from nti.contentlibrary import interfaces as lib_interfaces
 
@@ -73,15 +69,8 @@ class _EntityUniqueAttributeAdpater(object):
 	def value(self):
 		return self.obj.username
 
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-@component.adapter(nti_interfaces.IModeledContent)
-class _ModeledContentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
-	pass
-
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-@component.adapter(nti_interfaces.ITitledContent)
-class _TitledContentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
-	pass
+_TitledContentUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
+_ModeledContentUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(frm_interfaces.ITopic)
@@ -103,14 +92,8 @@ class _HeadlinePostUniqueAttributeAdpater(_TopicUniqueAttributeAdpater):
 	def __init__(self, obj):
 		super(_HeadlinePostUniqueAttributeAdpater, self).__init__(obj.__parent__)
 
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-class _CommentUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
-	pass
-
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-@component.adapter(chat_interfaces.IMeeting)
-class _MeetingUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
-	pass
+_CommentUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
+_MeetingUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(lib_interfaces.IContentUnit)
@@ -120,10 +103,7 @@ class _ContentUnitAttributeAdpater(_OIDUniqueAttributeAdpater):
 	def value(self):
 		return self.obj.ntiid
 
-@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
-@component.adapter(app_asm_interfaces.IUsersCourseAssignmentHistoryItemFeedback)
-class _AssignmenFeedbackUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
-	pass
+_AssignmenFeedbackUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _EntityObjectRelationshipUniqueAttributeAdpater(object):
