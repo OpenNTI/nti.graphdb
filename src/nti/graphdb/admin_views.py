@@ -31,7 +31,7 @@ from . import views
 from . import get_job_queue
 from . import interfaces as graph_interfaces
 
-from .async.reactor import JobReactor
+from .async.reactor import GraphReactor
 from .async import interfaces as async_interfaces
 
 def _make_min_max_btree_range(search_term):
@@ -125,13 +125,13 @@ def queue_info(request):
 			 context=views.GraphPathAdapter,
 			 permission=nauth.ACT_MODERATE)
 def start_reactor(request):
-	reactor = component.queryUtility(async_interfaces.IJobReactor)
+	reactor = component.queryUtility(async_interfaces.IGraphReactor)
 	if reactor is not None:
 		if reactor.isRunning:
 			reactor.halt()  # stop
-		component.getSiteManager().unregisterUtility(reactor, async_interfaces.IJobReactor)
+		component.getSiteManager().unregisterUtility(reactor, async_interfaces.IGraphReactor)
 
-	reactor = JobReactor()
-	component.provideUtility(reactor, async_interfaces.IJobReactor)
+	reactor = GraphReactor()
+	component.provideUtility(reactor, async_interfaces.IGraphReactor)
 	request.nti_gevent_spawn(reactor)
 	return hexc.HTTPNoContent()

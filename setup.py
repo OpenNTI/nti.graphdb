@@ -4,6 +4,9 @@ from setuptools import setup, find_packages
 VERSION = '0.0.0'
 
 entry_points = {
+    'console_scripts': [
+        "nti_graph_constructor = nti.graphdb.utils.constructor:main",
+    ],
 }
 
 setup(
