@@ -8,7 +8,7 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-import six
+from ZODB.POSException import POSKeyError
 
 from nti.dataserver.users import Entity
 from nti.dataserver import interfaces as nti_interfaces
@@ -21,10 +21,12 @@ def get_entity(entity):
     return entity
 
 def get_creator(obj):
-    creator = getattr(obj, 'creator', None)
-    if isinstance(creator, six.string_types):
-        creator = Entity.get_entity(creator)
-    return creator
+    try:
+        creator = getattr(obj, 'creator', None)
+        creator = get_entity(creator) if creator else None
+        return creator
+    except (TypeError, POSKeyError):
+        return None
 
 def to_external_ntiid_oid(obj):
     return externalization.to_external_ntiid_oid(obj)
