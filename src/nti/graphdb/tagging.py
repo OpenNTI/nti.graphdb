@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
+from zope.intid import interfaces as intid_interfaces
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
@@ -110,7 +111,7 @@ def _process_removed_event(db, obj):
 		job = create_job(remove_user_tagged_content, db=db, key=key, value=value)
 		queue.put(job)
 
-@component.adapter(nti_interfaces.IUserTaggedContent, lce_interfaces.IObjectRemovedEvent)
+@component.adapter(nti_interfaces.IUserTaggedContent, intid_interfaces.IIntIdRemovedEvent)
 def _user_tagged_content_removed(obj, event):
 	db = get_graph_db()
 	if db is not None:

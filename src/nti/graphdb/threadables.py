@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
+from zope.intid import interfaces as intid_interfaces
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
@@ -56,7 +57,7 @@ def _proces_threadable_removed(db, threadable):
 					 irt_PK=irt_PK)
 	queue.put(job)
 
-@component.adapter(nti_interfaces.IThreadable, lce_interfaces.IObjectRemovedEvent)
+@component.adapter(nti_interfaces.IThreadable, intid_interfaces.IIntIdRemovedEvent)
 def _threadable_removed(threadable, event):
 	db = get_graph_db()
 	if db is not None:

@@ -11,6 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 import six
 
 from zope import component
+from zope.intid import interfaces as intid_interfaces
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from pyramid.traversal import find_interface
@@ -300,7 +301,7 @@ def _process_feedback_removed(db, feedback):
 	queue.put(job)
 
 @component.adapter(appa_interfaces.IUsersCourseAssignmentHistoryItemFeedback,
-				   lce_interfaces.IObjectRemovedEvent)
+				   intid_interfaces.IIntIdRemovedEvent)
 def _feedback_removed(feedback, event):
 	db = get_graph_db()
 	if db is not None:

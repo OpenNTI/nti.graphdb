@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
+from zope.intid import interfaces as intid_interfaces
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
@@ -59,7 +60,7 @@ def _entity_added(entity, event):
 	if 	db is not None and queue is not None:  # check queue b/c of Everyone comm
 		_process_entity_added(db, entity)
 
-@component.adapter(nti_interfaces.IEntity, lce_interfaces.IObjectRemovedEvent)
+@component.adapter(nti_interfaces.IEntity, intid_interfaces.IIntIdRemovedEvent)
 def _entity_removed(entity, event):
 	db = get_graph_db()
 	if db is not None:

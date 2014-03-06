@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
+from zope.intid import interfaces as intid_interfaces
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import users
@@ -128,7 +129,7 @@ def _friendslist_modified(obj, event):
 	if db is not None:
 		_process_friendslist_event(db, obj)
 
-@component.adapter(nti_interfaces.IFriendsList, lce_interfaces.IObjectRemovedEvent)
+@component.adapter(nti_interfaces.IFriendsList, intid_interfaces.IIntIdRemovedEvent)
 def _friendslist_deleted(obj, event):
 	db = get_graph_db()
 	if db is not None:
@@ -213,7 +214,7 @@ def _do_membership_deletions(db, keyref):
 	queue.put(job)
 
 @component.adapter(nti_interfaces.IDynamicSharingTargetFriendsList,
-				  lce_interfaces.IObjectRemovedEvent)
+				   intid_interfaces.IIntIdRemovedEvent)
 def _dfl_deleted(obj, event):
 	db = get_graph_db()
 	if db is not None:

@@ -10,6 +10,7 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 from zope import component
+from zope.intid import interfaces as intid_interfaces
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
@@ -95,7 +96,7 @@ def _process_contained_removed(db, contained):
 	job = create_job(_remove_node, db=db, key=adapted.key, value=adapted.value)
 	queue.put(job)
 
-@component.adapter(nti_interfaces.IContained, lce_interfaces.IObjectRemovedEvent)
+@component.adapter(nti_interfaces.IContained, intid_interfaces.IIntIdRemovedEvent)
 def _contained_removed(contained, event):
 	db = get_graph_db()
 	if db is not None:

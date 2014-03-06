@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import component
+from zope.intid import interfaces as intid_interfaces
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from nti.dataserver import interfaces as nti_interfaces
@@ -151,7 +152,7 @@ def _remove_topic(db, topic):
 		primary_keys.append(get_primary_key(comment))
 	_process_discussion_remove_events(db, primary_keys)
 
-@component.adapter(frm_interfaces.ITopic, lce_interfaces.IObjectRemovedEvent)
+@component.adapter(frm_interfaces.ITopic, intid_interfaces.IIntIdRemovedEvent)
 def _topic_removed(topic, event):
 	db = get_graph_db()
 	if db is not None:
@@ -266,7 +267,7 @@ def _forum_modified(forum, event):
 	if db is not None:
 		_process_forum_add_mod_event(db, forum, graph_interfaces.MODIFY_EVENT)
 
-@component.adapter(frm_interfaces.IForum, lce_interfaces.IObjectRemovedEvent)
+@component.adapter(frm_interfaces.IForum, intid_interfaces.IIntIdRemovedEvent)
 def _forum_removed(forum, event):
 	db = get_graph_db()
 	if db is not None:
