@@ -50,6 +50,29 @@ def _object_created(created, event):
 	if db is not None:
 		_process_created_event(db, created)
 
+def _update_created(db, oid):
+	created = ntiids.find_object_with_ntiid(oid)
+	adapted = graph_interfaces.IUniqueAttributeAdapter(created, None)
+	if adapted is not None and created is not None:
+		node = db.get_indexed_node(adapted.key, adapted.value)
+		if node is not None:
+			labels = graph_interfaces.ILabelAdapter(created)
+			properties = graph_interfaces.IPropertyAdapter(created)
+			db.update_node(node, labels, properties)
+			logger.debug("properties updated for node %s" % node)
+
+def _process_created_modified(db, created):
+	oid = to_external_ntiid_oid(created)
+	queue = get_job_queue()
+	job = create_job(_update_created, db=db, oid=oid)
+	queue.put(job)
+
+@component.adapter(nti_interfaces.ICreated, lce_interfaces.IObjectModifiedEvent)
+def _object_modified(created, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_created_modified(db, created)
+
 def _remove_node(db, key, value):
 	node = db.get_indexed_node(key, value)
 	if node is not None:
@@ -58,17 +81,17 @@ def _remove_node(db, key, value):
 		return True
 	return False
 
-def _process_created_removed(db, contained):
-	adapted = graph_interfaces.IUniqueAttributeAdapter(contained)
+def _process_created_removed(db, created):
+	adapted = graph_interfaces.IUniqueAttributeAdapter(created)
 	queue = get_job_queue()
 	job = create_job(_remove_node, db=db, key=adapted.key, value=adapted.value)
 	queue.put(job)
 
 @component.adapter(nti_interfaces.ICreated, lce_interfaces.IObjectRemovedEvent)
-def _object_removed(contained, event):
+def _object_removed(created, event):
 	db = get_graph_db()
 	if db is not None:
-		_process_created_removed(db, contained)
+		_process_created_removed(db, created)
 
 component.moduleProvides(graph_interfaces.IObjectProcessor)
 

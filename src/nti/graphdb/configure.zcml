@@ -98,6 +98,7 @@
 	<subscriber handler=".containers._contained_removed" />
 	
 	<subscriber handler=".creators._object_created" />
+	<subscriber handler=".creators._object_modified" />
 	<subscriber handler=".creators._object_removed" />
 	
 	<!-- utils -->
