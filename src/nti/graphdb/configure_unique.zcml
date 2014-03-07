@@ -7,7 +7,7 @@
 	<include package="zope.component" file="meta.zcml" />
 	<include package="zope.security" file="meta.zcml" />
 	<include package="zope.component" />
-			 
+			
 	<adapter for=""
 			 factory=".adapters_unique._GenericUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
@@ -40,18 +40,22 @@
 			 factory=".adapters_unique._FollowUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
-	<adapter for="nti.dataserver.interfaces.ICreated"
-			 factory=".adapters_unique._CreatedUniqueAttributeAdpater"
-			 provides=".interfaces.IUniqueAttributeAdapter" />
-			  
 	<adapter for="nti.dataserver.interfaces.IModeledContent"
-			 factory=".adapters_unique._ModeledContentUniqueAttributeAdpater"
+			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 		
 	<adapter for="nti.dataserver.interfaces.ITitledContent"
-			 factory=".adapters_unique._TitledContentUniqueAttributeAdpater"
+			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
-			 	 
+		
+	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IBoard"
+			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			 
+	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IForum"
+			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			 	 	 
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.ITopic"
 			 factory=".adapters_unique._TopicUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
@@ -61,17 +65,21 @@
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 		
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IPersonalBlogComment"
-			 factory=".adapters_unique._CommentUniqueAttributeAdpater"
+			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 	
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment"
-			 factory=".adapters_unique._CommentUniqueAttributeAdpater"
+			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 		
 	<adapter for="nti.chatserver.interfaces.IMeeting"
-			 factory=".adapters_unique._MeetingUniqueAttributeAdpater"
+			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
-			 	
+		
+	<adapter for="nti.chatserver.interfaces.IMessageInfo"
+			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			 
 	<adapter for="nti.contentlibrary.interfaces.IContentUnit"
 			 factory=".adapters_unique._ContentUnitAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
@@ -80,16 +88,16 @@
 			 factory=".adapters_unique._SearchQueryUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
-	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.ITopic .interfaces.IAuthor"
-			 factory=".adapters_unique._AuthorshipUniqueAttributeAdpater"
+	<adapter for="nti.store.interfaces.IPurchaseAttempt"
+			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
-	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.IPersonalBlogComment .interfaces.ICommentOn"
-			 factory=".adapters_unique._CommentRelationshipUniqueAttributeAdpater"
+	<adapter for="nti.app.assessment.interfaces.IUsersCourseAssignmentHistoryItemFeedback"
+			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
-	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment .interfaces.ICommentOn"
-			 factory=".adapters_unique._CommentRelationshipUniqueAttributeAdpater"
+	<adapter for=".interfaces.IContainer"
+			 factory=".adapters_unique._ContainerUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
 	<adapter for="nti.assessment.interfaces.IQuestionSet"
@@ -103,14 +111,18 @@
 	<adapter for="nti.assessment.interfaces.IQAssignment"
 			 factory=".adapters_unique._NTIIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
-	
-	<adapter for="nti.app.assessment.interfaces.IUsersCourseAssignmentHistoryItemFeedback"
-			 factory=".adapters_unique._AssignmenFeedbackUniqueAttributeAdpater"
-			 provides=".interfaces.IUniqueAttributeAdapter" />		 
-		
-	<adapter for=".interfaces.IContainer"
-			 factory=".adapters_unique._ContainerUniqueAttributeAdpater"
+			 
+	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.ITopic .interfaces.IAuthor"
+			 factory=".adapters_unique._AuthorshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
+			 
+	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.IPersonalBlogComment .interfaces.ICommentOn"
+			 factory=".adapters_unique._CommentRelationshipUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			 
+	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment .interfaces.ICommentOn"
+			 factory=".adapters_unique._CommentRelationshipUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />	 
 			 	 
 	<adapter for="nti.dataserver.interfaces.IUser nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.ITakeAssessment"
 			 factory=".adapters_unique._AssessedRelationshipUniqueAttributeAdpater"

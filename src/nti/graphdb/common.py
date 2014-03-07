@@ -29,7 +29,7 @@ def get_creator(obj):
         return None
 
 def to_external_ntiid_oid(obj):
-    ntiid = externalization.to_external_ntiid_oid(obj)
+    ntiid = externalization.to_external_ntiid_oid(obj) if obj is not None else None
     parts = ntiid.split(":") if ntiid else ()
     if len(parts) > 4:  # check if intid is in the oid
         ntiid = ':'.join(parts[:4])

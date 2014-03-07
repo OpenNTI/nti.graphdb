@@ -61,10 +61,6 @@ class _EntityUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 	def value(self):
 		return self.obj.username
 
-_CreatedUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
-_TitledContentUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
-_ModeledContentUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
-
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(frm_interfaces.ITopic)
 class _TopicUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
@@ -82,9 +78,6 @@ class _HeadlinePostUniqueAttributeAdpater(_TopicUniqueAttributeAdpater):
 	def __init__(self, obj):
 		super(_HeadlinePostUniqueAttributeAdpater, self).__init__(obj.__parent__)
 
-_CommentUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
-_MeetingUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
-
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 @component.adapter(lib_interfaces.IContentUnit)
 class _ContentUnitAttributeAdpater(_OIDUniqueAttributeAdpater):
@@ -92,8 +85,6 @@ class _ContentUnitAttributeAdpater(_OIDUniqueAttributeAdpater):
 	@property
 	def value(self):
 		return self.obj.ntiid
-
-_AssignmenFeedbackUniqueAttributeAdpater = _OIDUniqueAttributeAdpater
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _NTIIDUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):

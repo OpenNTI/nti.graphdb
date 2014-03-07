@@ -155,6 +155,14 @@ def _MeetingPropertyAdpater(meeting):
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(chat_interfaces.IMessageInfo)
+def _MessageInfoPropertyAdpater(message):
+	result = _ModeledContentPropertyAdpater(message)
+	result['channel'] = message.channel
+	result['status'] = message.Status
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 	result = {'type':'Comment'}
 	result['creator'] = getattr(post.creator, 'username', post.creator)

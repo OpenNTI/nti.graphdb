@@ -127,6 +127,12 @@ def _MeetingLabelAdpater(meeting):
 	return result
 
 @interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(chat_interfaces.IMessageInfo)
+def _MessageInfoLabelAdpater(message):
+	result = ('message',)
+	return result
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(search_interfaces.ISearchQuery)
 def _SearchQueryLabelAdpater(query):
 	result = ('searchquery',)

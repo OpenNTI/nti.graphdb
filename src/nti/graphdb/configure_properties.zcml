@@ -31,10 +31,6 @@
 	<adapter for="nti.dataserver.interfaces.IUser"
 			 factory=".adapters_properties._UserPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
-		
-	<adapter for="nti.dataserver.interfaces.ICreated"
-			 factory=".adapters_properties._CreatedPropertyAdpater"
-			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.dataserver.interfaces.IModeledContent"
 			 factory=".adapters_properties._ModeledContentPropertyAdpater"
@@ -83,7 +79,11 @@
 	<adapter for="nti.chatserver.interfaces.IMeeting"
 			 factory=".adapters_properties._MeetingPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
-			 
+			
+	<adapter for="nti.chatserver.interfaces.IMessageInfo"
+			 factory=".adapters_properties._MessageInfoPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			  
 	<adapter for="nti.contentlibrary.interfaces.IContentUnit"
 			 factory=".adapters_properties._ContentUnitPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
