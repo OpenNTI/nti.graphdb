@@ -56,10 +56,14 @@ class Container(object):
 def _default_container_adapter(containerId):
 	return Container(containerId)
 
+def _has_pk(obj):
+	adapted = graph_interfaces.IUniqueAttributeAdapter(obj, None)
+	return adapted is not None and adapted.key and adapted.value
+
 def _add_contained_membership(db, oid, containerId):
 	obj = ntiids.find_object_with_ntiid(oid)
 	container = ntiids.find_object_with_ntiid(containerId)
-	if obj is not None:
+	if obj is not None and _has_pk(obj):
 		container = container or graph_interfaces.IContainer(containerId)
 		result = db.create_relationship(obj, container, relationships.Contained())
 		if result is not None:
