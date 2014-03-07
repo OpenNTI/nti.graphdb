@@ -147,4 +147,12 @@ def _ContainerLabelAdpater(container):
 @interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(store_interfaces.IPurchaseAttempt)
 def _PurchaseAttemptLabelAdpater(pa):
-	return (pa.__class__.__name__.lower(),)
+	result = ("purchase",)
+	if store_interfaces.IEnrollmentAttempt.providedBy(pa):
+		result = ("enrollment",)
+	elif store_interfaces.IInvitationPurchaseAttempt.providedBy(pa):
+		result = ("purchaseInvitation",)
+	elif store_interfaces.IRedeemedPurchaseAttempt.providedBy(pa):
+		result = ("purchaseRedeemed",)
+	return result
+

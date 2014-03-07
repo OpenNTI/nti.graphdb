@@ -195,6 +195,14 @@ def _PurchaseAttemptPropertyAdpater(pa):
 	items = {x.NTIID for x in pa.Order.Items}
 	result['items'] = ','.join(items)
 	result['state'] = pa.State
+	if store_interfaces.IEnrollmentAttempt.providedBy(pa):
+		result['type'] = "Enrollment"
+	elif store_interfaces.IInvitationPurchaseAttempt.providedBy(pa):
+		result['type'] = "PurchaseInvitation"
+	elif store_interfaces.IRedeemedPurchaseAttempt.providedBy(pa):
+		result['type'] = "PurchaseRedeemed"
+	else:
+		result['type'] = "Purchase"
 	return result
 
 # IPersonalBlogComment, IGeneralForumComment
