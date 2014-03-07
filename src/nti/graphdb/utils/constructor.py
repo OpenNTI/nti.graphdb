@@ -29,6 +29,7 @@ from nti.contentlibrary import interfaces as lib_interfaces
 from nti.dataserver.utils import run_with_dataserver
 
 from nti.graphdb.async import reactor
+from nti.graphdb import interfaces as graph_interfaces
 
 def sigint_handler(*args):
 	logger.info("Shutting down %s", os.getpid())
@@ -85,15 +86,27 @@ def _create_context(env_dir):
 		
 	return context
 
+def _tone_down_logging():
+	try:
+		package = 'py2neo.packages.httpstream.http'
+		__import__(package)
+		py2neo_logger = logging.getLogger(package)
+		py2neo_logger.setLevel(logging.ERROR)
+	except ImportError:
+		logger.error("could not setup logging level for py2neo")
+
 def _process_args(args):
+	ei = '%(asctime)s %(levelname)-5.5s [%(name)s][%(thread)d][%(threadName)s] %(message)s'
+	logging.root.handlers[0].setFormatter(zope.exceptions.log.Formatter(ei))
+
 	# make sure contentPackages are loaded
 	library = component.queryUtility(lib_interfaces.IContentPackageLibrary)
 	getattr(library, 'contentPackages')
 
-	logging.basicConfig(level=logging.INFO if not args.verbose else logging.DEBUG)
-
-	ei = '%(asctime)s %(levelname)-5.5s [%(name)s][%(thread)d][%(threadName)s] %(message)s'
-	logging.root.handlers[0].setFormatter(zope.exceptions.log.Formatter(ei))
+	if args.verbose:
+		for _, module in component.getUtilitiesFor(graph_interfaces.IObjectProcessor):
+			module.logger.setLevel(logging.DEBUG)
+	_tone_down_logging()
 
 	target = reactor.GraphReactor()
 	result = target(time.sleep)
