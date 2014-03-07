@@ -90,6 +90,8 @@ def _process_args(args):
 	library = component.queryUtility(lib_interfaces.IContentPackageLibrary)
 	getattr(library, 'contentPackages')
 
+	logging.basicConfig(level=logging.INFO if not args.verbose else logging.DEBUG)
+
 	ei = '%(asctime)s %(levelname)-5.5s [%(name)s][%(thread)d][%(threadName)s] %(message)s'
 	logging.root.handlers[0].setFormatter(zope.exceptions.log.Formatter(ei))
 

@@ -39,7 +39,7 @@ def add_discussion_node(db, oid, key, value):
 	obj = ntiids.find_object_with_ntiid(oid)
 	if obj is not None and node is None:
 		node = db.create_node(obj)
-		logger.debug("node %s created" % node)
+		logger.debug("node %s created", node)
 		created = True
 	return created, node, obj
 
@@ -57,7 +57,7 @@ def _update_node(db, node, obj):
 	labels = graph_interfaces.ILabelAdapter(obj)
 	properties = graph_interfaces.IPropertyAdapter(obj)
 	db.update_node(node, labels, properties)
-	logger.debug("properties updated for node %s" % node)
+	logger.debug("properties updated for node %s", node)
 	return node, obj
 
 def modify_forum_node(db, oid, key, value):
@@ -76,7 +76,7 @@ def delete_discussion_node(db, key, value):
 	node = db.get_indexed_node(key, value)
 	if node is not None:
 		db.delete_node(node)
-		logger.debug("topic node %s deleted" % node)
+		logger.debug("topic node %s deleted", node)
 		return True
 	return False
 
@@ -85,7 +85,7 @@ delete_topic_node = delete_discussion_node
 
 def _delete_nodes(db, nodes=()):
 	result = db.delete_nodes(*nodes)
-	logger.debug("%s node(s) deleted", result)
+	logger.debug("%s node(s) deleted", len(result))
 
 def _process_discussion_remove_events(db, primary_keys=()):
 	if primary_keys:
@@ -102,7 +102,7 @@ def add_membership_relationship(db, child, parent):
 									(child, parent, rel_type),
 									graph_interfaces.IPropertyAdapter)
 		result = db.create_relationship(child, parent, rel_type, properties=properties)
-		logger.debug("membership relationship %s created" % result)
+		logger.debug("membership relationship %s created", result)
 		return result
 	
 # topics
@@ -114,7 +114,7 @@ def _add_authorship_relationship(db, topic):
 								(creator, topic, rel_type),
 								graph_interfaces.IPropertyAdapter)
 	result = db.create_relationship(creator, topic, rel_type, properties=properties)
-	logger.debug("authorship relationship %s created" % result)
+	logger.debug("authorship relationship %s created", result)
 	return result
 
 def _process_topic_add_mod_event(db, topic, event):
@@ -185,16 +185,17 @@ def _add_comment_relationship(db, oid, comment_rel_pk):
 										properties=properties,
 										key=comment_rel_pk.key,
 										value=comment_rel_pk.value)
-		logger.debug("comment-on relationship %s created" % result)
+		logger.debug("comment-on relationship %s created", result)
 	return result
 
 def _delete_comment(db, comment_pk, comment_rel_pk):
 	node = db.get_indexed_node(comment_pk.key, comment_pk.value) # check for comment node
 	if node is not None:
 		db.delete_node(node)
-		logger.debug("comment-on node %s deleted" % comment_pk)
-	if db.delete_indexed_relationship(comment_rel_pk.key, comment_rel_pk.value):
-		logger.debug("comment-on relationship %s deleted" % comment_rel_pk)
+		logger.debug("comment-on node %s deleted", node)
+	rel = db.delete_indexed_relationship(comment_rel_pk.key, comment_rel_pk.value)
+	if rel is not None:
+		logger.debug("comment-on relationship %s deleted", rel)
 		return True
 	return False
 

@@ -36,13 +36,15 @@ def _remove_node(db, key, value):
 	node = db.get_indexed_node(key, value)
 	if node is not None:
 		db.delete_node(node)
-		logger.debug("Node %s,%s deleted" % (key, value))
+		logger.debug("node %s deleted", node)
 		return True
 	return False
 
 def _remove_threadable(db, key, value, irt_PK=None):
 	if irt_PK is not None:
-		db.delete_indexed_relationship(irt_PK.key, irt_PK.value)
+		rel = db.delete_indexed_relationship(irt_PK.key, irt_PK.value)
+		if rel is not None:
+			logger.debug("inReplyTo relationship %s deleted", rel)
 	_remove_node(db, key, value)
 
 def _proces_threadable_removed(db, threadable):
@@ -75,7 +77,8 @@ def _add_inReplyTo_relationship(db, oid):
 	if in_replyTo is not None:
 		# create parent/child relationship
 		rel_type = relationships.IsReplyOf()
-		db.create_relationship(threadable, in_replyTo, rel_type)
+		rel = db.create_relationship(threadable, in_replyTo, rel_type)
+		logger.debug("relationship %s created", rel)
 
 		t_author = get_creator(threadable)
 		i_author = get_creator(in_replyTo)
@@ -94,7 +97,7 @@ def _add_inReplyTo_relationship(db, oid):
 										properties=properties,
 										key=irt_PK.key, value=irt_PK.value)
 		if result is not None:
-			logger.debug("replyTo relationship %s retreived/created" % result)
+			logger.debug("replyTo relationship %s retreived/created", result)
 			return True
 	return False
 

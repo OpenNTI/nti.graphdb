@@ -68,6 +68,7 @@ def _update_connections(db, entity, graph_relations_func, db_relations_func, rel
 	# remove old relationships
 	if to_remove:
 		db.delete_relationships(*[x.rel for x in to_remove])
+		logger.debug("%s connection relationship(s) deleted", len(to_remove))
 
 	# create nodes
 	to_create = set()
@@ -84,6 +85,7 @@ def _update_connections(db, entity, graph_relations_func, db_relations_func, rel
 		_to = fship._to
 		_from = fship._from
 		rel = db.create_relationship(_from, _to, rel_type)
+		logger.debug("connection relationship %s created", rel)
 		result.append(rel)
 	return result
 
@@ -162,6 +164,7 @@ def process_start_membership(db, source, target):
 	target = ntiids.find_object_with_ntiid(target)
 	if source and target:
 		rel = db.create_relationship(source, target, relationships.MemberOf())
+		logger.debug("entity membership relationship %s created", rel)
 		return rel
 	return None
 
@@ -172,6 +175,7 @@ def process_stop_membership(db, source, target):
 		rels = db.match(start=source, end=target, rel_type=relationships.MemberOf())
 		if rels:
 			db.delete_relationships(*rels)
+			logger.debug("%s entity membership relationship(s) removed", len(rels))
 			return True
 	return False
 
@@ -206,7 +210,9 @@ def _stop_dynamic_membership_event(event):
 
 def _delete_index_relationship(db, keyref):
 	for key, value in keyref.items():
-		db.delete_indexed_relationship(key, value)
+		rel = db.delete_indexed_relationship(key, value)
+		if rel is not None:
+			logger.debug("relationship %s deleted", rel)
 			
 def _do_membership_deletions(db, keyref):
 	queue = get_job_queue()
@@ -236,6 +242,7 @@ def process_follow(db, source, followed):
 	followed = users.Entity.get_entity(followed)
 	if source and followed:
 		rel = db.create_relationship(source, followed, relationships.Follow())
+		logger.debug("follow relationship %s created", rel)
 		return rel
 	return None
 
@@ -246,6 +253,7 @@ def process_unfollow(db, source, followed):
 		rels = db.match(start=source, end=followed, rel_type=relationships.Follow())
 		if rels:
 			db.delete_relationships(*rels)
+			logger.debug("%s follow relationship(s) removed", len(rels))
 			return True
 	return False
 

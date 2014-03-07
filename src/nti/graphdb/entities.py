@@ -27,7 +27,7 @@ def _remove_entity(db, key, value):
 	node = db.get_indexed_node(key, value)
 	if node is not None:
 		db.delete_node(node)
-		logger.debug("Node %s,%s deleted" % (key, value))
+		logger.debug("node %s deleted", node)
 		return True
 	return False
 
@@ -35,6 +35,7 @@ def _add_entity(db, oid):
 	entity = ntiids.find_object_with_ntiid(oid)
 	if entity is not None:
 		node = db.get_or_create_node(entity)
+		logger.debug("entity node %s created/retrieved", node)
 		return entity, node
 	return None, None
 

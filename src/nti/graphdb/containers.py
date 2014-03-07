@@ -63,7 +63,7 @@ def _add_contained_membership(db, oid, containerId):
 		container = container or graph_interfaces.IContainer(containerId)
 		result = db.create_relationship(obj, container, relationships.Contained())
 		if result is not None:
-			logger.debug("containment relationship %s retreived/created" % result)
+			logger.debug("containment relationship %s retreived/created", result)
 			return True
 	return False
 
@@ -86,7 +86,7 @@ def _remove_node(db, key, value):
 	node = db.get_indexed_node(key, value)
 	if node is not None:
 		db.delete_node(node)
-		logger.debug("Node %s,%s deleted" % (key, value))
+		logger.debug("node %s deleted", node)
 		return True
 	return False
 

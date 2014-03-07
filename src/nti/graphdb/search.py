@@ -27,6 +27,7 @@ def _create_search_relationship(db, username, query=None, properties=None):
 	if user and query:
 		rel = db.create_relationship(user, query, relationships.Search(),
 									 properties=properties)
+		logger.debug("search relationship %s created", rel)
 		return rel
 
 def _process_search_event(db, event):

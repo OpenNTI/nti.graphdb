@@ -41,7 +41,9 @@ def _delete_isSharedTo_rels(db, oid, sharedWith=()):
 				continue
 			adapted = component.getMultiAdapter((obj, entity, rel_type),
 												graph_interfaces.IUniqueAttributeAdapter)
-			db.delete_indexed_relationship(adapted.key, adapted.value)
+			rel = db.delete_indexed_relationship(adapted.key, adapted.value)
+			if rel is not None:
+				logger.debug("isSharedTo relationship %s deleted", rel)
 
 def _create_isSharedTo_rels(db, oid, sharedWith=()):
 	result = []
@@ -51,7 +53,9 @@ def _create_isSharedTo_rels(db, oid, sharedWith=()):
 		for entity in sharedWith:
 			entity = get_entity(entity)
 			if entity is not None:
-				result.append(db.create_relationship(obj, entity, rel_type))
+				rel = db.create_relationship(obj, entity, rel_type)
+				logger.debug("%s relationship %s created", rel_type, rel)
+				result.append(rel)
 	return result
 
 def _create_shared_rel(db, oid):
@@ -59,6 +63,7 @@ def _create_shared_rel(db, oid):
 	if obj is not None:
 		creator = get_entity(obj.creator)
 		rel = db.create_relationship(creator, obj, relationships.Shared())
+		logger.debug("shared relationship %s created", rel)
 		return (obj, rel)
 	return (None, None)
 

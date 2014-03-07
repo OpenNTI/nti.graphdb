@@ -32,7 +32,7 @@ def _add_created_relationship(db, oid, creator):
 	if obj is not None and creator is not None:
 		result = db.create_relationship(creator, obj, relationships.Created())
 		if result is not None:
-			logger.debug("creator relationship %s retreived/created" % result)
+			logger.debug("creator relationship %s retreived/created", result)
 			return True
 	return False
 
@@ -60,7 +60,7 @@ def _update_created(db, oid):
 			labels = graph_interfaces.ILabelAdapter(created)
 			properties = graph_interfaces.IPropertyAdapter(created)
 			db.update_node(node, labels, properties)
-			logger.debug("properties updated for node %s" % node)
+			logger.debug("properties updated for node %s", node)
 
 def _process_created_modified(db, created):
 	oid = to_external_ntiid_oid(created)
@@ -78,7 +78,7 @@ def _remove_node(db, key, value):
 	node = db.get_indexed_node(key, value)
 	if node is not None:
 		db.delete_node(node)
-		logger.debug("Node %s,%s deleted" % (key, value))
+		logger.debug("node %s deleted", node)
 		return True
 	return False
 

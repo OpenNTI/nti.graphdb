@@ -81,7 +81,7 @@ def _add_assessed_relationship(db, assessed, taker=None):
 	result = db.create_relationship(taker, underlying, rel_type,
 									properties=properties,
 									key=unique.key, value=unique.value)
-	logger.debug("taker-question[set] relationship %s created" % result)
+	logger.debug("taker-question[set] relationship %s created", result)
 	return result
 
 def _add_question_node(db, obj):
@@ -90,6 +90,7 @@ def _add_question_node(db, obj):
 	if obj is not None:
 		underlying = _get_underlying(obj)
 		node = db.get_or_create_node(underlying)
+		logger.debug("question node %s created", node)
 		return obj, node
 	return (None, None)
 _add_questionset_node = _add_question_node
@@ -100,7 +101,8 @@ def _create_slave_master_membership(db, slave, master, rel_type=None):
 							(slave, master, rel_type),
 							graph_interfaces.IUniqueAttributeAdapter)
 	if db.get_indexed_relationship(adapter.key, adapter.value) is None:
-		db.create_relationship(slave, master, rel_type)
+		rel = db.create_relationship(slave, master, rel_type)
+		logger.debug("membership relationship %s created", rel)
 		return True
 	return False
 
@@ -164,6 +166,7 @@ def add_assignment_node(db, assignmentId):
 		node = db.get_indexed_node(key, value)
 		if node is None:
 			node = db.create_node(assignment)
+			logger.debug("assignment node %s created", node)
 			for part in assignment.parts:
 				question_set = part.question_set
 				_create_slave_master_membership(db, question_set, assignment)
@@ -175,6 +178,7 @@ def add_assignment_taken_relationship(db, username, assignmentId):
 	user = users.User.get_user(username)
 	if assignment is not None and user is not None:
 		rel = db.create_relationship(user, assignment, relationships.TakeAssessment())
+		logger.debug("assignment taken relationship %s created", rel)
 		return rel
 	return None
 
@@ -271,6 +275,7 @@ def set_asm_feedback(db, oid, username=None):
 			rel = db.create_relationship(instructor, creator, rel_type,
 										 properties=properties,
 										 key=unique.key, value=unique.value)
+		logger.debug("assignment feedback relationship %s created", rel)
 		return rel
 
 def _process_feedback_added(db, feedback, user=None):
@@ -289,8 +294,9 @@ def _feedback_added(feedback, event):
 		_process_feedback_added(db, feedback, get_current_user())
 
 def del_asm_feedback(db, key, value):
-	if db.delete_indexed_relationship(key, value):
-		logger.debug("Assignment feedback relationship %s deleted" % value)
+	rel = db.delete_indexed_relationship(key, value)
+	if rel is not None:
+		logger.debug("assignment feedback relationship %s deleted", rel)
 		return True
 	return False
 

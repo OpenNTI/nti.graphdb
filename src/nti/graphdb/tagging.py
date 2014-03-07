@@ -44,7 +44,9 @@ def _create_isTaggedTo_rels(db, oid, users=()):
 	for entity in users or ():
 		entity = get_entity(entity)
 		if entity is not None:
-			result.append(db.create_relationship(obj, entity, rel_type))
+			rel = db.create_relationship(obj, entity, rel_type)
+			logger.debug("%s relationship %s created", rel_type, rel)
+			result.append(rel)
 	return result
 
 def _process_added_event(db, obj, tags=()):
@@ -76,6 +78,7 @@ def _delete_isTaggedTo_rels(db, oid):
 		rels = db.match(start=obj, rel_type=rel_type)
 		if rels:
 			db.delete_relationships(*rels)
+			logger.debug("isTaggedTo relationship(s) %s deleted", len(rels))
 			return True
 	return False
 
@@ -99,7 +102,7 @@ def remove_user_tagged_content(db, key, value):
 	node = db.get_indexed_node(key, value)
 	if node is not None:
 		db.delete_node(node)
-		logger.debug("Node %s,%s deleted" % (key, value))
+		logger.debug("node %s deleted", node)
 		return True
 	return False
 
