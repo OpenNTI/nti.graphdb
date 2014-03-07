@@ -15,7 +15,6 @@ from zope.intid import interfaces as intid_interfaces
 from zope.lifecycleevent import interfaces as lce_interfaces
 
 from pyramid.traversal import find_interface
-from pyramid.threadlocal import get_current_request
 
 from nti.app.assessment import interfaces as appa_interfaces
 
@@ -32,6 +31,7 @@ from nti.dataserver import interfaces as nti_interfaces
 
 from nti.ntiids import ntiids
 
+from .common import get_creator
 from .common import to_external_ntiid_oid
 
 from . import create_job
@@ -45,7 +45,7 @@ from . import interfaces as graph_interfaces
 def _get_creator_in_lineage(obj):
 	result = None
 	while result is None and obj is not None:
-		result = getattr(obj, 'creator', None)
+		result = get_creator(obj)
 		obj = getattr(obj, '__parent__', None)
 		if nti_interfaces.IUser.providedBy(obj) and result is None:
 			result = obj
@@ -200,10 +200,11 @@ def _assignment_history_item_added(item, event):
 
 def set_grade_to_assignment(db, username, assignmentId, value):
 	rel = add_assignment_taken_relationship(db, username, assignmentId)
-	if rel is not None and value:
+	if rel is not None and value is not None:
 		props = dict(rel.properties)
 		props['grade'] = unicode(str(value))
 		db.update_relationship(rel, props)
+		logger.debug("properties for relationship %s updated", rel)
 
 def process_grade_modified(db, grade):
 	assignmentId = grade.AssignmentId
@@ -229,11 +230,6 @@ def _grade_added(grade, event):
 
 # feedback
 
-def get_current_user():
-	request = get_current_request()
-	username = request.authenticated_userid if request is not None else None
-	return username
-
 def _pick_instructor(course):
 	instructors = course.instructors if course is not None else None
 	for instructor in instructors or ():
@@ -243,24 +239,22 @@ def _pick_instructor(course):
 			return entity
 	return None
 			
-def set_asm_feedback(db, oid, username=None):
+def set_asm_feedback(db, oid):
 	feedback = ntiids.find_object_with_ntiid(oid)
-	user = users.User.get_entity(username) if username else None
 	if feedback is not None:
-		creator = feedback.creator
-		if user is None or user == creator:
+		creator = get_creator(feedback)
+		student = get_creator(feedback.__parent__)
+		if student == creator:
 			direction = 1  # feedback from student to professor
 			item = find_interface(feedback,
 								  appa_interfaces.IUsersCourseAssignmentHistoryItem)
 			course = ICourseInstance(item, None)
 			instructor = _pick_instructor(course)  # pick first found
-			if user is None:
-				direction = 2  # feedback from professor to student
 		else:
 			direction = 2
-			instructor = user  # feedback from professor to student
+			instructor = creator  # feedback from professor to student
 
-		if not instructor:
+		if not instructor or not student:
 			return
 
 		rel_type = relationships.AssigmentFeedback()
@@ -268,22 +262,20 @@ def set_asm_feedback(db, oid, username=None):
 		unique = graph_interfaces.IUniqueAttributeAdapter(feedback)
 
 		if direction == 1:
-			rel = db.create_relationship(creator, instructor, rel_type,
+			rel = db.create_relationship(student, instructor, rel_type,
 										 properties=properties,
 										 key=unique.key, value=unique.value)
 		else:
-			rel = db.create_relationship(instructor, creator, rel_type,
+			rel = db.create_relationship(instructor, student, rel_type,
 										 properties=properties,
 										 key=unique.key, value=unique.value)
 		logger.debug("assignment feedback relationship %s created", rel)
 		return rel
 
-def _process_feedback_added(db, feedback, user=None):
-	username = getattr(user, 'username', user)
+def _process_feedback_added(db, feedback):
 	oid = to_external_ntiid_oid(feedback)
 	queue = get_job_queue()
-	job = create_job(set_asm_feedback, db=db,
-					 oid=oid, username=username)
+	job = create_job(set_asm_feedback, db=db, oid=oid)
 	queue.put(job)
 
 @component.adapter(appa_interfaces.IUsersCourseAssignmentHistoryItemFeedback,
@@ -291,7 +283,7 @@ def _process_feedback_added(db, feedback, user=None):
 def _feedback_added(feedback, event):
 	db = get_graph_db()
 	if db is not None:
-		_process_feedback_added(db, feedback, get_current_user())
+		_process_feedback_added(db, feedback)
 
 def del_asm_feedback(db, key, value):
 	rel = db.delete_indexed_relationship(key, value)
