@@ -167,10 +167,10 @@ def add_assignment_node(db, assignmentId):
 		if node is None:
 			node = db.create_node(assignment)
 			logger.debug("assignment node %s created", node)
-			for part in assignment.parts:
-				question_set = part.question_set
-				_create_slave_master_membership(db, question_set, assignment)
-				_create_question_set_membership(db, part.question_set)
+		for part in assignment.parts:
+			question_set = part.question_set
+			_create_slave_master_membership(db, question_set, assignment)
+			_create_question_set_membership(db, part.question_set)
 	return (assignment, node)
 
 def add_assignment_taken_relationship(db, username, assignmentId):
