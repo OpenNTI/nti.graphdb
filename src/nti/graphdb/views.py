@@ -10,6 +10,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import simplejson as json
+
 from zope import interface
 from zope.location.interfaces import IContained
 from zope.container import contained as zcontained
@@ -23,7 +25,12 @@ from nti.dataserver import authorization as nauth
 
 from nti.externalization.datastructures import LocatedExternalDict
 
+from nti.ntiids import ntiids
+
+from nti.utils.maps import CaseInsensitiveDict
+
 from . import get_graph_db
+from . import relationships
 
 @interface.implementer(IPathAdapter, IContained)
 class GraphPathAdapter(zcontained.Contained):
@@ -77,3 +84,41 @@ class SuggestFriendsView(object):
 			items.append({"username": friend, "MutualFriends":mutualFriends})
 		return result
 
+class AbstractPostView(object):
+
+	def __init__(self, request):
+		self.request = request
+
+	def readInput(self):
+		request = self.request
+		values = json.loads(unicode(request.body, request.charset)) \
+				 if request.body else {}
+		return CaseInsensitiveDict(**values)
+
+@view_config(name="has_viewd", **_post_view_defaults)
+class HashViewView(AbstractPostView):
+
+	def __call__(self):
+		values = self.readInput()
+		db = get_graph_db()
+		if db is None:
+			raise hexc.HTTPUnprocessableEntity(detail="no database found")
+		
+		# validate user
+		username = values.get('username') or self.request.authenticated_userid
+		user = users.User.get_user(username)
+		if user is None:
+			raise hexc.HTTPNotFound("user not found")
+
+		ntiid = values.get("ntiid", values.get('containerId'))
+		if not ntiid:
+			raise hexc.HTTPUnprocessableEntity(detail="no ntiid provided")
+
+		obj = ntiids.find_object_with_ntiid(ntiid)
+		if obj is None:
+			raise hexc.HTTPNotFound("ntiid not found")
+
+		rel = db.create_relationship(user, obj, relationships.View())
+		logger.debug("view %s relationship created", rel)
+
+		return hexc.HTTPNoContent()

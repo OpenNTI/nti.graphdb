@@ -151,3 +151,17 @@ class Created(_Singleton):
 	def __str__(self):
 		return "HAS_CREATED"
 	__repr__ = __str__
+
+@interface.implementer(graph_interfaces.IView)
+class View(_Singleton):
+
+	def __str__(self):
+		return "HAS_VIEWED"
+	__repr__ = __str__
+
+@interface.implementer(graph_interfaces.ISubmit)
+class Submit(_Singleton):
+
+	def __str__(self):
+		return "HAS_SUBMITTED"
+	__repr__ = __str__

@@ -221,3 +221,9 @@ class IContained(IRelationshipType):
 
 class ICreated(IRelationshipType):
 	pass
+
+class IView(IRelationshipType):
+	pass
+
+class ISubmit(IRelationshipType):
+	pass
