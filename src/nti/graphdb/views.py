@@ -96,7 +96,7 @@ class AbstractPostView(object):
 		return CaseInsensitiveDict(**values)
 
 @view_config(name="has_viewd", **_post_view_defaults)
-class HashViewView(AbstractPostView):
+class HasViewView(AbstractPostView):
 
 	def __call__(self):
 		values = self.readInput()
