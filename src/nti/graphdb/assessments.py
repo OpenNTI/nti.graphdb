@@ -68,10 +68,9 @@ def _get_underlying(obj):
 
 
 def _add_assessedqset_relationship(db, assessed):
-	taker = get_creator(assessed)
-	rel_type = relationships.Submit()
-	result = db.create_relationship(taker, assessed, rel_type)
-	logger.debug("Questionset submitted relationship %s created", result)
+	taker = _get_creator_in_lineage(assessed)
+	result = db.create_relationship(taker, assessed, relationships.Submit())
+	logger.debug("questionset submitted relationship %s created", result)
 
 	qset = component.queryUtility(assessment_interfaces.IQuestionSet,
 								  name=assessed.questionSetId)
@@ -108,7 +107,7 @@ def _add_takeassesment_relationship(db, assessed, taker=None):
 	result = db.create_relationship(taker, underlying, rel_type,
 									properties=properties,
 									key=unique.key, value=unique.value)
-	logger.debug("Assessment taken relationship %s created", result)
+	logger.debug("assessment taken relationship %s created", result)
 	return result
 
 def _add_question_node(db, obj):
