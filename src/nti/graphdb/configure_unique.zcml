@@ -96,15 +96,15 @@
 			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			
-	<adapter for="nti.app.assessment.interfaces.IQAssessedPart"
+	<adapter for="nti.assessment.interfaces.IQAssessedPart"
 			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
-	<adapter for="nti.app.assessment.interfaces.IQAssessedQuestion"
+	<adapter for="nti.assessment.interfaces.IQAssessedQuestion"
 			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 
-	<adapter for="nti.app.assessment.interfaces.IQAssessedQuestionSet"
+	<adapter for="nti.assessment.interfaces.IQAssessedQuestionSet"
 			 factory=".adapters_unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			  
@@ -156,19 +156,19 @@
 			 factory=".adapters_unique._AssignmentTakenUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 				
-	<adapter for="nti.dataserver.interfaces.IQAssessedQuestionSet nti.assessment.interfaces.IQAssessedQuestion .interfaces.IParentOf"
+	<adapter for="nti.assessment.interfaces.IQAssessedQuestionSet nti.assessment.interfaces.IQAssessedQuestion .interfaces.IParentOf"
 			 factory=".adapters_unique._ObjectRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 	  
-	<adapter for="nti.dataserver.interfaces.IQAssessedQuestion nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.IMemberOf"
+	<adapter for="nti.assessment.interfaces.IQAssessedQuestion nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.IMemberOf"
 			 factory=".adapters_unique._ObjectRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 		
-	<adapter for="nti.dataserver.interfaces.IQAssessedQuestion nti.assessment.interfaces.IQAssessedPart .interfaces.IParentOf"
+	<adapter for="nti.assessment.interfaces.IQAssessedQuestion nti.assessment.interfaces.IQAssessedPart .interfaces.IParentOf"
 			 factory=".adapters_unique._ObjectRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 	  
-	<adapter for="nti.dataserver.interfaces.IQAssessedPart nti.assessment.interfaces.IQAssessedQuestion .interfaces.IMemberOf"
+	<adapter for="nti.assessment.interfaces.IQAssessedPart nti.assessment.interfaces.IQAssessedQuestion .interfaces.IMemberOf"
 			 factory=".adapters_unique._ObjectRelationshipUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 	 	  

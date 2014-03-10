@@ -112,16 +112,16 @@
 			 factory=".adapters_properties._AssignmentFeedbackPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />	 	 
 
-	<adapter for="nti.app.assessment.interfaces.IQAssessedPart"
-			 factory=".adapters_labels._QAssessedPartPropertyAdpater"
+	<adapter for="nti.assessment.interfaces.IQAssessedPart"
+			 factory=".adapters_properties._QAssessedPartPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 
-	<adapter for="nti.app.assessment.interfaces.IQAssessedQuestion"
-			 factory=".adapters_labels._QAssessedQuestionPropertyAdpater"
+	<adapter for="nti.assessment.interfaces.IQAssessedQuestion"
+			 factory=".adapters_properties._QAssessedQuestionPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
-	<adapter for="nti.app.assessment.interfaces.IQAssessedQuestionSet"
-			 factory=".adapters_labels._QAssessedQuestionSetPropertyAdpater"
+	<adapter for="nti.assessment.interfaces.IQAssessedQuestionSet"
+			 factory=".adapters_properties._QAssessedQuestionSetPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for=".interfaces.IContainer"
