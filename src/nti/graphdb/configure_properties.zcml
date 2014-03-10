@@ -96,6 +96,38 @@
 			 factory=".adapters_properties._SearchQueryPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
+	<adapter for="nti.assessment.interfaces.IQuestionSet"
+			 factory=".adapters_properties._QuestionSetPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+		
+	<adapter for="nti.assessment.interfaces.IQuestion"
+			 factory=".adapters_properties._QuestionPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
+	<adapter for="nti.assessment.interfaces.IQAssignment"
+			 factory=".adapters_properties._AssignmentPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+		
+	<adapter for="nti.app.assessment.interfaces.IUsersCourseAssignmentHistoryItemFeedback"
+			 factory=".adapters_properties._AssignmentFeedbackPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />	 	 
+
+	<adapter for="nti.app.assessment.interfaces.IQAssessedPart"
+			 factory=".adapters_labels._QAssessedPartPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+
+	<adapter for="nti.app.assessment.interfaces.IQAssessedQuestion"
+			 factory=".adapters_labels._QAssessedQuestionPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
+	<adapter for="nti.app.assessment.interfaces.IQAssessedQuestionSet"
+			 factory=".adapters_labels._QAssessedQuestionSetPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
+	<adapter for=".interfaces.IContainer"
+			 factory=".adapters_properties._ContainerPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />	
+			 
 	<adapter for="* * .interfaces.IRelationshipType"
 			 factory=".adapters_properties._CreatedTimePropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
@@ -115,26 +147,6 @@
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment .interfaces.ICommentOn"
 			 factory=".adapters_properties._CommentRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
-			
-	<adapter for="nti.assessment.interfaces.IQuestionSet"
-			 factory=".adapters_properties._QuestionSetPropertyAdpater"
-			 provides=".interfaces.IPropertyAdapter" />
-		
-	<adapter for="nti.assessment.interfaces.IQuestion"
-			 factory=".adapters_properties._QuestionPropertyAdpater"
-			 provides=".interfaces.IPropertyAdapter" />
-			 
-	<adapter for="nti.assessment.interfaces.IQAssignment"
-			 factory=".adapters_properties._AssignmentPropertyAdpater"
-			 provides=".interfaces.IPropertyAdapter" />
-		
-	<adapter for="nti.app.assessment.interfaces.IUsersCourseAssignmentHistoryItemFeedback"
-			 factory=".adapters_properties._AssignmentFeedbackPropertyAdpater"
-			 provides=".interfaces.IPropertyAdapter" />	 	 
-
-	<adapter for=".interfaces.IContainer"
-			 factory=".adapters_properties._ContainerPropertyAdpater"
-			 provides=".interfaces.IPropertyAdapter" />	
 			 	
 	<adapter for="nti.dataserver.interfaces.IEntity nti.assessment.interfaces.IQAssessedQuestionSet .interfaces.ITakeAssessment"
 			 factory=".adapters_properties._AssessedQuestionSetRelationshipPropertyAdpater"

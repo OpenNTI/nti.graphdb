@@ -33,6 +33,13 @@ class MemberOf(_Singleton):
 		return "IS_MEMBER_OF"
 	__repr__ = __str__
 
+@interface.implementer(graph_interfaces.IParentOf)
+class ParentOf(_Singleton):
+
+	def __str__(self):
+		return "IS_PARENT_OF"
+	__repr__ = __str__
+
 @interface.implementer(graph_interfaces.IFollow)
 class Follow(_Singleton):
 
@@ -164,4 +171,11 @@ class Submit(_Singleton):
 
 	def __str__(self):
 		return "HAS_SUBMITTED"
+	__repr__ = __str__
+
+@interface.implementer(graph_interfaces.IBelong)
+class Belong(_Singleton):
+
+	def __str__(self):
+		return "BELONG_TO"
 	__repr__ = __str__

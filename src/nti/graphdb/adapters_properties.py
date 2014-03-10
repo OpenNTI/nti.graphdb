@@ -33,6 +33,7 @@ from nti.externalization import externalization
 
 from nti.store import interfaces as store_interfaces
 
+from . import common
 from . import interfaces as graph_interfaces
 
 def get_ntiid(obj):
@@ -130,7 +131,9 @@ def _ForumPropertyAdpater(forum):
 @component.adapter(frm_interfaces.ITopic)
 def _TopicPropertyAdpater(topic):
 	result = {'type':'Topic'}
-	result['creator'] = getattr(topic.creator, 'username', topic.creator)
+	creator = common.get_creator(topic)
+	if creator is not None:
+		result['creator'] = creator.username
 	result['title'] = unicode(topic.title)
 	result['ntiid'] = topic.NTIID
 	result['created'] = topic.createdTime
@@ -147,7 +150,9 @@ def _HeadlinePostPropertyAdpater(post):
 @component.adapter(chat_interfaces.IMeeting)
 def _MeetingPropertyAdpater(meeting):
 	result = {'type':'Meeting'}
-	result['creator'] = meeting.creator
+	creator = common.get_creator(meeting)
+	if creator is not None:
+		result['creator'] = creator.username
 	result['roomId'] = meeting.RoomId
 	result['created'] = meeting.CreatedTime
 	result['moderated'] = meeting.Moderated
@@ -165,7 +170,9 @@ def _MessageInfoPropertyAdpater(message):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 	result = {'type':'Comment'}
-	result['creator'] = getattr(post.creator, 'username', post.creator)
+	creator = common.get_creator(post)
+	if creator is not None:
+		result['creator'] = creator.username
 	result['oid'] = externalization.to_external_ntiid_oid(post)
 	result['topic'] = post.__parent__.NTIID
 	result['created'] = post.createdTime
@@ -242,6 +249,36 @@ def _AssignmentFeedbackPropertyAdpater(feedback):
 	result['type'] = 'AssignmentFeedback'
 	item = find_interface(feedback, app_asm_interfaces.IUsersCourseAssignmentHistoryItem)
 	result['assignmentId'] = getattr(item, '__name__', None)
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(asm_interfaces.IQAssessedPart)
+def _QAssessedPartPropertyAdpater(obj):
+	result = {'type':'AssessedPart'}
+	result['assessedValue'] = obj.assessedValue
+	result['created'] = time.time()
+	result['oid'] = externalization.to_external_ntiid_oid(obj)
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(asm_interfaces.IQAssessedQuestion)
+def _QAssessedQuestionPropertyAdpater(obj):
+	result = {'type':'AssessedQuestion'}
+	result['created'] = obj.createdTime
+	result['questionId'] = obj.questionId
+	result['oid'] = externalization.to_external_ntiid_oid(obj)
+	return result
+
+@interface.implementer(graph_interfaces.IPropertyAdapter)
+@component.adapter(asm_interfaces.IQAssessedQuestionSet)
+def _QAssessedQuestionSetPropertyAdpater(obj):
+	result = {'type':'AssessedQuestionSet'}
+	creator = common.get_creator(obj)
+	if creator is not None:
+		result['creator'] = creator.username
+	result['created'] = obj.createdTime
+	result['questionSetId'] = obj.questionSetId
+	result['oid'] = externalization.to_external_ntiid_oid(obj)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)

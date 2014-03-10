@@ -66,7 +66,34 @@ def _get_underlying(obj):
 		result = None # Throw Exception?
 	return result
 
-def _add_assessed_relationship(db, assessed, taker=None):
+
+def _add_assessedqset_relationship(db, assessed):
+	taker = get_creator(assessed)
+	rel_type = relationships.Submit()
+	result = db.create_relationship(taker, assessed, rel_type)
+	logger.debug("Questionset submitted relationship %s created", result)
+
+	qset = component.queryUtility(assessment_interfaces.IQuestionSet,
+								  name=assessed.questionSetId)
+	if qset is not None:
+		db.create_relationship(assessed, qset, relationships.Belong())
+
+	for assessed_question in assessed.questions:
+		db.create_relationship(assessed_question, assessed, relationships.MemberOf())
+		db.create_relationship(assessed, assessed_question, relationships.ParentOf())
+
+		question = component.queryUtility(assessment_interfaces.IQuestion,
+							 			 name=assessed_question.questionId)
+		if question is not None:
+			db.create_relationship(assessed_question, question, relationships.Belong())
+
+		for part in assessed_question.parts:
+			db.create_relationship(part, assessed_question, relationships.MemberOf())
+			db.create_relationship(assessed_question, part, relationships.ParentOf())
+
+	return result
+
+def _add_takeassesment_relationship(db, assessed, taker=None):
 	taker = taker or _get_creator_in_lineage(assessed)
 	rel_type = relationships.TakeAssessment()
 	properties = component.getMultiAdapter(
@@ -81,7 +108,7 @@ def _add_assessed_relationship(db, assessed, taker=None):
 	result = db.create_relationship(taker, underlying, rel_type,
 									properties=properties,
 									key=unique.key, value=unique.value)
-	logger.debug("taker-question[set] relationship %s created", result)
+	logger.debug("Assessment taken relationship %s created", result)
 	return result
 
 def _add_question_node(db, obj):
@@ -89,8 +116,11 @@ def _add_question_node(db, obj):
 				  	 else ntiids.find_object_with_ntiid(obj)
 	if obj is not None:
 		underlying = _get_underlying(obj)
-		node = db.get_or_create_node(underlying)
-		logger.debug("question node %s created", node)
+		adapted = graph_interfaces.IUniqueAttributeAdapter(underlying)
+		node = db.get_indexed_node(adapted.key, adapted.value)
+		if node is None:
+			node = db.get_or_create_node(underlying)
+			logger.debug("question node %s created", node)
 		return obj, node
 	return (None, None)
 _add_questionset_node = _add_question_node
@@ -119,8 +149,9 @@ def _create_question_set_membership(db, question_set):
 def _process_assessed_question_set(db, oid):
 	qaset, _ = _add_questionset_node(db, oid)
 	if qaset is not None:
+		_add_assessedqset_relationship(db, qaset)
 		# create relationship taker->question-set
-		_add_assessed_relationship(db, qaset)
+		_add_takeassesment_relationship(db, qaset)
 		for question in qaset.questions:
 			# create relationship question --> question_set
 			_add_question_node(db, question)
@@ -129,7 +160,7 @@ def _process_assessed_question_set(db, oid):
 def _process_assessed_question(db, oid):
 	question, _ = _add_question_node(db, oid)
 	if question is not None:
-		_add_assessed_relationship(db, question)
+		_add_takeassesment_relationship(db, question)
 
 def _queue_question_event(db, assessed):
 	oid = to_external_ntiid_oid(assessed)

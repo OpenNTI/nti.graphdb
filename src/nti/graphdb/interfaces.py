@@ -171,6 +171,9 @@ class IFriendOf(IRelationshipType):
 class IMemberOf(IRelationshipType):
 	pass
 
+class IParentOf(IRelationshipType):
+	pass
+
 class IFollow(IRelationshipType):
 	pass
 
@@ -226,4 +229,7 @@ class IView(IRelationshipType):
 	pass
 
 class ISubmit(IRelationshipType):
+	pass
+
+class IBelong(IRelationshipType):
 	pass

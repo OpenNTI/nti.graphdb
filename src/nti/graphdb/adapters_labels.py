@@ -121,6 +121,21 @@ def _AssignmentFeedbackLabelAdpater(modeled):
 	return ("assignmentFeedback",)
 
 @interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(asm_interfaces.IQAssessedPart)
+def _QAssessedPartLabelAdpater(obj):
+	return ("assessedPart",)
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(asm_interfaces.IQAssessedQuestion)
+def _QAssessedQuestionLabelAdpater(obj):
+	return ("assessedQuestion",)
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
+@component.adapter(asm_interfaces.IQAssessedQuestionSet)
+def _QAssessedQuestionSetLabelAdpater(obj):
+	return ("assessedQuestionSet",)
+
+@interface.implementer(graph_interfaces.ILabelAdapter)
 @component.adapter(chat_interfaces.IMeeting)
 def _MeetingLabelAdpater(meeting):
 	result = ('meeting',)
