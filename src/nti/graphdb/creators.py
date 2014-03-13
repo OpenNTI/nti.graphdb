@@ -54,7 +54,7 @@ def _object_created(created, event):
 def _update_created(db, oid):
 	created = ntiids.find_object_with_ntiid(oid)
 	adapted = graph_interfaces.IUniqueAttributeAdapter(created, None)
-	if adapted is not None and created is not None:
+	if adapted is not None and adapted.key and adapted.value and created is not None:
 		node = db.get_indexed_node(adapted.key, adapted.value)
 		if node is not None:
 			labels = graph_interfaces.ILabelAdapter(created)
@@ -83,10 +83,11 @@ def _remove_node(db, key, value):
 	return False
 
 def _process_created_removed(db, created):
-	adapted = graph_interfaces.IUniqueAttributeAdapter(created)
-	queue = get_job_queue()
-	job = create_job(_remove_node, db=db, key=adapted.key, value=adapted.value)
-	queue.put(job)
+	adapted = graph_interfaces.IUniqueAttributeAdapter(created, None)
+	if adapted is not None and adapted.key and adapted.value:
+		queue = get_job_queue()
+		job = create_job(_remove_node, db=db, key=adapted.key, value=adapted.value)
+		queue.put(job)
 
 @component.adapter(nti_interfaces.ICreated, intid_interfaces.IIntIdRemovedEvent)
 def _object_removed(created, event):
