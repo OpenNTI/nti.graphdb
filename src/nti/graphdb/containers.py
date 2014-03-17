@@ -68,7 +68,7 @@ def _get_containerId(obj):
 			containerId = to_external_ntiid_oid(parent)
 	return containerId
 
-def _update_container(db, container=None, containerId=None, removeCreatedTime=False):
+def _update_container(db, container=None, containerId=None):
 	if container is None:
 		container = ntiids.find_object_with_ntiid(containerId)
 	container = container or graph_interfaces.IContainer(containerId)
@@ -76,10 +76,10 @@ def _update_container(db, container=None, containerId=None, removeCreatedTime=Fa
 		adapted = graph_interfaces.IUniqueAttributeAdapter(container)
 		node = db.get_indexed_node(adapted.key, adapted.value)
 		if node is not None:
+			properties = {}
 			labels = graph_interfaces.ILabelAdapter(container)
-			properties = graph_interfaces.IPropertyAdapter(container)
-			if removeCreatedTime:
-				properties.pop("createdTime", None)
+			properties.update(getattr(node, 'properties', None) or {})
+			properties.update(graph_interfaces.IPropertyAdapter(container) or {})
 			db.update_node(node, labels, properties)
 			logger.debug("properties updated for node %s", node)
 
