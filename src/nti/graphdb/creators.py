@@ -107,7 +107,8 @@ component.moduleProvides(graph_interfaces.IObjectProcessor)
 
 def init(db, obj):
 	result = False
-	if nti_interfaces.ICreated.providedBy(obj):
+	if 	nti_interfaces.ICreated.providedBy(obj) or \
+		chat_interfaces.IMessageInfo.providedBy(obj):
 		_process_created_event(db, obj)
 		result = True
 	return result
