@@ -101,6 +101,7 @@
 	<subscriber handler=".creators._object_created" />
 	<subscriber handler=".creators._object_modified" />
 	<subscriber handler=".creators._object_removed" />
+	<subscriber handler=".creators._message_posted_to_room" />
 	
 	<!-- utils -->
 	

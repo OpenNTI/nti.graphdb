@@ -12,6 +12,8 @@ from zope import component
 from zope.intid import interfaces as intid_interfaces
 from zope.lifecycleevent import interfaces as lce_interfaces
 
+from nti.chatserver import interfaces as chat_interfaces
+
 from nti.dataserver.users import Entity
 from nti.dataserver import interfaces as nti_interfaces
 
@@ -50,6 +52,12 @@ def _object_created(created, event):
 	db = get_graph_db()
 	if db is not None:
 		_process_created_event(db, created)
+
+@component.adapter(chat_interfaces.IMessageInfoPostedToRoomEvent)
+def _message_posted_to_room(event):
+	db = get_graph_db()
+	if db is not None:
+		_process_created_event(db, event.object)
 
 def _update_created(db, oid):
 	created = ntiids.find_object_with_ntiid(oid)
