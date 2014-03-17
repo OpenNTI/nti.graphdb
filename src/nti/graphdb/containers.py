@@ -122,7 +122,7 @@ def _process_contained_modified(db, contained):
 def _contained_modified(contained, event):
 	db = get_graph_db()
 	if db is not None:
-		_process_contained_added(db, contained)
+		_process_contained_modified(db, contained)
 
 def _remove_node(db, key, value):
 	node = db.get_indexed_node(key, value)
