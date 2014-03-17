@@ -42,14 +42,15 @@ def get_ntiid(obj):
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(interface.Interface)
 def _GenericPropertyAdpater(obj):
-	result = {'created':time.time()}
+	result = {'createdTime':time.time()}
+	result['lastModified'] = getattr(obj, 'lastModified', 0)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(nti_interfaces.IEntity)
 def _EntityPropertyAdpater(entity):
 	result = {"username":entity.username, "creator":entity.username}
-	result['created'] = entity.createdTime
+	result['createdTime'] = entity.createdTime
 	names = user_interfaces.IFriendlyNamed(entity, None)
 	alias = getattr(names, 'alias', None)
 	name = getattr(names, 'realname', None)
@@ -82,7 +83,8 @@ def _DFLPropertyAdpater(dfl):
 def _CreatedPropertyAdpater(created):
 	result = {'type':created.__class__.__name__}
 	result['oid'] = externalization.to_external_ntiid_oid(created)
-	result['created'] = getattr(created, 'createdTime', None) or time.time()
+	result['lastModified'] = getattr(created, 'lastModified', 0)
+	result['createdTime'] = getattr(created, 'createdTime', None) or time.time()
 	creator = getattr(created, 'creator', None)
 	creator = getattr(creator, 'username', creator)
 	if creator:
@@ -114,7 +116,8 @@ _RedactionPropertyAdpater = _ModeledContentPropertyAdpater
 def _BoardPropertyAdpater(board):
 	result = {'type':'Board'}
 	result['title'] = unicode(board.title)
-	result['created'] = board.createdTime
+	result['createdTime'] = board.createdTime
+	result['lastModified'] = getattr(board, 'lastModified', 0)
 	result['oid'] = externalization.to_external_ntiid_oid(board)
 	return result
 
@@ -123,7 +126,8 @@ def _BoardPropertyAdpater(board):
 def _ForumPropertyAdpater(forum):
 	result = {'type':'Forum'}
 	result['title'] = unicode(forum.title)
-	result['created'] = forum.createdTime
+	result['createdTime'] = forum.createdTime
+	result['lastModified'] = getattr(forum, 'lastModified', 0)
 	result['oid'] = externalization.to_external_ntiid_oid(forum)
 	return result
 
@@ -136,7 +140,8 @@ def _TopicPropertyAdpater(topic):
 		result['creator'] = creator.username
 	result['title'] = unicode(topic.title)
 	result['ntiid'] = topic.NTIID
-	result['created'] = topic.createdTime
+	result['createdTime'] = topic.createdTime
+	result['lastModified'] = getattr(topic, 'lastModified', 0)
 	result['oid'] = externalization.to_external_ntiid_oid(topic)
 	result['forum'] = externalization.to_external_ntiid_oid(topic.__parent__)
 	return result
@@ -154,8 +159,9 @@ def _MeetingPropertyAdpater(meeting):
 	if creator is not None:
 		result['creator'] = creator.username
 	result['roomId'] = meeting.RoomId
-	result['created'] = meeting.CreatedTime
 	result['moderated'] = meeting.Moderated
+	result['createdTime'] = meeting.CreatedTime
+	result['lastModified'] = getattr(meeting, 'lastModified', 0)
 	result['oid'] = externalization.to_external_ntiid_oid(meeting)
 	return result
 
@@ -175,7 +181,8 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 		result['creator'] = creator.username
 	result['oid'] = externalization.to_external_ntiid_oid(post)
 	result['topic'] = post.__parent__.NTIID
-	result['created'] = post.createdTime
+	result['createdTime'] = post.createdTime
+	result['lastModified'] = getattr(post, 'lastModified', 0)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -183,7 +190,8 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 def _ContentUnitPropertyAdpater(unit):
 	result = {'type':'ContentUnit'}
 	result['title'] = unit.title
-	result['created'] = time.time()
+	result['createdTime'] = time.time()
+	result['lastModified'] = time.time()
 	result['oid'] = result['ntiid'] = unit.ntiid
 	return result
 
@@ -192,7 +200,8 @@ def _ContentUnitPropertyAdpater(unit):
 def _ContainerPropertyAdpater(container):
 	result = {'type':'Container'}
 	result['oid'] = container.id
-	result['created'] = time.time()
+	result['createdTime'] = time.time()
+	result['lastModified'] = time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -215,7 +224,8 @@ def _PurchaseAttemptPropertyAdpater(pa):
 # IPersonalBlogComment, IGeneralForumComment
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(_from, _post, _rel):
-	result = {'created': _post.createdTime}
+	result = {'createdTime': _post.createdTime}
+	result['lastModified'] = getattr(_post, 'lastModified', 0)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -223,7 +233,8 @@ def _CommentRelationshipPropertyAdpater(_from, _post, _rel):
 def _QuestionSetPropertyAdpater(obj):
 	result = {'type':'QuestionSet'}
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
-	result['created'] = time.time()
+	result['createdTime'] = time.time()
+	result['lastModified'] = time.time()
 	return result
 	
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -231,7 +242,8 @@ def _QuestionSetPropertyAdpater(obj):
 def _QuestionPropertyAdpater(obj):
 	result = {'type':'Question'}
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
-	result['created'] = time.time()
+	result['createdTime'] = time.time()
+	result['lastModified'] = time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -239,7 +251,8 @@ def _QuestionPropertyAdpater(obj):
 def _AssignmentPropertyAdpater(obj):
 	result = {'type':'Assignment'}
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
-	result['created'] = time.time()
+	result['createdTime'] = time.time()
+	result['lastModified'] = time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -256,17 +269,19 @@ def _AssignmentFeedbackPropertyAdpater(feedback):
 def _QAssessedPartPropertyAdpater(obj):
 	result = {'type':'AssessedPart'}
 	result['assessedValue'] = obj.assessedValue
-	result['created'] = time.time()
+	result['createdTime'] = time.time()
 	result['oid'] = externalization.to_external_ntiid_oid(obj)
+	result['lastModified'] = getattr(obj, 'lastModified', None) or time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 @component.adapter(asm_interfaces.IQAssessedQuestion)
 def _QAssessedQuestionPropertyAdpater(obj):
 	result = {'type':'AssessedQuestion'}
-	result['created'] = obj.createdTime
+	result['createdTime'] = obj.createdTime
 	result['questionId'] = obj.questionId
 	result['oid'] = externalization.to_external_ntiid_oid(obj)
+	result['lastModified'] = getattr(obj, 'lastModified', None) or time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -276,9 +291,10 @@ def _QAssessedQuestionSetPropertyAdpater(obj):
 	creator = common.get_creator(obj)
 	if creator is not None:
 		result['creator'] = creator.username
-	result['created'] = obj.createdTime
+	result['createdTime'] = obj.createdTime
 	result['questionSetId'] = obj.questionSetId
 	result['oid'] = externalization.to_external_ntiid_oid(obj)
+	result['lastModified'] = getattr(obj, 'lastModified', None) or time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -286,7 +302,8 @@ def _QAssessedQuestionSetPropertyAdpater(obj):
 def _SearchQueryPropertyAdpater(obj):
 	result = {'type':'SearchQuery'}
 	result['term'] = obj.term.lower()
-	result['created'] = time.time()
+	result['createdTime'] = time.time()
+	result['lastModified'] = time.time()
 	result['IsPhraseSearch'] = obj.IsPhraseSearch
 	result['IsPrefixSearch'] = obj.IsPrefixSearch
 	return result
@@ -308,13 +325,14 @@ def _question_stats(question):
 				   graph_interfaces.ITakeAssessment)
 def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
 	result = {'creator' : user.username}
-	result['created'] = question.createdTime
+	result['createdTime'] = question.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(question)
 	result['questionId'] = question.questionId
 	is_correct, is_incorrect, partial = _question_stats(question)
 	result['correct'] = is_correct
 	result['incorrect'] = is_incorrect
 	result['partial'] = partial
+	result['lastModified'] = getattr(question, 'lastModified', None) or time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -322,7 +340,7 @@ def _AssessedQuestionRelationshipPropertyAdpater(user, question, rel):
 				   graph_interfaces.ITakeAssessment)
 def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
 	result = {'creator' : user.username}
-	result['created'] = questionSet.createdTime
+	result['createdTime'] = questionSet.createdTime
 	result['oid'] = externalization.to_external_ntiid_oid(questionSet)
 	result['questionSetId'] = questionSet.questionSetId
 	correct = incorrect = 0
@@ -335,6 +353,7 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
 			incorrect += 1
 	result['correct'] = correct
 	result['incorrect'] = incorrect
+	result['lastModified'] = getattr(questionSet, 'lastModified', None) or time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
@@ -342,20 +361,23 @@ def _AssessedQuestionSetRelationshipPropertyAdpater(user, questionSet, rel):
 				   graph_interfaces.ITakeAssessment)
 def _AssignmentRelationshipPropertyAdpater(user, asm, rel):
 	result = {'creator' : user.username}
-	result['created'] = time.time()
+	result['createdTime'] = time.time()
+	result['lastModified'] = time.time()
 	result['assignmentId'] = result['oid'] = get_ntiid(asm)
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _CreatedTimePropertyAdpater(_from, _to, _rel):
-	result = {'created':time.time()}
+	result = {'createdTime':time.time()}
+	result['lastModified'] = time.time()
 	return result
 
 @interface.implementer(graph_interfaces.IPropertyAdapter)
 def _EntityObjectRelationshipPropertyAdpater(entity, obj, rel_type):
-	result = {'created':getattr(obj, 'createdTime', time.time())}
+	result = {'createdTime':getattr(obj, 'createdTime', time.time())}
 	result['creator'] = entity.username
 	result['oid'] = externalization.to_external_ntiid_oid(obj)
+	result['lastModified'] = getattr(obj, 'lastModified', None) or time.time()
 	return result
 
 _LikeRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
@@ -370,9 +392,9 @@ _FollowRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
 @component.adapter(nti_interfaces.IUser, search_interfaces.ISearchResults,
 				   graph_interfaces.ISearch)
 def _SearchRelationshipPropertyAdpater(user, results, rel):
-	result = {'created': time.time()}
+	result = {'createdTime': time.time()}
 	result['creator'] = user.username
-	
+	result['lastModified'] = time.time()
 	# query properties
 	if results.Query.location:
 		result['location'] = results.Query.location
