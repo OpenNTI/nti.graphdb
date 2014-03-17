@@ -60,6 +60,29 @@ def _has_pk(obj):
 	adapted = graph_interfaces.IUniqueAttributeAdapter(obj, None)
 	return adapted is not None and adapted.key and adapted.value
 
+def _get_containerId(obj):
+	containerId = getattr(obj, 'containerId', None)
+	if not containerId:
+		parent = getattr(obj, '__parent__', None)
+		if parent is not None:
+			containerId = to_external_ntiid_oid(parent)
+	return containerId
+
+def _update_container(db, container=None, containerId=None, removeCreatedTime=False):
+	if container is None:
+		container = ntiids.find_object_with_ntiid(containerId)
+	container = container or graph_interfaces.IContainer(containerId)
+	if container is not None and _has_pk(container):
+		adapted = graph_interfaces.IUniqueAttributeAdapter(container)
+		node = db.get_indexed_node(adapted.key, adapted.value)
+		if node is not None:
+			labels = graph_interfaces.ILabelAdapter(container)
+			properties = graph_interfaces.IPropertyAdapter(container)
+			if removeCreatedTime:
+				properties.pop("createdTime", None)
+			db.update_node(node, labels, properties)
+			logger.debug("properties updated for node %s", node)
+
 def _add_contained_membership(db, oid, containerId):
 	obj = ntiids.find_object_with_ntiid(oid)
 	container = ntiids.find_object_with_ntiid(containerId)
@@ -69,10 +92,11 @@ def _add_contained_membership(db, oid, containerId):
 		if result is not None:
 			logger.debug("containment relationship %s retreived/created", result)
 			return True
+		_update_container(db, container=container)
 	return False
 
 def _process_contained_added(db, contained):
-	containerId = getattr(contained, 'containerId', None)
+	containerId = _get_containerId(contained)
 	if containerId:
 		oid = to_external_ntiid_oid(contained)
 		queue = get_job_queue()
@@ -82,6 +106,20 @@ def _process_contained_added(db, contained):
 
 @component.adapter(nti_interfaces.IContained, lce_interfaces.IObjectAddedEvent)
 def _contained_added(contained, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_contained_added(db, contained)
+
+def _process_contained_modified(db, contained):
+	containerId = _get_containerId(contained)
+	if containerId:
+		queue = get_job_queue()
+		job = create_job(_update_container, db=db, containerId=containerId,
+						 removeCreatedTime=True)
+		queue.put(job)
+
+@component.adapter(nti_interfaces.IContained, lce_interfaces.IObjectModifiedEvent)
+def _contained_modified(contained, event):
 	db = get_graph_db()
 	if db is not None:
 		_process_contained_added(db, contained)
