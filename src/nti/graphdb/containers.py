@@ -137,6 +137,7 @@ def _process_contained_removed(db, contained):
 	queue = get_job_queue()
 	job = create_job(_remove_node, db=db, key=adapted.key, value=adapted.value)
 	queue.put(job)
+	_process_contained_modified(db, contained)  # update parent
 
 @component.adapter(nti_interfaces.IContained, intid_interfaces.IIntIdRemovedEvent)
 def _contained_removed(contained, event):
