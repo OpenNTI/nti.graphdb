@@ -76,10 +76,12 @@ def _update_container(db, container=None, containerId=None):
 		adapted = graph_interfaces.IUniqueAttributeAdapter(container)
 		node = db.get_indexed_node(adapted.key, adapted.value)
 		if node is not None:
-			properties = {}
+			properties = getattr(node, 'properties', None) or {}
+			createdTime = properties.get('createdTime')
 			labels = graph_interfaces.ILabelAdapter(container)
-			properties.update(getattr(node, 'properties', None) or {})
-			properties.update(graph_interfaces.IPropertyAdapter(container) or {})
+			properties = graph_interfaces.IPropertyAdapter(container)
+			if createdTime is not None:
+				properties['createdTime'] = createdTime
 			db.update_node(node, labels, properties)
 			logger.debug("properties updated for node %s", node)
 
