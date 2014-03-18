@@ -114,8 +114,7 @@ def _process_contained_modified(db, contained):
 	containerId = _get_containerId(contained)
 	if containerId:
 		queue = get_job_queue()
-		job = create_job(_update_container, db=db, containerId=containerId,
-						 removeCreatedTime=True)
+		job = create_job(_update_container, db=db, containerId=containerId)
 		queue.put(job)
 
 @component.adapter(nti_interfaces.IContained, lce_interfaces.IObjectModifiedEvent)
