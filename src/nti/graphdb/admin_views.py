@@ -87,7 +87,7 @@ def init_graphdb(request):
 	if term:
 		usernames = username_search(term)
 	elif usernames:
-		usernames = usernames.split()
+		usernames = usernames.split(',')
 	else:
 		usernames = ()
 	db = component.getUtility(graph_interfaces.IGraphDB, name=site)
