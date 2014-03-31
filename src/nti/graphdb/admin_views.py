@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*
 """
-$Id$
+.. $Id$
 """
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
@@ -22,7 +22,7 @@ from pyramid.view import view_config
 from nti.dataserver import authorization as nauth
 from nti.dataserver import interfaces as nti_interfaces
 
-from nti.externalization.datastructures import LocatedExternalDict
+from nti.externalization.interfaces import LocatedExternalDict
 
 from nti.utils.maps import CaseInsensitiveDict
 
