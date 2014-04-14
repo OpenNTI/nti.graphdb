@@ -43,16 +43,19 @@ def username_search(search_term):
 	return usernames
 
 def all_objects_iids(users=()):
-	intids = component.getUtility(zope.intid.IIntIds)
-	usernames = {getattr(user, 'username', user) for user in users or ()}
-	for uid, obj in intids.items():
+	obj = intids = component.getUtility(zope.intid.IIntIds)
+	usernames = {getattr(user, 'username', user).lower() for user in users or ()}
+	for uid in intids:
 		try:
+			obj = intids.getObject(uid)
 			if nti_interfaces.IEntity.providedBy(obj):
 				if not usernames or obj.username in usernames:
 					yield uid, obj
 			else:
 				creator = getattr(obj, 'creator', None)
-				if not usernames or getattr(creator, 'username', creator) in usernames:
+				creator = getattr(creator, 'username', creator).lower()
+				if	not nti_interfaces.IDeletedObjectPlaceholder.providedBy(obj) and \
+					(not usernames or creator in usernames):
 					yield uid, obj
 		except (TypeError, POSKeyError) as e:
 			logger.error("Error processing object %s(%s); %s", type(obj), uid, e)
