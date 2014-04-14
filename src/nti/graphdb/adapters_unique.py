@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*
 """
-$Id$
+.. $Id$
 """
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import zope.intid
 from zope import component
 from zope import interface
 
@@ -40,6 +41,17 @@ class _GenericUniqueAttributeAdpater(object):
 
 	def __repr__(self):
 		return "%s(%s,%r)" % (self.__class__.__name__, self.key, self.value)
+
+@interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
+class _IntIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
+
+	key = "intid"
+
+	@property
+	def value(self):
+		intids = component.getUtility(zope.intid.IIntIds)
+		result = intids.queryId(self.obj)
+		return result
 
 @interface.implementer(graph_interfaces.IUniqueAttributeAdapter)
 class _OIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
