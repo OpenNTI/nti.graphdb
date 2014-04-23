@@ -12,10 +12,7 @@ import time
 import transaction
 import simplejson as json
 
-import zope.intid
 from zope import component
-
-from ZODB.POSException import POSKeyError
 
 from pyramid.view import view_config
 
@@ -26,6 +23,7 @@ from nti.externalization.interfaces import LocatedExternalDict
 
 from nti.utils.maps import CaseInsensitiveDict
 
+from . import utils
 from . import views
 from . import get_job_queue
 from . import interfaces as graph_interfaces
@@ -42,24 +40,6 @@ def username_search(search_term):
 	usernames = list(_users.iterkeys(min_inclusive, max_exclusive, excludemax=True))
 	return usernames
 
-def all_objects_iids(users=()):
-	obj = intids = component.getUtility(zope.intid.IIntIds)
-	usernames = {getattr(user, 'username', user).lower() for user in users or ()}
-	for uid in intids:
-		try:
-			obj = intids.getObject(uid)
-			if nti_interfaces.IEntity.providedBy(obj):
-				if not usernames or obj.username in usernames:
-					yield uid, obj
-			else:
-				creator = getattr(obj, 'creator', None)
-				creator = getattr(creator, 'username', creator).lower()
-				if	not nti_interfaces.IDeletedObjectPlaceholder.providedBy(obj) and \
-					(not usernames or creator in usernames):
-					yield uid, obj
-		except (TypeError, POSKeyError) as e:
-			logger.error("Error processing object %s(%s); %s", type(obj), uid, e)
-
 def init(db, obj):
 	result = False
 	for _, module in component.getUtilitiesFor(graph_interfaces.IObjectProcessor):
@@ -68,7 +48,7 @@ def init(db, obj):
 
 def init_db(db, usernames=()):
 	count = 0
-	for _, obj in all_objects_iids(usernames):
+	for _, obj in utils.all_objects_iids(usernames):
 		if init(db, obj):
 			count += 1
 			if count % 10000 == 0:
