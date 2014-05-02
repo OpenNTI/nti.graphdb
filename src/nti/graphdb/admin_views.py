@@ -97,3 +97,18 @@ def queue_info(request):
 	result = LocatedExternalDict()
 	result['size'] = len(queue)
 	return result
+
+@view_config(route_name='objects.generic.traversal',
+			 name='empty_queue',
+			 renderer='rest',
+			 request_method='GET',
+			 context=views.GraphPathAdapter,
+			 permission=nauth.ACT_MODERATE)
+def empty_queue(request):
+	queue = get_job_queue()
+	now = time.time()
+	done = queue.empty()
+	result = LocatedExternalDict()
+	result['Elapsed'] = time.time() - now
+	result['Total'] = done
+	return result
