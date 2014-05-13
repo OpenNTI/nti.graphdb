@@ -29,7 +29,8 @@ def all_objects_iids(users=()):
                     yield uid, obj
             else:
                 creator = getattr(obj, 'creator', None)
-                creator = getattr(creator, 'username', creator).lower()
+                creator = getattr(creator, 'username', creator)
+                creator = creator.lower() if creator else ''
                 if    not nti_interfaces.IDeletedObjectPlaceholder.providedBy(obj) and \
                     (not usernames or creator in usernames):
                     yield uid, obj
