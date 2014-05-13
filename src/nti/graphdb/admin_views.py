@@ -101,7 +101,7 @@ def queue_info(request):
 @view_config(route_name='objects.generic.traversal',
 			 name='empty_queue',
 			 renderer='rest',
-			 request_method='GET',
+			 request_method='POST',
 			 context=views.GraphPathAdapter,
 			 permission=nauth.ACT_MODERATE)
 def empty_queue(request):
