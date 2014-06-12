@@ -365,7 +365,7 @@ component.moduleProvides(graph_interfaces.IObjectProcessor)
 def init(db, obj):
 	result = True
 	if 	assessment_interfaces.IQAssessedQuestionSet.providedBy(obj) or \
-		assessment_interfaces.IQAssessedQuestionSet.providedBy(obj):
+		assessment_interfaces.IQAssessedQuestion.providedBy(obj):
 		_queue_question_event(db, obj)
 	elif nti_interfaces.IUser.providedBy(obj):
 		init_asssignments(db, obj)

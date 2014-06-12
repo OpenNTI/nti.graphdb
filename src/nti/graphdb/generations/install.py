@@ -28,7 +28,6 @@ class _GraphDBSchemaManager(SchemaManager):
 											minimum_generation=generation,
 											package_name='nti.graphdb.generations')
 def evolve(context):
-	# ### from IPython.core.debugger import Tracer; Tracer()()
 	install_queue(context)
 
 def install_queue(context):
