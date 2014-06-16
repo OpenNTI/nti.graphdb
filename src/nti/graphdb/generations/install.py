@@ -15,8 +15,8 @@ from zope.generations.generations import SchemaManager
 
 import zope.intid
 
-from ..async import queue
-from ..async import interfaces as asyc_interfaces
+from nti.async import queue
+from nti.async import interfaces as asyc_interfaces
 
 class _GraphDBSchemaManager(SchemaManager):
 	"""
