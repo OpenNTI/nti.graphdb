@@ -2,7 +2,7 @@
 """
 schema generation installation.
 
-$Id$
+.. $Id$
 """
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
@@ -42,6 +42,6 @@ def install_queue(context):
 	result.__parent__ = dataserver_folder
 	result.__name__ = '++etc++graphdb++queue'
 	intids.register(result)
-	lsm.registerUtility(result, provided=asyc_interfaces.IQueue)
+	lsm.registerUtility(result, provided=asyc_interfaces.IQueue, name="nti.graphdb")
 
 	return result

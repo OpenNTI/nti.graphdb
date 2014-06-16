@@ -21,7 +21,7 @@
 			 name="nti.dataserver-graphdb"
 			 provides="zope.generations.interfaces.IInstallableSchemaManager"/>
 			  
-	<include package=".async" file="configure.zcml" />
+	<include package="nti.async" />
 	
 	<!-- database -->
 	

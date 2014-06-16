@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*
 """
-graphdb module
-
-$Id$
+.. $Id$
 """
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
@@ -17,10 +15,12 @@ from zope import component
 
 from pyramid.threadlocal import get_current_request
 
+from nti.async import create_job
+from nti.async import get_job_queue as async_queue
+
 from . import interfaces as gdb_interfaces
 
-from .async import create_job
-from .async import get_job_queue
+QUEUE_NAME = "nti.graphdb"
 
 def get_possible_site_names(request=None, include_default=True):
 	request = request or get_current_request()
@@ -41,3 +41,6 @@ def get_graph_db(names=None, request=None):
 		if app is not None:
 			return app
 	return None
+
+def get_job_queue():
+	return async_queue(QUEUE_NAME)
