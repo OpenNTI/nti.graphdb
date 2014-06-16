@@ -18,6 +18,8 @@ import zope.intid
 from nti.async import queue
 from nti.async import interfaces as asyc_interfaces
 
+from .. import QUEUE_NAME
+
 class _GraphDBSchemaManager(SchemaManager):
 	"""
 	A schema manager that we can register as a utility in ZCML.
@@ -40,8 +42,8 @@ def install_queue(context):
 
 	result = queue.Queue()
 	result.__parent__ = dataserver_folder
-	result.__name__ = '++etc++graphdb++queue'
+	result.__name__ = QUEUE_NAME
 	intids.register(result)
-	lsm.registerUtility(result, provided=asyc_interfaces.IQueue, name="nti.graphdb")
+	lsm.registerUtility(result, provided=asyc_interfaces.IQueue, name=QUEUE_NAME)
 
 	return result
