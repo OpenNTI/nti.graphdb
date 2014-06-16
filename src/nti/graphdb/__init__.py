@@ -20,7 +20,7 @@ from nti.async import get_job_queue as async_queue
 
 from . import interfaces as gdb_interfaces
 
-QUEUE_NAME = "nti.graphdb"
+QUEUE_NAME = "++etc++graphdb++queue"
 
 def get_possible_site_names(request=None, include_default=True):
 	request = request or get_current_request()
