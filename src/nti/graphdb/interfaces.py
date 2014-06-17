@@ -1,18 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*
 """
-$Id$
+.. $Id$
 """
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
-from zope import schema
 from zope import interface
 
 from dolmen.builtins import IDict
 from dolmen.builtins import ITuple
 
-from nti.utils import schema as nti_schema
+from nti.schema.field import Bool
+from nti.schema.field import Dict
+from nti.schema.field import List
+from nti.schema.field import Tuple
+from nti.schema.field import Number
+from nti.schema.field import Object
+from nti.schema.field import Variant
+from nti.schema.field import ValidTextLine
 
 NEO4J = u"neo4j"
 DATABASE_TYPES = (NEO4J,)
@@ -28,7 +34,7 @@ class IGraphQueryProvider(interface.Interface):
 
 class IGraphDB(interface.Interface):
 
-	provider = nti_schema.Object(IGraphQueryProvider, title='query provider')
+	provider = Object(IGraphQueryProvider, title='query provider')
 
 	def execute(query, **params):
 		pass
@@ -88,23 +94,22 @@ class IGraphDB(interface.Interface):
 		pass
 
 class IGraphNode(interface.Interface):
-	id = nti_schema.ValidTextLine(title="node id")
-	uri = nti_schema.ValidTextLine(title="uri identifier", required=False)
-	labels = schema.Tuple(value_type=nti_schema.ValidTextLine(title="label"), required=False)
-	properties = schema.Dict(nti_schema.ValidTextLine(title="The key"),
-							 nti_schema.Variant(
-							 	(nti_schema.Number(title="Number value"),
-							  	 nti_schema.Bool(title='Boolean value'),
-							  	 nti_schema.ValidTextLine(title='String value')), title="The value"),
-							 required=False,
-							 min_length=0)
+	id = ValidTextLine(title="node id")
+	uri = ValidTextLine(title="uri identifier", required=False)
+	labels = Tuple(value_type=ValidTextLine(title="label"), required=False)
+	properties = Dict(ValidTextLine(title="The key"),
+					  Variant((Number(title="Number value"),
+							   Bool(title='Boolean value'),
+							   ValidTextLine(title='String value')), title="The value"),
+							  required=False,
+							  min_length=0)
 
 
 class IContainer(interface.Interface):
 	"""
 	Marker interface for a container
 	"""
-	id = nti_schema.ValidTextLine(title="container id")
+	id = ValidTextLine(title="container id")
 
 class IObjectProcessor(interface.Interface):
 
@@ -123,30 +128,30 @@ class IRelationshipType(interface.Interface):
 
 class IGraphRelationship(interface.Interface):
 
-	id = nti_schema.ValidTextLine(title="relationship id")
+	id = ValidTextLine(title="relationship id")
 
-	uri = nti_schema.ValidTextLine(title="uri identifier", required=False)
+	uri = ValidTextLine(title="uri identifier", required=False)
 
-	type = nti_schema.Variant((nti_schema.Object(IRelationshipType, description="A :class:`.Interface`"),
-							   nti_schema.ValidTextLine(title='relationship type')),
+	type = Variant((Object(IRelationshipType, description="A :class:`.Interface`"),
+							   ValidTextLine(title='relationship type')),
 							  title="The relationship type")
 
-	start = nti_schema.Variant((nti_schema.Object(IGraphNode, description="A :class:`.IGraphNode`"),
-								nti_schema.Object(interface.Interface, description="A :class:`.Interface`")),
-							  title="The start node",
-							  required=False)
+	start = Variant((Object(IGraphNode, description="A :class:`.IGraphNode`"),
+					 Object(interface.Interface, description="A :class:`.Interface`")),
+					title="The start node",
+					required=False)
 
-	end = nti_schema.Variant((nti_schema.Object(IGraphNode, description="A :class:`.IGraphNode`"),
-							  nti_schema.Object(interface.Interface, description="A :class:`.Interface`")),
+	end = Variant((Object(IGraphNode, description="A :class:`.IGraphNode`"),
+							  Object(interface.Interface, description="A :class:`.Interface`")),
 							 title="The end node",
 							 required=False)
 
-	properties = schema.Dict(nti_schema.ValidTextLine(title="key"), 
-							 nti_schema.Variant((nti_schema.ValidTextLine(title="value string"),
-												 nti_schema.Number(title="value number"),
-												 schema.Bool(title="value bool"),
-												 schema.List(title="value list"))),
-							 required=False)
+	properties = Dict(ValidTextLine(title="key"),
+					  Variant((ValidTextLine(title="value string"),
+							   Number(title="value number"),
+							   Bool(title="value bool"),
+							   List(title="value list"))),
+					  required=False)
 
 class IPropertyAdapter(IDict):
 	"""
