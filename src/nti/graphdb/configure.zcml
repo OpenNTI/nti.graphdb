@@ -124,10 +124,6 @@
 	<configure zcml:condition="have devmode">
 		<gdb:registerGraphDB
 			url="http://localhost:7474/db/data/" />
-		
-		<gdb:registerGraphDB
-			url="http://localhost:7474/db/data/" 
-			name="janux.ou.edu" />
 	</configure>
 
 </configure>
