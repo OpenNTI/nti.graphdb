@@ -38,9 +38,7 @@
 	<include package="." file="configure_properties.zcml" />
 			   
 	<!-- subscribers -->
-	 
-	<subscriber handler=".subscribers._set_change_listener" />
-	
+
 	<subscriber handler=".search._search_completed" />
 	
 	<subscriber handler=".entities._entity_added" />
