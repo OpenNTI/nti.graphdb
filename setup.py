@@ -7,6 +7,9 @@ entry_points = {
     'console_scripts': [
         "nti_graph_constructor = nti.graphdb.utils.constructor:main",
     ],
+    'z3c.autoinclude.plugin': [
+        'target = nti.dataserver',
+    ],
 }
 
 setup(
