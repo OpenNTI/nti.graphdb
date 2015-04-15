@@ -19,7 +19,7 @@ from zope import interface
 from py2neo import neo4j
 from py2neo import rel as rel4j
 from py2neo import node as node4j
-from py2neo.exceptions import ClientError
+from py2neo.error import GraphError
 
 from .node import Neo4jNode
 from .provider import Neo4jQueryProvider
@@ -32,8 +32,8 @@ def _isolate(self, node):
 neo4j.WriteBatch.isolate = _isolate
 
 def _is_404(ex):
-	cause = getattr(ex, '__cause__', None)
-	return getattr(cause, 'status_code', None) == 404
+	response = getattr(ex, 'response', None)
+	return getattr(response, 'status_code', None) == 404
 
 _marker = object()
 
@@ -77,7 +77,7 @@ class Neo4jDB(object):
 	def create_db(cls, url, username=None, password=None):
 		if username and password:
 			cls.authenticate(url, username, password)
-		graphdb = neo4j.GraphDatabaseService(url)
+		graphdb = neo4j.Graph(url)
 		graphdb.clear()
 		graphdb.get_or_create_index(neo4j.Node, "PKIndex")
 		graphdb.get_or_create_index(neo4j.Relationship, "PKIndex")
@@ -93,7 +93,7 @@ class Neo4jDB(object):
 		if self._v_db__ is None:
 			if self.username and self.password:
 				self.authenticate(self.url, self.username, self.password)
-			self._v_db__ = neo4j.GraphDatabaseService(self.url)
+			self._v_db__ = neo4j.Graph(self.url)
 		return self._v_db__
 
 	def _reinit(self):
@@ -102,7 +102,7 @@ class Neo4jDB(object):
 	def _safe_index_remove(self, index, entity):
 		try:
 			index.remove(entity=entity)
-		except ClientError, e:
+		except GraphError as e:
 			if not _is_404(e):
 				raise e
 
@@ -191,7 +191,7 @@ class Neo4jDB(object):
 													  adapted.value)
 			if result is not None:
 				self._get_labels_and_properties(result, props)
-		except ClientError, e:
+		except GraphError, e:
 			if not _is_404(e):
 				raise e
 			result = None
@@ -389,7 +389,7 @@ class Neo4jDB(object):
 				result = self.db.relationship(obj.id)
 			if result is not None and props:
 				result.get_properties()
-		except ClientError, e:
+		except GraphError as e:
 			if not _is_404(e):
 				raise e
 			result = None
@@ -442,7 +442,7 @@ class Neo4jDB(object):
 	def delete_indexed_relationship(self, key, value):
 		try:
 			rel = self.db.get_indexed_relationship("PKIndex", key, value)
-		except ClientError:
+		except GraphError:
 			rel = None
 
 		if rel is not None:
@@ -462,6 +462,6 @@ class Neo4jDB(object):
 	# cypher
 
 	def execute(self, query, **params):
-		result = neo4j.CypherQuery(self.db, query).execute(**params)
+		result = self.db.cypher(query).execute(**params)
 		return result
 

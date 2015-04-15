@@ -3,6 +3,7 @@
 """
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -18,7 +19,7 @@ from . import interfaces as gdb_interfaces
 QUEUE_NAME = "++etc++graphdb++queue"
 
 def get_graph_db():
-	return component.getUtility(gdb_interfaces.IGraphDB)
+	return component.queryUtility(gdb_interfaces.IGraphDB)
 
 def get_job_queue():
 	return async_queue(QUEUE_NAME)
