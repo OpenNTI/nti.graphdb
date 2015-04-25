@@ -41,7 +41,7 @@ setup(
 		'Programming Language :: Python :: 2.7',
 		'Programming Language :: Python :: 3',
 		'Programming Language :: Python :: 3.3',
-		],
+	],
 	packages=find_packages('src'),
 	package_dir={'': 'src'},
 	namespace_packages=['nti'],
@@ -54,7 +54,6 @@ setup(
 		'test': TESTS_REQUIRE,
 	},
 	dependency_links=[
-		'git+https://github.com/NextThought/nti.schema.git#egg=nti.schema',
 		'git+https://github.com/NextThought/nti.nose_traceback_info.git#egg=nti.nose_traceback_info'
 	],
 	entry_points=entry_points
