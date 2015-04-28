@@ -3,6 +3,7 @@
 """
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -16,20 +17,24 @@ import collections
 from zope import component
 from zope import interface
 
-from py2neo import neo4j
+from py2neo.neo4j import Graph
+from py2neo.neo4j import authenticate
+
 from py2neo import rel as rel4j
 from py2neo import node as node4j
 from py2neo.error import GraphError
 
-from .node import Neo4jNode
-from .provider import Neo4jQueryProvider
-from .relationship import Neo4jRelationship
-from .. import interfaces as graph_interfaces
+from nti.common.representation import WithRepr
 
-def _isolate(self, node):
-	query = "START a=node(%s) MATCH a-[r]-b DELETE r" % node._id
-	self.append_cypher(query, {})
-neo4j.WriteBatch.isolate = _isolate
+from nti.schema.schema import EqHash
+
+from .node import Neo4jNode
+
+from .relationship import Neo4jRelationship
+
+from ..interfaces import IGraphDB
+from ..interfaces import ILabelAdapter
+from ..interfaces import IPropertyAdapter
 
 def _is_404(ex):
 	response = getattr(ex, 'response', None)
@@ -37,83 +42,45 @@ def _is_404(ex):
 
 _marker = object()
 
-@interface.implementer(graph_interfaces.IGraphDB)
+@WithRepr
+@EqHash('url')
+@interface.implementer(IGraphDB)
 class Neo4jDB(object):
 
 	_v_db__ = None
-	password = None
-	username = None
 
 	def __init__(self, url, username=None, password=None):
 		self.url = url
-		if username:
-			self.username = username
-		if password:
-			self.password = password
-
-	def __str__(self):
-		return self.url
-
-	def __repr__(self):
-		return "%s(%s,%s)" % (self.__class__.__name__, self.url, self.username)
-
-	def __eq__(self, other):
-		try:
-			return self is other or (self.url == other.url)
-		except AttributeError:
-			return NotImplemented
-
-	def __hash__(self):
-		xhash = 47
-		xhash ^= hash(self.url)
-		return xhash
+		self.username = username
+		self.password = password
 
 	@classmethod
 	def authenticate(cls, url, username, password):
 		o = urlparse.urlparse(url)
-		neo4j.authenticate(o.netloc, username, password)
-
-	@classmethod
-	def create_db(cls, url, username=None, password=None):
-		if username and password:
-			cls.authenticate(url, username, password)
-		graphdb = neo4j.Graph(url)
-		graphdb.clear()
-		graphdb.get_or_create_index(neo4j.Node, "PKIndex")
-		graphdb.get_or_create_index(neo4j.Relationship, "PKIndex")
-		result = cls(url, username=username, password=password)
-		return result
-
-	@property
-	def provider(self):
-		return Neo4jQueryProvider(self)
+		authenticate(o.netloc, username, password)
 
 	@property
 	def db(self):
 		if self._v_db__ is None:
 			if self.username and self.password:
 				self.authenticate(self.url, self.username, self.password)
-			self._v_db__ = neo4j.Graph(self.url)
+			self._v_db__ = Graph(self.url)
 		return self._v_db__
 
 	def _reinit(self):
 		self._v_db__ = None
 
-	def _safe_index_remove(self, index, entity):
-		try:
-			index.remove(entity=entity)
-		except GraphError as e:
-			if not _is_404(e):
-				raise e
-
-	def _do_create_node(self, obj, key=None, value=None, labels=None,
-						properties=None, props=True):
-		labels = labels or ()
-		properties = properties or dict()
-
-		# create node
-		properties.update(graph_interfaces.IPropertyAdapter(obj))
-		labels = tuple(set(labels).union(graph_interfaces.ILabelAdapter(obj)))
+	def _create_node(self, obj, key=None, value=None, labels=None,
+					 properties=None, props=True):
+		
+		## Get object properties
+		properties = dict(properties or {})
+		properties.update(IPropertyAdapter(obj))
+		
+		## Get object labels
+		labels = set(labels or ())
+		labels = labels.union(ILabelAdapter(obj))
+		
 		node = node4j(**properties)
 
 		index = self.db.get_or_create_index(neo4j.Node, "PKIndex")
@@ -137,6 +104,12 @@ class Neo4jDB(object):
 					value=None, raw=False, props=True):
 		result = self._do_create_node(obj, labels, properties, key, value, props=props)
 		return Neo4jNode.create(result) if not raw else result
+
+	def create_unique_node(self, obj, key, value, labels=None, properties=None,
+						   raw=False, props=True):
+		result = self._do_create_node(obj, labels, properties, key, value, props=props)
+		return Neo4jNode.create(result) if not raw else result
+
 
 	def create_nodes(self, *objs):
 		label_set = []

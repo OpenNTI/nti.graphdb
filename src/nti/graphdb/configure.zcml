@@ -9,12 +9,6 @@
 	<include package="zope.component" />
 	<include package="zope.security" />
 
-	<!-- Access to the views under .../graph/ -->
-	<adapter name="graphdb"
-			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest"
-			 factory=".views.GraphPathAdapter"
-			 provides="zope.traversing.interfaces.IPathAdapter" />
-			
 	<!-- Generations -->
 	<utility factory=".generations.install._GraphDBSchemaManager"
 			 name="nti.dataserver-graphdb"
@@ -25,21 +19,26 @@
 	<!-- Database -->
 	<include package=".neo4j" file="configure.zcml" />
 	
-	<!-- Adapters -->		
+	<!-- Adapters	
 	<adapter factory=".containers._default_container_adapter"
 			 provides=".interfaces.IContainer"
 			 for="basestring" />
-			 
+	-->	
+
+	<!--	 
 	<include package="." file="configure_labels.zcml" />
 	<include package="." file="configure_unique.zcml" />
 	<include package="." file="configure_properties.zcml" />
+	-->
 			   
-	<!-- Subscribers -->
+	<!-- Subscribers
 	<subscriber handler=".search._search_completed" />
-	
+	-->
+
 	<subscriber handler=".entities._entity_added" />
 	<subscriber handler=".entities._entity_removed" />
 	
+	<!-- 
 	<subscriber handler=".connections._friendslist_added" />
 	<subscriber handler=".connections._friendslist_modified" />
 	<subscriber handler=".connections._friendslist_deleted" />
@@ -96,8 +95,9 @@
 	<subscriber handler=".creators._object_modified" />
 	<subscriber handler=".creators._object_removed" />
 	<subscriber handler=".creators._message_posted_to_room" />
+	-->
 	
-	<!-- Utilities -->
+	<!-- Utilities
 	<utility component=".entities" provides=".interfaces.IObjectProcessor" name="entities"/>
 	<utility component=".connections" provides=".interfaces.IObjectProcessor" name="connections"/>
 	<utility component=".creators" provides=".interfaces.IObjectProcessor" name="creators"/>
@@ -109,7 +109,8 @@
 	<utility component=".ratings" provides=".interfaces.IObjectProcessor" name="ratings"/>
 	<utility component=".discussions" provides=".interfaces.IObjectProcessor" name="discussions"/>
 	<utility component=".assessments" provides=".interfaces.IObjectProcessor" name="assessments"/>
-		
+	-->
+
 	<!-- Graph stores
 	<include package="." file="meta.zcml" />
 		
