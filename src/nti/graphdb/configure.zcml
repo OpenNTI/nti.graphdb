@@ -26,9 +26,10 @@
 	-->	
 
 	<include package="." file="configure_label.zcml" />
+	<include package="." file="configure_properties.zcml" />
+	
 	<!--
 	<include package="." file="configure_unique.zcml" />
-	<include package="." file="configure_properties.zcml" />
 	-->
 			   
 	<!-- Subscribers

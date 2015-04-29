@@ -12,6 +12,10 @@ logger = __import__('logging').getLogger(__name__)
 from zope import component
 from zope import interface
 
+from nti.assessment.interfaces import IQuestion
+from nti.assessment.interfaces import IQAssignment
+from nti.assessment.interfaces import IQuestionSet
+
 from nti.chatserver.interfaces import IMeeting
 from nti.chatserver.interfaces import IMessageInfo
 
@@ -63,18 +67,18 @@ def _NoteLabelAdpater(context):
 def _CommentLabelAdpater(context):
 	return u'Comment'
 
-@interface.implementer(ILabelAdapter)
 @component.adapter(IForum)
+@interface.implementer(ILabelAdapter)
 def _ForumLabelAdpater(context):
 	return u"Forum"
 
-@interface.implementer(ILabelAdapter)
 @component.adapter(ITopic)
+@interface.implementer(ILabelAdapter)
 def _TopicLabelAdpater(context):
 	return u'Topic'
 	
-@interface.implementer(ILabelAdapter)
 @component.adapter(IBoard)
+@interface.implementer(ILabelAdapter)
 def _BoardLabelAdpater(context):
 	return u"Board"
 
@@ -83,8 +87,8 @@ def _BoardLabelAdpater(context):
 def _HeadlinePostLabelAdpater(post):
 	return ILabelAdapter(post.__parent__)
 
-@interface.implementer(ILabelAdapter)
 @component.adapter(IContentUnit)
+@interface.implementer(ILabelAdapter)
 def _ContentUnitLabelAdpater(context):
 	return u"ContentUnit"
 
@@ -93,7 +97,22 @@ def _ContentUnitLabelAdpater(context):
 def _MeetingLabelAdpater(meeting):
 	return u'Meeting'
 
-@interface.implementer(ILabelAdapter)
 @component.adapter(IMessageInfo)
+@interface.implementer(ILabelAdapter)
 def _MessageInfoLabelAdpater(message):
 	return u'Message'
+
+@component.adapter(IQuestion)
+@interface.implementer(ILabelAdapter)
+def _QuestionLabelAdpater(context):
+	return u"Question"
+
+@component.adapter(IQuestionSet)
+@interface.implementer(ILabelAdapter)
+def _QuestionSetLabelAdpater(meeting):
+	return u'QuestionSet'
+
+@component.adapter(IQAssignment)
+@interface.implementer(ILabelAdapter)
+def _AssignmentLabelAdpater(message):
+	return u'Assignment'
