@@ -10,47 +10,40 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
+from nti.common.property import alias
+from nti.common.representation import WithRepr
+
+from nti.schema.schema import EqHash
 from nti.schema.field import SchemaConfigured
 from nti.schema.fieldproperty import createDirectFieldProperties
 
-from .. import interfaces as graph_interfaces
+from ..interfaces import IGraphNode
 
-@interface.implementer(graph_interfaces.IGraphNode)
+@WithRepr
+@EqHash('id')
+@interface.implementer(IGraphNode)
 class Neo4jNode(SchemaConfigured):
-    createDirectFieldProperties(graph_interfaces.IGraphNode)
+	createDirectFieldProperties(IGraphNode)
 
-    _neo = None
-
-    def __str__(self):
-        return self.id
-
-    def __repr__(self):
-        return "%s(%s,%s)" % (self.__class__.__name__, self.id, self.properties)
-
-    def __eq__(self, other):
-        try:
-            return self is other or (self.id == other.id)
-        except AttributeError:
-            return NotImplemented
-
-    def __hash__(self):
-        xhash = 47
-        xhash ^= hash(self.id)
-        return xhash
-
-    @classmethod
-    def create(cls, node):
-        if isinstance(node, Neo4jNode):
-            result = node
-        elif graph_interfaces.IGraphNode.providedBy(node):
-            result = Neo4jNode(id=node.id, uri=node.uri,
-                               labels=tuple(node.labels),
-                               properties=dict(node.properties))
-        elif node is not None:
-            result = Neo4jNode(id=unicode(node._id), uri=unicode(node.__uri__))
-            result.labels = tuple(getattr(node, '_labels', ()))
-            result.properties = dict(node._properties)
-            result._neo = node
-        else:
-            result = None
-        return result
+	_v_neo = None
+	neo = alias('_v_neo')
+	
+	@classmethod
+	def create(cls, node):
+		if isinstance(node, Neo4jNode):
+			result = node
+		elif IGraphNode.providedBy(node):
+			result = Neo4jNode(id=node.id, uri=node.uri,
+							   label=node.label,
+							   properties=dict(node.properties))
+		elif node is not None:
+			labels = node.labels or ()
+			result = Neo4jNode(id=unicode(node._id), 
+                               uri=unicode(node.__uri__),
+                               label = labels[0] if labels else None)
+			result.label = labels[0] if labels else None
+			result.properties = dict(node.properties)
+			result.neo = node
+		else:
+			result = None
+		return result

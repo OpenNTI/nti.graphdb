@@ -96,8 +96,8 @@ class IGraphDB(interface.Interface):
 
 class IGraphNode(interface.Interface):
 	id = ValidTextLine(title="node id")
+	label = ValidTextLine(title="label", required=False)
 	uri = ValidTextLine(title="uri identifier", required=False)
-	labels = Tuple(value_type=ValidTextLine(title="label"), required=False)
 	properties = Dict(ValidTextLine(title="The key"),
 					  Variant((Number(title="Number value"),
 							   Bool(title='Boolean value'),
