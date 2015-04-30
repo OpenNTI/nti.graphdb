@@ -14,6 +14,8 @@ from ZODB.POSException import POSKeyError
 from nti.dataserver.users import Entity
 from nti.dataserver.interfaces import IEntity
 
+from nti.externalization.externalization import to_external_ntiid_oid
+
 def get_entity(entity):
     if entity is not None and not IEntity.providedBy(entity):
         entity = Entity.get_entity(str(entity))
@@ -26,3 +28,10 @@ def get_creator(obj):
         return creator
     except (TypeError, POSKeyError):
         return None
+
+def to_external_oid(obj):
+    result = to_external_ntiid_oid(obj) if obj is not None else None
+    return result
+
+def get_ntiid(obj):
+    return getattr(obj, 'NTIID', None) or  getattr(obj, 'ntiid', None)
