@@ -7,24 +7,31 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
-from nti.graphdb import utils
-from nti.graphdb import interfaces as graph_interfaces
+from hamcrest import is_
+from hamcrest import none
+from hamcrest import is_not
+from hamcrest import assert_that
 
-from nti.graphdb.tests import ConfiguringTestBase
+import unittest
 
-from hamcrest import (assert_that, none, is_, is_not)
+from nti.graphdb.utils import UniqueAttribute
+from nti.graphdb.interfaces import IUniqueAttributeAdapter
 
-class TestUtils(ConfiguringTestBase):
+from nti.graphdb.tests import SharedConfiguringTestLayer
 
+class TestUtils(unittest.TestCase):
+
+	layer = SharedConfiguringTestLayer
+	
 	def test_unique_attribute(self):
-		ua = utils.UniqueAttribute("a", "b")
-		assert_that(graph_interfaces.IUniqueAttributeAdapter.providedBy(ua), is_(True))
+		ua = UniqueAttribute("a", "b")
+		assert_that(IUniqueAttributeAdapter.providedBy(ua), is_(True))
 
-		adapted = graph_interfaces.IUniqueAttributeAdapter(ua, None)
+		adapted = IUniqueAttributeAdapter(ua, None)
 		assert_that(adapted, is_not(none()))
 
-		ub = utils.UniqueAttribute("a", "b")
+		ub = UniqueAttribute("a", "b")
 		assert_that(ua, is_(ub))
 
-		uc = utils.UniqueAttribute("a", "c")
+		uc = UniqueAttribute("a", "c")
 		assert_that(ua, is_not(uc))

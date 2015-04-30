@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Directives to be used in ZCML
-
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -18,10 +17,11 @@ from zope.configuration import fields
 from zope.component.zcml import utility
 
 from .neo4j import Neo4jDB
-from . import interfaces as graph_interfaces
 
-NEO4J = graph_interfaces.NEO4J
-DATABASE_TYPES = graph_interfaces.DATABASE_TYPES
+from .interfaces import NEO4J
+from .interfaces import DATABASE_TYPES
+
+from .interfaces import IGraphDB
 
 class IRegisterGraphDB(interface.Interface):
 	"""
@@ -39,4 +39,4 @@ def registerGraphDB(_context, url, username=None, password=None, name=u""):
 	Register an db
 	"""
 	factory = functools.partial(Neo4jDB, url=url, username=username, password=password)
-	utility(_context, provides=graph_interfaces.IGraphDB, factory=factory, name=name)
+	utility(_context, provides=IGraphDB, factory=factory, name=name)

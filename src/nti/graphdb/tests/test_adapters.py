@@ -7,7 +7,14 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
-from zope import component
+from hamcrest import is_
+from hamcrest import none
+from hamcrest import is_in
+from hamcrest import is_not
+from hamcrest import has_entry
+from hamcrest import has_length
+from hamcrest import assert_that
+from hamcrest import has_property
 
 from nti.contentfragments.interfaces import IPlainTextContentFragment
 
@@ -17,18 +24,14 @@ from nti.dataserver.contenttypes.forums.topic import PersonalBlogEntry
 from nti.dataserver.contenttypes.forums.post import PersonalBlogComment
 from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
 
-from nti.graphdb import relationships
 from nti.graphdb import interfaces as graph_interfaces
 
 import nti.dataserver.tests.mock_dataserver as mock_dataserver
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
-from nti.graphdb.tests import ConfiguringTestBase
+from nti.graphdb.tests import GraphDBTestCase
 
-from hamcrest import (assert_that, has_length, has_entry, has_property,
-					  is_, is_in, none, is_not)
-
-class TestAdapters(ConfiguringTestBase):
+class TestAdapters(GraphDBTestCase):
 
 	def _create_user(self, username='nt@nti.com', password='temp001', **kwargs):
 		usr = User.create_user(self.ds, username=username, password=password, **kwargs)
@@ -100,15 +103,15 @@ class TestAdapters(ConfiguringTestBase):
 		assert_that(adapted, has_property('key', is_(none())))
 		assert_that(adapted, has_property('value', is_(none())))
 
-	@WithMockDSTrans
-	def test_unique_friendship_attr_adapter(self):
-		user1 = self._create_user("user1@bar")
-		user2 = self._create_user("user2@bar")
-		adapted = component.queryMultiAdapter((user1, user2, relationships.FriendOf()),  
-											  graph_interfaces.IUniqueAttributeAdapter)
-		assert_that(adapted, is_not(none()))
-		assert_that(adapted, has_property('key', 'user1@bar'))
-		assert_that(adapted, has_property('value', 'IS_FRIEND_OF,user2@bar'))
+# 	@WithMockDSTrans
+# 	def test_unique_friendship_attr_adapter(self):
+# 		user1 = self._create_user("user1@bar")
+# 		user2 = self._create_user("user2@bar")
+# 		adapted = component.queryMultiAdapter((user1, user2, relationships.FriendOf()),  
+# 											  graph_interfaces.IUniqueAttributeAdapter)
+# 		assert_that(adapted, is_not(none()))
+# 		assert_that(adapted, has_property('key', 'user1@bar'))
+# 		assert_that(adapted, has_property('value', 'IS_FRIEND_OF,user2@bar'))
 
 	@WithMockDSTrans
 	def test_user_blog(self):
@@ -156,5 +159,3 @@ class TestAdapters(ConfiguringTestBase):
 		assert_that(props, has_entry('oid', is_not(none())))
 		assert_that(props, has_entry('topic', is_not(none())))
 		assert_that(props, has_entry('type', u'Comment'))
-
-

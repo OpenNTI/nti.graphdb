@@ -34,12 +34,10 @@
 			   
 	<!-- Subscribers
 	<subscriber handler=".search._search_completed" />
-	-->
-
+	
 	<subscriber handler=".entities._entity_added" />
 	<subscriber handler=".entities._entity_removed" />
-	
-	<!-- 
+
 	<subscriber handler=".connections._friendslist_added" />
 	<subscriber handler=".connections._friendslist_modified" />
 	<subscriber handler=".connections._friendslist_deleted" />

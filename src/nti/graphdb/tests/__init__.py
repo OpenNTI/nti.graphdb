@@ -9,32 +9,56 @@ __docformat__ = "restructuredtext en"
 
 import uuid
 
-import nti.contentsearch as contentsearch
+from zope.component.hooks import setHooks
 
-import nti.dataserver as dataserver
+from nti.dataserver.tests.mock_dataserver import WithMockDS
+from nti.dataserver.tests.mock_dataserver import mock_db_trans
 
-import nti.graphdb as graphdb
+from nti.app.testing.application_webtest import ApplicationTestLayer
 
-from nti.appserver.tests.test_application import SharedApplicationTestBase
-from nti.appserver.tests.test_application import WithSharedApplicationMockDS
-from nti.appserver.tests.test_application import WithSharedApplicationMockDSWithChanges
+from nti.testing.layers import find_test
+from nti.testing.layers import GCLayerMixin
+from nti.testing.layers import ZopeComponentLayer
+from nti.testing.layers import ConfiguringLayerMixin
 
-from nti.dataserver.tests.mock_dataserver import SharedConfiguringTestBase as DSSharedConfiguringTestBase
+from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
+
+import zope.testing.cleanup
 
 DEFAULT_URI = u'http://localhost:7474/db/data/'
 
-def _random_username(self):
+def random_username():
     splits = unicode(uuid.uuid4()).split('-')
     username = "%s@%s" % (splits[-1], splits[0])
     return username
 
-class ConfiguringTestBase(DSSharedConfiguringTestBase):
-    set_up_packages = (dataserver, graphdb, contentsearch)
-    DEFAULT_URI = DEFAULT_URI
+class SharedConfiguringTestLayer(ZopeComponentLayer,
+                                 GCLayerMixin,
+                                 ConfiguringLayerMixin,
+                                 DSInjectorMixin):
 
-    _random_username = _random_username
+    set_up_packages = ('nti.dataserver', 'nti.graphdb')
 
-class ApplicationTestBase(SharedApplicationTestBase):
+    @classmethod
+    def setUp(cls):
+        setHooks()
+        cls.setUpPackages()
 
-    DEFAULT_URI = DEFAULT_URI
-    _random_username = _random_username
+    @classmethod
+    def tearDown(cls):
+        cls.tearDownPackages()
+        zope.testing.cleanup.cleanUp()
+
+    @classmethod
+    def testSetUp(cls, test=None):
+        setHooks()
+        cls.setUpTestDS(test)
+        
+    @classmethod
+    def testTearDown(cls):
+        pass
+
+import unittest
+
+class GraphDBTestCase(unittest.TestCase):
+    layer = SharedConfiguringTestLayer

@@ -15,7 +15,6 @@ from dolmen.builtins import IString
 from nti.schema.field import Bool
 from nti.schema.field import Dict
 from nti.schema.field import List
-from nti.schema.field import Tuple
 from nti.schema.field import Number
 from nti.schema.field import Object
 from nti.schema.field import Variant
@@ -28,14 +27,7 @@ ADD_EVENT = 0
 MODIFY_EVENT = 1
 REMOVE_EVENT = 2
 
-class IGraphQueryProvider(interface.Interface):
-
-	def suggest_friends_to(user, max_depth=2, limit=None):
-		pass
-
 class IGraphDB(interface.Interface):
-
-	provider = Object(IGraphQueryProvider, title='query provider')
 
 	def execute(query, **params):
 		pass
@@ -105,13 +97,6 @@ class IGraphNode(interface.Interface):
 							  required=False,
 							  min_length=0)
 
-
-class IContainer(interface.Interface):
-	"""
-	Marker interface for a container
-	"""
-	id = ValidTextLine(title="container id")
-
 class IObjectProcessor(interface.Interface):
 
 	def init(db, obj):
@@ -134,8 +119,8 @@ class IGraphRelationship(interface.Interface):
 	uri = ValidTextLine(title="uri identifier", required=False)
 
 	type = Variant((Object(IRelationshipType, description="A :class:`.Interface`"),
-							   ValidTextLine(title='relationship type')),
-							  title="The relationship type")
+						   ValidTextLine(title='relationship type')),
+						   title="The relationship type")
 
 	start = Variant((Object(IGraphNode, description="A :class:`.IGraphNode`"),
 					 Object(interface.Interface, description="A :class:`.Interface`")),
@@ -171,71 +156,71 @@ class IUniqueAttributeAdapter(interface.Interface):
 	key = interface.Attribute("Attribute key")
 	value = interface.Attribute("Attribute value")
 
-class IFriendOf(IRelationshipType):
-	pass
-
-class IMemberOf(IRelationshipType):
-	pass
-
-class IParentOf(IRelationshipType):
-	pass
-
-class IFollow(IRelationshipType):
-	pass
-
-class ICommentOn(IRelationshipType):
-	pass
-
-class ITakeAssessment(IRelationshipType):
-	pass
-
-class ILike(IRelationshipType):
-	pass
-
-class IRate(IRelationshipType):
-	pass
-
-class IFlagged(IRelationshipType):
-	pass
-
-class IReply(IRelationshipType):
-	pass
-
-class IIsReplyOf(IRelationshipType):
-	pass
-
-class IAuthor(IRelationshipType):
-	pass
-
-class IShared(IRelationshipType):
-	pass
-
-class IIsSharedTo(IRelationshipType):
-	pass
-
-class IFeedback(IRelationshipType):
-	pass
-
-class IAssignmentFeedback(IRelationshipType):
-	pass
-
-class ISearch(IRelationshipType):
-	pass
-
-class ITaggedTo(IRelationshipType):
-	pass
-
-class IContained(IRelationshipType):
-	pass
-
-class ICreated(IRelationshipType):
-	pass
-
-class IView(IRelationshipType):
-	pass
-
-class ISubmit(IRelationshipType):
-	pass
-
-class IBelong(IRelationshipType):
-	pass
+# class IFriendOf(IRelationshipType):
+# 	pass
+# 
+# class IMemberOf(IRelationshipType):
+# 	pass
+# 
+# class IParentOf(IRelationshipType):
+# 	pass
+# 
+# class IFollow(IRelationshipType):
+# 	pass
+# 
+# class ICommentOn(IRelationshipType):
+# 	pass
+# 
+# class ITakeAssessment(IRelationshipType):
+# 	pass
+# 
+# class ILike(IRelationshipType):
+# 	pass
+# 
+# class IRate(IRelationshipType):
+# 	pass
+# 
+# class IFlagged(IRelationshipType):
+# 	pass
+# 
+# class IReply(IRelationshipType):
+# 	pass
+# 
+# class IIsReplyOf(IRelationshipType):
+# 	pass
+# 
+# class IAuthor(IRelationshipType):
+# 	pass
+# 
+# class IShared(IRelationshipType):
+# 	pass
+# 
+# class IIsSharedTo(IRelationshipType):
+# 	pass
+# 
+# class IFeedback(IRelationshipType):
+# 	pass
+# 
+# class IAssignmentFeedback(IRelationshipType):
+# 	pass
+# 
+# class ISearch(IRelationshipType):
+# 	pass
+# 
+# class ITaggedTo(IRelationshipType):
+# 	pass
+# 
+# class IContained(IRelationshipType):
+# 	pass
+# 
+# class ICreated(IRelationshipType):
+# 	pass
+# 
+# class IView(IRelationshipType):
+# 	pass
+# 
+# class ISubmit(IRelationshipType):
+# 	pass
+# 
+# class IBelong(IRelationshipType):
+# 	pass
