@@ -29,19 +29,16 @@ REMOVE_EVENT = 2
 
 class IGraphDB(interface.Interface):
 
-	def execute(query, **params):
-		pass
-
-	def create_node(obj, labels=None, properties=None, key=None, value=None):
+	def create_node(obj, label=None, properties=None, key=None, value=None):
 		pass
 
 	def create_nodes(*objs):
 		pass
 
-	def get_or_create_node(obj):
+	def get_node(obj):
 		pass
 
-	def get_node(obj):
+	def get_or_create_node(obj):
 		pass
 
 	def get_nodes(*objs):

@@ -7,64 +7,60 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
-# from hamcrest import is_
-# from hamcrest import none
-# from hamcrest import is_not
-# from hamcrest import has_entry
-# from hamcrest import has_length
-# from hamcrest import assert_that
-# from hamcrest import has_property
-# 
-# from nti.dataserver.users import User
-# from nti.dataserver.users import FriendsList
-# 
-# from nti.graphdb import relationships
-# from nti.graphdb.neo4j import database
-# 
-# from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
-# 
-# from nti.graphdb.tests import ConfiguringTestBase
-# 
-# class TestNeo4jDB(ConfiguringTestBase):
-# 
-# 	@classmethod
-# 	def setUpClass(cls):
-# 		super(ConfiguringTestBase, cls).setUpClass()
-# 		# cls.db = database.Neo4jDB.create_db(cls.DEFAULT_URI)
-# 		cls.db = database.Neo4jDB(cls.DEFAULT_URI)
-# 
-# 	def _create_user(self, username='nt@nti.com', password='temp001', **kwargs):
-# 		usr = User.create_user(self.ds, username=username, password=password, **kwargs)
-# 		return usr
-# 
-# 	def _create_friendslist(self, owner, name="mycontacts", *friends):
-# 		result = FriendsList(username=name)
-# 		result.creator = owner
-# 		for friend in friends:
-# 			result.addFriend(friend)
-# 		owner.addContainedObject(result)
-# 		return result
-# 
-# 	@WithMockDSTrans
-# 	def test_node_funcs(self):
-# 		username = self._random_username()
-# 		user = self._create_user(username)
-# 		node = self.db.create_node(user)
-# 		assert_that(node, has_property('id', is_not(none())))
-# 		assert_that(node, has_property('uri', is_not(none())))
-# 		assert_that(node, has_property('properties',
-# 									   has_entry('username', username)))
-# 
-# 		res = self.db.get_node(node.id)
-# 		assert_that(res, is_not(none()))
-# 
-# 		res = self.db.get_node(user)
-# 		assert_that(res, is_not(none()))
-# 
-# 		user2 = self._create_user()
-# 		res = self.db.get_node(user2)
-# 		assert_that(res, is_(none()))
-# 
+from hamcrest import is_
+from hamcrest import none
+from hamcrest import is_not
+from hamcrest import has_entry
+from hamcrest import assert_that
+from hamcrest import has_property
+
+import unittest
+
+from nti.dataserver.users import User
+
+#from nti.graphdb import relationships
+from nti.graphdb.neo4j import database
+
+from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
+
+from nti.graphdb.tests import random_username
+from nti.graphdb.tests import GraphDBTestCase
+
+from nti.graphdb.neo4j.tests import cannot_connect
+
+DEFAULT_URI = 'http://localhost:7474/db/data'
+
+@unittest.skipIf(cannot_connect(DEFAULT_URI), "Neo4j not available")
+class TestNeo4jDB(GraphDBTestCase):
+
+	def setUp(self):
+		super(GraphDBTestCase, self).setUp()
+		self.db = database.Neo4jDB(DEFAULT_URI)
+
+	def _create_user(self, username='nt@nti.com', password='temp001', **kwargs):
+		user = User.create_user(self.ds, username=username, password=password, **kwargs)
+		return user
+
+	@WithMockDSTrans
+	def test_node_funcs(self):
+		username = random_username()
+		user = self._create_user(username)
+		node = self.db.create_node(user)
+		assert_that(node, has_property('id', is_not(none())))
+		assert_that(node, has_property('uri', is_not(none())))
+		assert_that(node, has_property('properties',
+									   has_entry('username', username)))
+
+		res = self.db.get_node(node.id)
+		assert_that(res, is_not(none()))
+
+		res = self.db.get_node(user)
+		assert_that(res, is_not(none()))
+
+		user2 = self._create_user()
+		res = self.db.get_node(user2)
+		assert_that(res, is_(none()))
+
 # 		props = dict(node.properties)
 # 		props['language'] = 'latin'
 # 		res = self.db.update_node(node, properties=props)

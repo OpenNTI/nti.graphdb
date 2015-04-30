@@ -41,7 +41,7 @@ class Neo4jRelationship(SchemaConfigured):
 									   properties=dict(rel.properties))
 		elif rel is not None:
 			result = Neo4jRelationship(id=unicode(rel._id),
-									   uri=unicode(rel.__uri__),
+									   uri=unicode(rel.uri.string),
 									   type=rel.type,
 									   start=Neo4jNode.create(rel.start_node),
 									   end=Neo4jNode.create(rel.end_node),

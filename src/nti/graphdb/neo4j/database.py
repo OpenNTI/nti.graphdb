@@ -12,16 +12,18 @@ logger = __import__('logging').getLogger(__name__)
 import six
 import numbers
 import urlparse
-import collections
+#import collections
 
-from zope import component
+# from zope import component
 from zope import interface
 
 from py2neo.neo4j import Node
 from py2neo.neo4j import Graph
+from py2neo.neo4j import CypherJob
+from py2neo.neo4j import WriteBatch
 from py2neo.neo4j import authenticate
 
-from py2neo import rel as rel4j
+# from py2neo import rel as rel4j
 from py2neo import node as node4j
 from py2neo.error import GraphError
 
@@ -31,9 +33,10 @@ from nti.schema.schema import EqHash
 
 from .node import Neo4jNode
 
-from .relationship import Neo4jRelationship
+# from .relationship import Neo4jRelationship
 
 from ..interfaces import IGraphDB
+from ..interfaces import IGraphNode
 from ..interfaces import ILabelAdapter
 from ..interfaces import IPropertyAdapter
 from ..interfaces import IUniqueAttributeAdapter
@@ -41,6 +44,17 @@ from ..interfaces import IUniqueAttributeAdapter
 def _is_404(ex):
 	response = getattr(ex, 'response', None)
 	return getattr(response, 'status_code', None) == 404
+
+def _merge_node_query(label, key, value, properties):
+	result = "MERGE (n:%s { %s:%s }) RETURN n" % (label, key, value)
+	return result
+
+def _set_properties_query(label, key, value, properties):
+	result = """
+	MATCH (n:%s { %s:%s })
+	SET n += %s 
+	""" % (label, key, value, properties)
+	return result
 
 _marker = object()
 
@@ -103,70 +117,67 @@ class Neo4jDB(object):
 		result = Neo4jNode.create(result) if not raw else result
 		return result
 
-# 	def create_nodes(self, *objs):
-# 		label_set = []
-# 		wb = neo4j.WriteBatch(self.db)
-# 		for o in objs:
-# 			labels = graph_interfaces.ILabelAdapter(o)
-# 			label_set.append(labels)
-# 			properties = graph_interfaces.IPropertyAdapter(o)
-# 			abstract = node4j(**properties)
-# 			adapted = graph_interfaces.IUniqueAttributeAdapter(o)
-# 			if adapted.key and adapted.value:
-# 				wb.get_or_create_in_index(neo4j.Node, "PKIndex", adapted.key,
-# 										  adapted.value, abstract)
-# 			else:
-# 				wb.create(abstract)
-# 		created = wb.submit()
-# 		
-# 		result = []
-# 		wb = neo4j.WriteBatch(self.db)
-# 		for i, n in enumerate(created):
-# 			labels = label_set[i]
-# 			if isinstance(n, neo4j.Node):
-# 				result.append(Neo4jNode.create(n))
-# 				if labels:
-# 					wb.set_labels(n, *labels)
-# 		wb.submit()
-# 		return result
-# 				
+	def create_nodes(self, *objs):
+		wb = WriteBatch(self.db)
+		for o in objs:
+			label = ILabelAdapter(o)
+			properties = IPropertyAdapter(o)
+			adapted = IUniqueAttributeAdapter(o, None)
+			if adapted is not None and adapted.key and adapted.value:
+				query = _merge_node_query(label, adapted.key, adapted.value)
+				wb.append(CypherJob(query))
+				if properties:
+					query = _set_properties_query(label, adapted.key, adapted.value,
+												  properties)
+					wb.append(CypherJob(query))
+			else:
+				abstract = node4j(label, **properties)
+				wb.create(abstract)
+		result = []
+		created = wb.submit()
+		for n in created:
+			if n is not None and isinstance(n, Node):
+				result.append(Neo4jNode.create(n))
+		wb.submit()
+		return result
+
+	def _get_node(self, obj, props=True):
+		result = None
+		__traceback_info__ = obj, props
+		try:
+			if isinstance(obj, Node):
+				result = obj
+			elif isinstance(obj, (six.string_types, numbers.Number)):
+				result = self.db.node(str(obj))
+			elif isinstance(obj, Neo4jNode) and obj.neo is not None:
+				result = obj.neo
+			elif IGraphNode.providedBy(obj):
+				result = self.db.node(obj.id)
+			elif obj is not None:
+				adapted = IUniqueAttributeAdapter(obj, None)
+				if adapted is not None:
+					label = ILabelAdapter(obj)
+					result = self.db.find_one(label, adapted.key, adapted.value)
+			if result is not None and props:
+				result.pull()
+		except GraphError as e:
+			if not _is_404(e):
+				raise e
+			result = None
+		return result
+
+	def get_node(self, obj, raw=False, props=True):
+		result = self._get_node(obj, props=props)
+		result = Neo4jNode.create(result) if result is not None and not raw else result
+		return result
+# 
+# 	node = get_node
+# 
 # 	def _get_labels_and_properties(self, node, props=True):
 # 		if node is not None and props:
 # 			node.get_properties()
 # 			setattr(node, '_labels', node.get_labels())
 # 		return node
-# 
-# 	def _do_get_node(self, obj, props=True):
-# 		result = None
-# 		__traceback_info__ = obj, props
-# 		try:
-# 			if isinstance(obj, neo4j.Node):
-# 				result = obj
-# 			elif isinstance(obj, (six.string_types, numbers.Number)):
-# 				result = self.db.node(str(obj))
-# 			elif isinstance(obj, Neo4jNode) and obj._neo is not None:
-# 				result = obj._neo
-# 			elif graph_interfaces.IGraphNode.providedBy(obj):
-# 				result = self.db.node(obj.id)
-# 			elif obj is not None:
-# 				adapted = graph_interfaces.IUniqueAttributeAdapter(obj, None)
-# 				if adapted is not None:
-# 					result = self.db.get_indexed_node("PKIndex",
-# 													  adapted.key,
-# 													  adapted.value)
-# 			if result is not None:
-# 				self._get_labels_and_properties(result, props)
-# 		except GraphError, e:
-# 			if not _is_404(e):
-# 				raise e
-# 			result = None
-# 		return result
-# 
-# 	def get_node(self, obj, raw=False, props=True):
-# 		result = self._do_get_node(obj, props=props)
-# 		return Neo4jNode.create(result) if result is not None and not raw else result
-# 
-# 	node = get_node
 # 
 # 	def get_nodes(self, *objs):
 # 		nodes = []
@@ -423,8 +434,3 @@ class Neo4jDB(object):
 # 			rel.set_properties(properties)
 # 			return True
 # 		return False
-
-	# cypher
-
-	def execute(self, query, **params):
-		pass

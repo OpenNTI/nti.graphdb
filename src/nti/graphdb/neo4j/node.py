@@ -37,9 +37,9 @@ class Neo4jNode(SchemaConfigured):
 							   label=node.label,
 							   properties=dict(node.properties))
 		elif node is not None:
-			labels = node.labels or ()
+			labels = list(node.labels or ())
 			result = Neo4jNode(id=unicode(node._id), 
-                               uri=unicode(node.__uri__),
+                               uri=unicode(node.uri.string),
                                label = labels[0] if labels else None)
 			result.label = labels[0] if labels else None
 			result.properties = dict(node.properties)

@@ -9,10 +9,10 @@ __docformat__ = "restructuredtext en"
 
 from hamcrest import is_
 from hamcrest import none
-from hamcrest import is_in
 from hamcrest import is_not
 from hamcrest import has_entry
 from hamcrest import has_length
+from hamcrest import has_entries
 from hamcrest import assert_that
 from hamcrest import has_property
 
@@ -22,9 +22,11 @@ from nti.dataserver.users import User
 from nti.dataserver.users import Community
 from nti.dataserver.contenttypes.forums.topic import PersonalBlogEntry
 from nti.dataserver.contenttypes.forums.post import PersonalBlogComment
-from nti.dataserver.contenttypes.forums import interfaces as frm_interfaces
+from nti.dataserver.contenttypes.forums.interfaces import IPersonalBlog
 
-from nti.graphdb import interfaces as graph_interfaces
+from nti.graphdb.interfaces import ILabelAdapter
+from nti.graphdb.interfaces import IPropertyAdapter
+from nti.graphdb.interfaces import IUniqueAttributeAdapter
 
 import nti.dataserver.tests.mock_dataserver as mock_dataserver
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
@@ -39,22 +41,20 @@ class TestAdapters(GraphDBTestCase):
 
 	@WithMockDSTrans
 	def test_entity_adapter(self):
-		user = self._create_user(
-						"owner@bar",
-						 external_value={u'alias':u"owner", u'realname':'na marsh'})
+		user = self._create_user("owner@bar",
+						 		 external_value={u'alias':u"owner", u'realname':'na marsh'})
 
-		labels = graph_interfaces.ILabelAdapter(user, None)
-		assert_that(labels, is_not(none()))
-		assert_that(labels, has_length(1))
-		assert_that('user', is_in(labels))
+		label = ILabelAdapter(user, None)
+		assert_that(label, is_('User'))
 
-		props = graph_interfaces.IPropertyAdapter(user, None)
-		assert_that(props, is_not(none()))
-		assert_that(props, has_length(6))
-		assert_that(props, has_entry('username', 'owner@bar'))
-		assert_that(props, has_entry('alias', 'owner'))
-		assert_that(props, has_entry('name', 'na marsh'))
-		assert_that(props, has_entry('type', 'User'))
+		props = IPropertyAdapter(user, None)
+		assert_that(props, has_entries(	'type', 'User',
+										'alias', 'owner',
+										'name', 'na marsh',
+										'username', 'owner@bar',
+										'oid', is_not(none()),
+										'intid', is_(int),
+										'createdTime', is_(float) ) )
 
 	@WithMockDSTrans
 	def test_community_adapter(self):
@@ -62,100 +62,83 @@ class TestAdapters(GraphDBTestCase):
 							username='cs',
 							external_value={u'alias':u"ComSci", u'realname':'OUCS'})
 
-		labels = graph_interfaces.ILabelAdapter(comm, None)
-		assert_that(labels, is_not(none()))
-		assert_that(labels, has_length(1))
-		assert_that('community', is_in(labels))
+		label = ILabelAdapter(comm, None)
+		assert_that(label, is_('Community'))
 
-		props = graph_interfaces.IPropertyAdapter(comm, None)
-		assert_that(props, is_not(none()))
-		assert_that(props, has_length(6))
-		assert_that(props, has_entry('username', 'cs'))
-		assert_that(props, has_entry('alias', 'ComSci'))
-		assert_that(props, has_entry('name', 'OUCS'))
-		assert_that(props, has_entry('type', 'Community'))
+		props = IPropertyAdapter(comm, None)
+		assert_that(props, has_entries(	'type', 'Community',
+										'alias', 'ComSci',
+										'name', 'OUCS',
+										'username', 'cs',
+										'oid', is_not(none()),
+										'intid', is_(int),
+										'createdTime', is_(float) ) )
 
 	@WithMockDSTrans
 	def test_generic_adapter(self):
 		obj = object()
-		labels = graph_interfaces.ILabelAdapter(obj, None)
-		assert_that(labels, is_not(none()))
-		assert_that(labels, has_length(0))
+		label = ILabelAdapter(obj, None)
+		assert_that(label, is_not(none()))
 
-		props = graph_interfaces.IPropertyAdapter(obj, None)
+		props = IPropertyAdapter(obj, None)
 		assert_that(props, is_not(none()))
-		assert_that(props, has_length(1))
-		assert_that(props, has_entry('created', is_not(none())))
+		assert_that(props, has_length(2))
+		assert_that(props, has_entry('createdTime', is_(float)))
 
 	@WithMockDSTrans
 	def test_unique_entity_attr_adapter(self):
 		user = self._create_user(
 						"owner@bar",
 						external_value={u'alias':u"owner", u'realname':'na marsh'})
-		adapted = graph_interfaces.IUniqueAttributeAdapter(user, None)
+		adapted = IUniqueAttributeAdapter(user, None)
 		assert_that(adapted, is_not(none()))
 		assert_that(adapted, has_property('key', 'username'))
 		assert_that(adapted, has_property('value', 'owner@bar'))
 		
 		obj = object()
-		adapted = graph_interfaces.IUniqueAttributeAdapter(obj, None)
+		adapted = IUniqueAttributeAdapter(obj, None)
 		assert_that(adapted, is_not(none()))
 		assert_that(adapted, has_property('key', is_(none())))
 		assert_that(adapted, has_property('value', is_(none())))
 
-# 	@WithMockDSTrans
-# 	def test_unique_friendship_attr_adapter(self):
-# 		user1 = self._create_user("user1@bar")
-# 		user2 = self._create_user("user2@bar")
-# 		adapted = component.queryMultiAdapter((user1, user2, relationships.FriendOf()),  
-# 											  graph_interfaces.IUniqueAttributeAdapter)
-# 		assert_that(adapted, is_not(none()))
-# 		assert_that(adapted, has_property('key', 'user1@bar'))
-# 		assert_that(adapted, has_property('value', 'IS_FRIEND_OF,user2@bar'))
-
 	@WithMockDSTrans
 	def test_user_blog(self):
 		user = self._create_user("user1@bar")
-		blog = frm_interfaces.IPersonalBlog(user)
+		blog = IPersonalBlog(user)
 		entry = PersonalBlogEntry()
 		entry.creator = user
 		entry.tags = (IPlainTextContentFragment('bankai'), IPlainTextContentFragment('shikai'))
 		blog['bleach'] = entry
 		entry.__parent__ = blog
-		entry.lastModified = 42
-		entry.createdTime = 24
+		entry.lastModified = 42.0
+		entry.createdTime = 24.0
 
 		comment = PersonalBlogComment()
 		comment.creator = user
 		entry['comment316072059'] = comment
 		comment.__parent__ = entry
-		comment.createdTime = comment.lastModified = 43
+		comment.createdTime = comment.lastModified = 43.0
 		mock_dataserver.current_transaction.add(comment)
 
-		labels = graph_interfaces.ILabelAdapter(entry, None)
-		assert_that(labels, is_not(none()))
-		assert_that(labels, has_length(3))
-		assert_that(labels, is_((u'bankai', u'shikai', u'topic')))
+		label = ILabelAdapter(entry, None)
+		assert_that(label, is_('Topic'))
 
-		props = graph_interfaces.IPropertyAdapter(entry, None)
-		assert_that(props, is_not(none()))
-		assert_that(props, has_length(7))
-		assert_that(props, has_entry('author', u'user1@bar'))
-		assert_that(props, has_entry('ntiid', is_not(none())))
-		assert_that(props, has_entry('oid', is_not(none())))
-		assert_that(props, has_entry('forum', is_not(none())))
-		assert_that(props, has_entry('title', u''))
-		assert_that(props, has_entry('type', u'Topic'))
-		
-		labels = graph_interfaces.ILabelAdapter(comment, None)
-		assert_that(labels, is_not(none()))
-		assert_that(labels, has_length(1))
-		assert_that(labels, is_(('comment',)))
+		props = IPropertyAdapter(entry, None)
+		assert_that(props, has_entries(	'ntiid', is_not(none()),
+										'oid', is_not(none()),
+										'intid', is_(int),
+										'title', is_(u''),
+										'type', is_(u'Topic'),
+										'forum', is_not(none()),
+										'createdTime', is_(float) ) )
 
-		props = graph_interfaces.IPropertyAdapter(comment, None)
-		assert_that(props, is_not(none()))
-		assert_that(props, has_length(5))
-		assert_that(props, has_entry('author', u'user1@bar'))
-		assert_that(props, has_entry('oid', is_not(none())))
-		assert_that(props, has_entry('topic', is_not(none())))
-		assert_that(props, has_entry('type', u'Comment'))
+		label = ILabelAdapter(comment, None)
+		assert_that(label, is_('Comment'))
+
+		props = IPropertyAdapter(comment, None)
+		assert_that(props, has_entries(	'intid', is_(int),
+										'creator', is_(u'user1@bar'),
+										'oid', is_not(none()),
+										'type', is_(u'Comment'),
+										'topic', is_not(none()),
+										'createdTime', is_(float) ) )
