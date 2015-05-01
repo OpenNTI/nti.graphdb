@@ -44,22 +44,19 @@ class IGraphDB(interface.Interface):
 	def get_nodes(*objs):
 		pass
 
+	def get_indexed_node(label, key, value):
+		pass
+	
 	def get_node_properties(obj):
 		pass
 
-	def get_node_labels(obj):
+	def update_node(obj, properties=None):
 		pass
-
-	def get_indexed_node(key, value):
-		pass
-
+	
 	def delete_node(obj):
 		pass
 
 	def delete_nodes(*objs):
-		pass
-
-	def update_node(obj, properties=None):
 		pass
 
 	def create_relationship(start, end, rel_type, properties=None, key=None, value=None):

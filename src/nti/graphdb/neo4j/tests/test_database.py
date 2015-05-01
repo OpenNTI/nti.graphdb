@@ -10,9 +10,12 @@ __docformat__ = "restructuredtext en"
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
+from hamcrest import contains
 from hamcrest import has_entry
+from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_property
+does_not = is_not
 
 import unittest
 
@@ -57,10 +60,23 @@ class TestNeo4jDB(GraphDBTestCase):
 		res = self.db.get_node(user)
 		assert_that(res, is_not(none()))
 
-		user2 = self._create_user()
+		username = random_username()
+		user2 = self._create_user(username)
 		res = self.db.get_node(user2)
 		assert_that(res, is_(none()))
+		
+		res = self.db.create_nodes(user2)
+		assert_that(res, is_not(none()))
+		assert_that(res, has_length(1))
 
+		res = self.db.get_nodes(user, user2)
+		assert_that(res, is_not(none()))
+		assert_that(res, has_length(2))
+		assert_that(res, does_not(contains(None)))
+		
+		node = self.db.get_indexed_node("User", 'username', username)
+		assert_that(node, is_not(none()))
+		
 # 		props = dict(node.properties)
 # 		props['language'] = 'latin'
 # 		res = self.db.update_node(node, properties=props)

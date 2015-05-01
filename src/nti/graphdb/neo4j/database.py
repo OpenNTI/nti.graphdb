@@ -19,6 +19,7 @@ from zope import interface
 
 from py2neo.neo4j import Node
 from py2neo.neo4j import Graph
+from py2neo.neo4j import ReadBatch
 from py2neo.neo4j import CypherJob
 from py2neo.neo4j import WriteBatch
 from py2neo.neo4j import authenticate
@@ -45,16 +46,19 @@ def _is_404(ex):
 	response = getattr(ex, 'response', None)
 	return getattr(response, 'status_code', None) == 404
 
-def _merge_node_query(label, key, value, properties):
-	result = "MERGE (n:%s { %s:%s }) RETURN n" % (label, key, value)
+def _merge_node_query(label, key, value):
+	result = "MERGE (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
 	return result
 
-def _set_properties_query(label, key, value, properties):
+def _set_properties_query(label, key, value):
 	result = """
-	MATCH (n:%s { %s:%s })
-	SET n += %s 
-	""" % (label, key, value, properties)
-	return result
+	MATCH (n:%s { %s:'%s' }) SET n += { props }
+	""" % (label, key, value)
+	return result.strip()
+
+def _match_node_query(label, key, value):
+	result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
+	return result.strip()
 
 _marker = object()
 
@@ -127,9 +131,8 @@ class Neo4jDB(object):
 				query = _merge_node_query(label, adapted.key, adapted.value)
 				wb.append(CypherJob(query))
 				if properties:
-					query = _set_properties_query(label, adapted.key, adapted.value,
-												  properties)
-					wb.append(CypherJob(query))
+					query = _set_properties_query(label, adapted.key, adapted.value)
+					wb.append(CypherJob(query, parameters={"props":properties}))
 			else:
 				abstract = node4j(label, **properties)
 				wb.create(abstract)
@@ -138,7 +141,6 @@ class Neo4jDB(object):
 		for n in created:
 			if n is not None and isinstance(n, Node):
 				result.append(Neo4jNode.create(n))
-		wb.submit()
 		return result
 
 	def _get_node(self, obj, props=True):
@@ -170,49 +172,38 @@ class Neo4jDB(object):
 		result = self._get_node(obj, props=props)
 		result = Neo4jNode.create(result) if result is not None and not raw else result
 		return result
-# 
+	
+	def get_or_create_node(self, obj, raw=False, props=True):
+		result = self.get_node(obj, raw=raw, props=props) or \
+ 				 self.create_node(obj, raw=raw, props=props)
+		return result
+
+	def get_nodes(self, *objs):
+		nodes = []
+		rb = ReadBatch(self.db)
+		for o in objs:
+			label = ILabelAdapter(o)
+			adapted = IUniqueAttributeAdapter(o)
+			query = _match_node_query(label, adapted.key, adapted.value)
+			rb.append(CypherJob(query))
+			
+		for result in rb.submit():
+			if result is not Node:
+				nodes.append(Neo4jNode.create(result))
+			else:
+				nodes.append(None)
+		return nodes
+
+	def get_indexed_node(self, label, key, value, raw=False, props=True):
+		__traceback_info__ = label, key, value
+		result = self.db.find_one(label, key, value)
+		if props and result is not None:
+			result.pull()
+		result = Neo4jNode.create(result) if result is not None and not raw else result
+		return result
+
 # 	node = get_node
-# 
-# 	def _get_labels_and_properties(self, node, props=True):
-# 		if node is not None and props:
-# 			node.get_properties()
-# 			setattr(node, '_labels', node.get_labels())
-# 		return node
-# 
-# 	def get_nodes(self, *objs):
-# 		nodes = []
-# 		rb = neo4j.ReadBatch(self.db)
-# 		for o in objs:
-# 			adapted = graph_interfaces.IUniqueAttributeAdapter(o)
-# 			rb.get_indexed_nodes("PKIndex", adapted.key, adapted.value)
-# 
-# 		for result in rb.submit():
-# 			if result:
-# 				node = result[0]
-# 				nodes.append(Neo4jNode.create(node))
-# 			else:
-# 				nodes.append(None)
-# 		return nodes
-# 
-# 	def get_or_create_node(self, obj, raw=False, props=True):
-# 		result = self.get_node(obj, raw=raw, props=props) or \
-# 				 self.create_node(obj, raw=raw, props=props)
-# 		return result
-# 
-# 	def get_indexed_node(self, key, value, raw=False, props=True):
-# 		__traceback_info__ = key, value
-# 		result = self.db.get_indexed_node("PKIndex", key, value)
-# 		self._get_labels_and_properties(result, props)
-# 		return Neo4jNode.create(result) if result is not None and not raw else result
-# 
-# 	def get_node_properties(self, obj):
-# 		node = self.get_node(obj)
-# 		return node.properties if node is not None else None
-# 
-# 	def get_node_labels(self, obj):
-# 		node = self._do_get_node(obj)
-# 		return node._labels if node is not None else None
-# 
+# # 
 # 	def update_node(self, obj, labels=_marker, properties=_marker):
 # 		node = self._do_get_node(obj, props=False)
 # 		if node is not None:
