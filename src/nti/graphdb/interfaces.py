@@ -31,9 +31,7 @@ class IGraphDBQueueFactory(interface.Interface):
 	"""
 	A factory for graphdb processing queues.
 	"""
-	
 
-	
 class IGraphDB(interface.Interface):
 
 	def create_node(obj, label=None, properties=None, key=None, value=None):
