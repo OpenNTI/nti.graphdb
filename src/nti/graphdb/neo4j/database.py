@@ -60,6 +60,11 @@ def _match_node_query(label, key, value):
 	result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
 	return result.strip()
 
+def _isolate(self, node):
+	query = "START a=node(%s) MATCH a-[r]-b DELETE r" % node._id
+	self.append(CypherJob(query))
+WriteBatch.isolate = _isolate
+
 _marker = object()
 
 @WithRepr
@@ -188,7 +193,7 @@ class Neo4jDB(object):
 			rb.append(CypherJob(query))
 			
 		for result in rb.submit():
-			if result is not Node:
+			if result is not None:
 				nodes.append(Neo4jNode.create(result))
 			else:
 				nodes.append(None)
@@ -202,64 +207,55 @@ class Neo4jDB(object):
 		result = Neo4jNode.create(result) if result is not None and not raw else result
 		return result
 
-# 	node = get_node
-# # 
-# 	def update_node(self, obj, labels=_marker, properties=_marker):
-# 		node = self._do_get_node(obj, props=False)
-# 		if node is not None:
-# 			if labels != _marker:
-# 				node.set_labels(*labels)
-# 			if properties != _marker:
-# 				node.set_properties(properties)
-# 			return True
-# 		return False
+	def update_node(self, obj, labels=_marker, properties=_marker):
+		node = self._get_node(obj, props=False)
+		if node is not None:
+			if properties != _marker:
+				node.set_properties(properties)
+			return True
+		return False
 
-# 	def _do_delete_node(self, obj):
-# 		node = self._do_get_node(obj, props=False)
-# 		if node is not None:
-# 			wb = neo4j.WriteBatch(self.db)
-# 			wb.remove_from_index(neo4j.Node, "PKIndex", entity=node)
-# 			wb.isolate(node)
-# 			wb.delete(node)
-# 			responses = wb.submit()
-# 			return responses[2] is None
-# 		return False
-# 
-# 	def delete_node(self, obj):
-# 		result = self._do_delete_node(obj)
-# 		return result
+	def _delete_node(self, obj):
+		node = self._get_node(obj, props=False)
+		if node is not None:
+			wb = WriteBatch(self.db)
+			wb.isolate(node)
+			wb.delete(node)
+			responses = wb.submit()
+			return responses[1] is None
+		return False
 
-# 	def delete_nodes(self, *objs):
-# 		nodes = []
-# 
-# 		# get all the nodes at once
-# 		rb = neo4j.ReadBatch(self.db)
-# 		for o in objs:
-# 			adapted = graph_interfaces.IUniqueAttributeAdapter(o)
-# 			if adapted.key and adapted.value:
-# 				rb.get_indexed_nodes("PKIndex", adapted.key, adapted.value)
-# 			else:
-# 				node = self._do_get_node(o, props=False)
-# 				if node is not None:
-# 					nodes.append(node)
-# 
-# 		for lst in rb.submit():
-# 			if lst and lst[0]:
-# 				nodes.append(lst[0])
-# 
-# 		# process all deletions at once
-# 		wb = neo4j.WriteBatch(self.db)
-# 		for node in nodes:
-# 			wb.remove_from_index(neo4j.Node, "PKIndex", entity=node)
-# 			wb.isolate(node)
-# 			wb.delete(node)
-# 			
-# 		result = 0
-# 		responses = wb.submit()
-# 		for idx in range(2, len(responses), 3):
-# 			if responses[idx] is None:
-# 				result += 1
-# 		return result
+	def delete_node(self, obj):
+		result = self._delete_node(obj)
+		return result
+
+	def delete_nodes(self, *objs):
+		nodes = []
+		
+		## get all the nodes at once
+		rb = ReadBatch(self.db)
+		for o in objs:
+			label = ILabelAdapter(o)
+			adapted = IUniqueAttributeAdapter(o)
+			query = _match_node_query(label, adapted.key, adapted.value)
+			rb.append(CypherJob(query))
+
+		for node in rb.submit():
+			if node is not None:
+				nodes.append(node)
+
+		## process all deletions at once
+		wb = WriteBatch(self.db)
+		for node in nodes:
+			wb.isolate(node)
+			wb.delete(node)
+			
+		result = 0
+		responses = wb.submit()
+		for idx in range(1, len(responses), 2):
+			if responses[idx] is None:
+				result += 1
+		return result
 
 	# relationships
 

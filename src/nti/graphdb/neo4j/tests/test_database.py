@@ -77,19 +77,24 @@ class TestNeo4jDB(GraphDBTestCase):
 		node = self.db.get_indexed_node("User", 'username', username)
 		assert_that(node, is_not(none()))
 		
-# 		props = dict(node.properties)
-# 		props['language'] = 'latin'
-# 		res = self.db.update_node(node, properties=props)
-# 
-# 		node = self.db.get_node(node.id)
-# 		assert_that(node, has_property('properties',
-# 									   has_entry('language', 'latin')))
-# 
-# 		res = self.db.delete_node(user)
-# 		assert_that(res, is_(True))
-# 
-# 		node = self.db.get_node(user)
-# 		assert_that(node, is_(none()))
+		props = dict(node.properties)
+		props['language'] = 'latin'
+		res = self.db.update_node(node, properties=props)
+		assert_that(res, is_(True))
+		
+		node = self.db.get_node(node)
+		assert_that(node, has_property('properties',
+ 									   has_entry('language', 'latin')))
+
+		res = self.db.delete_node(user)
+		assert_that(res, is_(True))
+
+		node = self.db.get_node(user)
+		assert_that(node, is_(none()))
+
+		res = self.db.delete_nodes(user2)
+		assert_that(res, is_(1))
+
 # 
 # 	@WithMockDSTrans
 # 	def test_relationship_funcs(self):
