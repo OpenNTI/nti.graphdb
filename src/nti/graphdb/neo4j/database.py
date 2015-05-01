@@ -14,7 +14,7 @@ import numbers
 import urlparse
 #import collections
 
-# from zope import component
+from zope import component
 from zope import interface
 
 from py2neo.neo4j import Node
@@ -23,8 +23,8 @@ from py2neo.neo4j import ReadBatch
 from py2neo.neo4j import CypherJob
 from py2neo.neo4j import WriteBatch
 from py2neo.neo4j import authenticate
+from py2neo.neo4j import Relationship
 
-# from py2neo import rel as rel4j
 from py2neo import node as node4j
 from py2neo.error import GraphError
 
@@ -33,8 +33,7 @@ from nti.common.representation import WithRepr
 from nti.schema.schema import EqHash
 
 from .node import Neo4jNode
-
-# from .relationship import Neo4jRelationship
+from .relationship import Neo4jRelationship
 
 from ..interfaces import IGraphDB
 from ..interfaces import IGraphNode
@@ -112,8 +111,11 @@ class Neo4jDB(object):
 		
 		if key and value is not None:
 			result = self.db.merge_one(label, key, value)
+			result.properties.update(properties)
+			result.push()
 			if props:
 				self.db.pull(result)
+			
 		else:
 			node = Node(label, **properties)
 			result = self.db.create(node)[0]
@@ -259,10 +261,34 @@ class Neo4jDB(object):
 
 	# relationships
 
-# 	def _get_rel_properties(self, start, end, rel_type):
-# 		result = component.queryMultiAdapter((start, end, rel_type),
-# 											 graph_interfaces.IPropertyAdapter)
-# 		return result or {}
+	@classmethod
+	def _rel_properties(cls, start, end, rel_type):
+		result = component.queryMultiAdapter((start, end, rel_type), IPropertyAdapter)
+		return result or {}
+
+	def _create_relationship(self, start, end, rel_type, properties=None, unique=True):
+		## neo4j nodes
+		n4j_end = self.get_or_create_node(end, raw=True, props=False)
+		n4j_start = self.get_or_create_node(start, raw=True, props=False)
+		
+		## properties
+		properties = dict(properties or {})
+		properties.update(self._rel_properties(start, end, rel_type))
+		if unique:
+			result = Relationship(n4j_start, str(rel_type), n4j_end, **properties)
+			result = self.db.create_unique(result)[0]
+		else:
+			result = Relationship(n4j_start, str(rel_type), n4j_end, **properties)
+			result = self.db.create(result)[0]
+		return result
+
+	def create_relationship(self, start, end, rel_type, properties=None,
+							unique=True, raw=False):
+		result = self._create_relationship(start, end, rel_type, properties, unique=unique)
+		result = Neo4jRelationship.create(result) if not raw else result
+		return result
+
+# 	
 # 	
 # 	def _get_rel_keyvalue(self, start, end, rel_type, key=None, value=None):
 # 		adapted = component.queryMultiAdapter((start, end, rel_type),
@@ -272,34 +298,7 @@ class Neo4jDB(object):
 # 			value = adapted.value if value is None else value
 # 		return (key, value)
 # 
-# 	def _do_create_relationship(self, start, end, rel_type,
-# 								properties=None, key=None, value=None):
-# 		# get neo4j nodes
-# 		n4j_end = self.get_or_create_node(end, raw=True, props=False)
-# 		n4j_start = self.get_or_create_node(start, raw=True, props=False)
-# 		rel_properties = self._get_rel_properties(start, end, rel_type)
-# 		if properties:
-# 			rel_properties.update(properties)
-# 		
-# 		index = self.db.get_or_create_index(neo4j.Relationship, "PKIndex")
-# 		key, value = self._get_rel_keyvalue(start, end, rel_type, key, value)
-# 		if key and value is not None:
-# 			abstract = [n4j_start, str(rel_type), n4j_end, rel_properties]
-# 			result = index.get_or_create(key, value, abstract)
-# 			if rel_properties:
-# 				result.get_properties()
-# 		else:
-# 			# create neo4j relationship
-# 			rel = rel4j(n4j_start, str(rel_type), n4j_end, **rel_properties)
-# 			result = self.db.create(rel)[0]
-# 
-# 		return result
-# 
-# 	def create_relationship(self, start, end, rel_type, properties=None,
-# 							key=None, value=None, raw=False):
-# 		result = self._do_create_relationship(start, end, rel_type, properties,
-# 											  key, value)
-# 		return Neo4jRelationship.create(result) if not raw else result
+
 # 
 # 	def create_relationships(self, *rels):
 # 		wb = neo4j.WriteBatch(self.db)

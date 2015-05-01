@@ -95,18 +95,18 @@ class TestNeo4jDB(GraphDBTestCase):
 		res = self.db.delete_nodes(user2)
 		assert_that(res, is_(1))
 
-# 
-# 	@WithMockDSTrans
-# 	def test_relationship_funcs(self):
-# 		user1 = self._random_username()
-# 		user1 = self._create_user(user1)
-# 		node1 = self.db.create_node(user1)
-# 		
-# 		user2 = self._random_username()
-# 		user2 = self._create_user(user2)
-# 		node2 = self.db.create_node(user2)
-# 
-# 		rel = self.db.create_relationship(user1, user2, relationships.FriendOf())
+	@WithMockDSTrans
+	def test_relationship_funcs(self):
+		user1 = self._random_username()
+		user1 = self._create_user(user1)
+		self.db.create_node(user1)
+		
+		user2 = self._random_username()
+		user2 = self._create_user(user2)
+		self.db.create_node(user2)
+
+		self.db.create_relationship(user1, user2, "friend")
+
 # 		assert_that(rel, is_not(none()))
 # 		assert_that(rel, has_property('id', is_not(none())))
 # 		assert_that(rel, has_property('uri', is_not(none())))
