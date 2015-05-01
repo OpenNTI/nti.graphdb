@@ -12,17 +12,13 @@ from hamcrest import none
 from hamcrest import is_not
 from hamcrest import assert_that
 
-import unittest
-
 from nti.graphdb.utils import UniqueAttribute
 from nti.graphdb.interfaces import IUniqueAttributeAdapter
 
-from nti.graphdb.tests import SharedConfiguringTestLayer
+from nti.graphdb.tests import GraphDBTestCase
 
-class TestUtils(unittest.TestCase):
+class TestUtils(GraphDBTestCase):
 
-	layer = SharedConfiguringTestLayer
-	
 	def test_unique_attribute(self):
 		ua = UniqueAttribute("a", "b")
 		assert_that(IUniqueAttributeAdapter.providedBy(ua), is_(True))
