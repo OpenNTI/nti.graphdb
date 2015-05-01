@@ -14,12 +14,16 @@ from zope import component
 from nti.async import create_job
 from nti.async import get_job_queue as async_queue
 
-from . import interfaces as gdb_interfaces
+from .interfaces import IGraphDB
+from .interfaces import IGraphDBQueueFactory
 
 QUEUE_NAME = "++etc++graphdb++queue"
 
 def get_graph_db():
-	return component.queryUtility(gdb_interfaces.IGraphDB)
+	return component.queryUtility(IGraphDB)
 
-def get_job_queue():
-	return async_queue(QUEUE_NAME)
+def get_factory():
+	return component.getUtility(IGraphDBQueueFactory)
+
+def get_job_queue(name=QUEUE_NAME):
+	return get_factory().get_queue(name)

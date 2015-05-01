@@ -116,5 +116,18 @@
 	</configure>
 	 -->
 
+	<configure zcml:condition="have devmode">
+		<configure zcml:condition="not-have testmode">
+			<gdb:registerRedisProcessingQueue />
+		</configure>
+		<configure zcml:condition="have testmode">
+			<gdb:registerImmediateProcessingQueue />
+		</configure>
+	</configure>
+
+	<configure zcml:condition="not-have devmode">
+		<gdb:registerRedisProcessingQueue />
+	</configure>
+
 </configure>
 

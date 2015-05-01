@@ -5,6 +5,19 @@
 		<meta:directive	name="registerGraphDB"
 						schema=".zcml.IRegisterGraphDB"
 						handler=".zcml.registerGraphDB" />
+						
+		<meta:directive	name="registerImmediateProcessingQueue"
+						schema=".interfaces.IGraphDBQueueFactory"
+						handler=".zcml.registerImmediateProcessingQueue" />
+
+		<meta:directive	name="registerProcessingQueue"
+						schema=".interfaces.IGraphDBQueueFactory"
+						handler=".zcml.registerProcessingQueue" />
+						
+		<meta:directive	name="registerRedisProcessingQueue"
+						schema=".interfaces.IGraphDBQueueFactory"
+						handler=".zcml.registerRedisProcessingQueue" />
+
 	</meta:directives>
 
 </configure>

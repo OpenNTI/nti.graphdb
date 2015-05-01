@@ -27,6 +27,13 @@ ADD_EVENT = 0
 MODIFY_EVENT = 1
 REMOVE_EVENT = 2
 
+class IGraphDBQueueFactory(interface.Interface):
+	"""
+	A factory for graphdb processing queues.
+	"""
+	
+
+	
 class IGraphDB(interface.Interface):
 
 	def create_node(obj, label=None, properties=None, key=None, value=None):
