@@ -39,6 +39,7 @@ from ..interfaces import IGraphDB
 from ..interfaces import IGraphNode
 from ..interfaces import ILabelAdapter
 from ..interfaces import IPropertyAdapter
+from ..interfaces import IGraphRelationship
 from ..interfaces import IUniqueAttributeAdapter
 
 def _is_404(ex):
@@ -288,7 +289,46 @@ class Neo4jDB(object):
 		result = Neo4jRelationship.create(result) if not raw else result
 		return result
 
-# 	
+	def _get_relationship(self, obj, props=True):
+		result = None
+		try:
+			if isinstance(obj, Relationship):
+				result = obj
+			elif isinstance(obj, (six.string_types, numbers.Number)):
+				result = self.db.relationship(str(obj))
+			elif isinstance(obj, Neo4jRelationship) and obj.neo is not None:
+				result = obj.neo
+			elif IGraphRelationship.providedBy(obj):
+				result = self.db.relationship(obj.id)
+			if result is not None and props:
+				result.pull()
+		except GraphError as e:
+			if not _is_404(e):
+				raise e
+			result = None
+		return result
+
+	def get_relationship(self, obj, raw=False):
+		result = self._get_relationship(obj)
+		result = Neo4jRelationship.create(result) \
+				 if result is not None and not raw else result
+		return result
+
+	def _match(self, start_node=None, end_node=None, rel_type=None,
+				  bidirectional=False, limit=None):
+		n4j_end = self._do_get_node(end_node) if end_node is not None else None
+		n4j_start = self._do_get_node(start_node) if start_node is not None else None
+		n4j_type = str(rel_type) if rel_type is not None else None
+		result = self.db.match(n4j_start, n4j_type, n4j_end, bidirectional, limit)
+		return result
+
+	def match(self, start=None, end=None, rel_type=None, bidirectional=False,
+			  limit=None, raw=False):
+		result = self._match(start, end, rel_type, bidirectional, limit)
+		result = [Neo4jRelationship.create(x) for x in result or ()] \
+				 if not raw else result
+		return result or ()
+
 # 	
 # 	def _get_rel_keyvalue(self, start, end, rel_type, key=None, value=None):
 # 		adapted = component.queryMultiAdapter((start, end, rel_type),
@@ -338,30 +378,7 @@ class Neo4jDB(object):
 # 		result = wb.submit()
 # 		return result
 # 
-# 	def _do_get_relationship(self, obj, props=True):
-# 		result = None
-# 		try:
-# 			if isinstance(obj, neo4j.Relationship):
-# 				result = obj
-# 			elif isinstance(obj, (six.string_types, numbers.Number)):
-# 				result = self.db.relationship(str(obj))
-# 			elif isinstance(obj, Neo4jRelationship) and obj._neo is not None:
-# 				result = obj._neo
-# 			elif graph_interfaces.IGraphRelationship.providedBy(obj):
-# 				result = self.db.relationship(obj.id)
-# 			if result is not None and props:
-# 				result.get_properties()
-# 		except GraphError as e:
-# 			if not _is_404(e):
-# 				raise e
-# 			result = None
-# 		return result
-# 
-# 	def get_relationship(self, obj, raw=False):
-# 		result = self._do_get_relationship(obj)
-# 		return 	Neo4jRelationship.create(result) \
-# 				if result is not None and not raw else result
-# 
+
 # 	relationship = get_relationship
 # 
 # 	def get_indexed_relationship(self, key, value, raw=False, props=True):
@@ -371,20 +388,7 @@ class Neo4jDB(object):
 # 		return 	Neo4jRelationship.create(result) \
 # 				if result is not None and not raw else result
 # 	
-# 	def _do_match(self, start_node=None, end_node=None, rel_type=None,
-# 				  bidirectional=False, limit=None):
-# 		n4j_end = self._do_get_node(end_node) if end_node is not None else None
-# 		n4j_start = self._do_get_node(start_node) if start_node is not None else None
-# 		n4j_type = str(rel_type) if rel_type is not None else None
-# 		result = self.db.match(n4j_start, n4j_type, n4j_end, bidirectional, limit)
-# 		return result
-# 
-# 	def match(self, start=None, end=None, rel_type=None, bidirectional=False,
-# 			  limit=None, raw=False):
-# 		result = self._do_match(start, end, rel_type, bidirectional, limit)
-# 		result = [Neo4jRelationship.create(x) for x in result or ()] \
-# 				 if not raw else result
-# 		return result or ()
+
 # 		
 # 	def delete_relationships(self, *objs):
 # 		# collect node4j rels

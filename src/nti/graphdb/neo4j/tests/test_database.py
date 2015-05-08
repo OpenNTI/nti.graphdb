@@ -97,33 +97,29 @@ class TestNeo4jDB(GraphDBTestCase):
 
 	@WithMockDSTrans
 	def test_relationship_funcs(self):
-		user1 = self._random_username()
+		user1 = random_username()
 		user1 = self._create_user(user1)
 		self.db.create_node(user1)
 		
-		user2 = self._random_username()
+		user2 = random_username()
 		user2 = self._create_user(user2)
 		self.db.create_node(user2)
 
-		self.db.create_relationship(user1, user2, "friend")
+		rel = self.db.create_relationship(user1, user2, "IS_FRIEND_OF")
 
-# 		assert_that(rel, is_not(none()))
-# 		assert_that(rel, has_property('id', is_not(none())))
-# 		assert_that(rel, has_property('uri', is_not(none())))
-# 		assert_that(rel, has_property('end', is_not(none())))
-# 		assert_that(rel, has_property('start', is_not(none())))
-# 		assert_that(rel, has_property('type', is_not(none())))
-# 
-# 		res = self.db.get_relationship(rel.id)
-# 		assert_that(res, is_not(none()))
-# 		assert_that(rel, has_property('id', is_not(none())))
-# 		assert_that(rel, has_property('uri', is_not(none())))
-# 		assert_that(rel, has_property('end', is_not(none())))
-# 		assert_that(rel, has_property('start', is_not(none())))
-# 
-# 		res = self.db.get_relationship(rel)
-# 		assert_that(res, is_not(none()))
-# 
+		assert_that(rel, is_not(none()))
+		assert_that(rel, has_property('id', is_not(none())))
+		assert_that(rel, has_property('uri', is_not(none())))
+		assert_that(rel, has_property('end', is_not(none())))
+		assert_that(rel, has_property('start', is_not(none())))
+		assert_that(rel, has_property('type', is_not(none())))
+
+		res = self.db.get_relationship(rel.id)
+		assert_that(res, is_not(none()))
+		
+		res = self.db.get_relationship(rel)
+		assert_that(res, is_not(none()))
+		
 # 		res = self.db.match(start=user1, end=user2, rel_type=relationships.FriendOf())
 # 		assert_that(res, has_length(1))
 # 

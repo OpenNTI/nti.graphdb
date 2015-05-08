@@ -155,9 +155,9 @@ class IUniqueAttributeAdapter(interface.Interface):
 	key = interface.Attribute("Attribute key")
 	value = interface.Attribute("Attribute value")
 
-# class IFriendOf(IRelationshipType):
-# 	pass
-# 
+class IFriendOf(IRelationshipType):
+	pass
+
 # class IMemberOf(IRelationshipType):
 # 	pass
 # 

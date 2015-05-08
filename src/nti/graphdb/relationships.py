@@ -6,26 +6,26 @@
 
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
- 
+
 logger = __import__('logging').getLogger(__name__)
- 
-# from zope import interface
-# 
-# from . import interfaces as graph_interfaces
-# 
-# class _Singleton(object):
-# 	_instances = {}
-# 	def __new__(cls, *args, **kwargs):
-# 		if cls not in cls._instances:
-# 			cls._instances[cls] = super(_Singleton, cls).__new__(cls, *args, **kwargs)
-# 		return cls._instances[cls]
-# 
-# @interface.implementer(graph_interfaces.IFriendOf)
-# class FriendOf(_Singleton):
-# 
-# 	def __str__(self):
-# 		return "IS_FRIEND_OF"
-# 	__repr__ = __str__
+
+from zope import interface
+
+from .interfaces import IFriendOf
+
+class _Singleton(object):
+	_instances = {}
+	def __new__(cls, *args, **kwargs):
+		if cls not in cls._instances:
+			cls._instances[cls] = super(_Singleton, cls).__new__(cls, *args, **kwargs)
+		return cls._instances[cls]
+
+@interface.implementer(IFriendOf)
+class FriendOf(_Singleton):
+
+	def __str__(self):
+		return "IS_FRIEND_OF"
+	__repr__ = __str__
 # 
 # @interface.implementer(graph_interfaces.IMemberOf)
 # class MemberOf(_Singleton):
