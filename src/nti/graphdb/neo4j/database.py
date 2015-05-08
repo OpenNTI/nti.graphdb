@@ -12,7 +12,7 @@ logger = __import__('logging').getLogger(__name__)
 import six
 import numbers
 import urlparse
-#import collections
+from collections import Mapping
 
 from zope import component
 from zope import interface
@@ -42,6 +42,9 @@ from ..interfaces import IPropertyAdapter
 from ..interfaces import IGraphRelationship
 from ..interfaces import IUniqueAttributeAdapter
 
+from .interfaces import INeo4jNode
+from .interfaces import IGraphNodeNeo4j
+
 def _is_404(ex):
 	response = getattr(ex, 'response', None)
 	return getattr(response, 'status_code', None) == 404
@@ -58,6 +61,16 @@ def _set_properties_query(label, key, value):
 
 def _match_node_query(label, key, value):
 	result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
+	return result.strip()
+
+def _merge_rel_query(start_id, end_id, rel_type):
+	result = """
+	MATCH (a)
+	WHERE id(a)=%s
+	MATCH (b)
+	WHERE id(b)=%s
+	MERGE r=(a)-[:%s]-(b)
+	RETURN r""" % (start_id, end_id, rel_type)
 	return result.strip()
 
 def _isolate(self, node):
@@ -315,7 +328,9 @@ class Neo4jDB(object):
 		result = Neo4jRelationship.create(result) \
 				 if result is not None and not raw else result
 		return result
-
+	
+	relationship = get_relationship
+	
 	def _match(self, start_node=None, end_node=None, rel_type=None,
 				  bidirectional=False, limit=None):
 		n4j_end = self._get_node(end_node) if end_node is not None else None
@@ -331,98 +346,58 @@ class Neo4jDB(object):
 				 if not raw else result
 		return result or ()
 
-# 	
-# 	def _get_rel_keyvalue(self, start, end, rel_type, key=None, value=None):
-# 		adapted = component.queryMultiAdapter((start, end, rel_type),
-# 											  graph_interfaces.IUniqueAttributeAdapter)
-# 		if adapted is not None:
-# 			key = adapted.key if not key else key
-# 			value = adapted.value if value is None else value
-# 		return (key, value)
-# 
+	def create_relationships(self, *rels):
+		wb = WriteBatch(self.db)
+		for rel in rels:
+			assert isinstance(rel, (tuple, list)) and len(rel) >= 3, 'invalid tuple'
 
-# 
-# 	def create_relationships(self, *rels):
-# 		wb = neo4j.WriteBatch(self.db)
-# 		for rel in rels:
-# 			assert isinstance(rel, (tuple, list)) and len(rel) >= 3, 'invalid tuple'
-# 
-# 			# get relationship type
-# 			type_ = rel[1]
-# 			assert type_, 'invalid relationship type'
-# 			
-# 			# get nodes
-# 			start = rel[0]  # start node
-# 			end = rel[2] # end node
-# 			for n in (start, end):
-# 				assert isinstance(n, (neo4j.Node, Neo4jNode))
-# 			start = start if isinstance(start, neo4j.Node) else start._neo
-# 			end = end if isinstance(end, neo4j.Node) else end._neo
-# 
-# 			# get properties
-# 			properties = {} if len(rel) < 4 or rel[3] is None  else rel[3]
-# 			assert isinstance(properties, collections.Mapping)
-# 
-# 			# get key,value
-# 			key = None if len(rel) < 5 or rel[4] is None else rel[4]
-# 			value = None if len(rel) < 6 or rel[5] is None else rel[5]
-# 
-# 			abstract = rel4j(start, str(type_), end, **properties)
-# 			if key and value:
-# 				wb.get_or_create_in_index(neo4j.Relationship,
-# 										  "PKIndex",
-# 										   key,
-# 										   value,
-# 										   abstract)
-# 			else:
-# 				wb.create(abstract)
-# 
-# 		result = wb.submit()
-# 		return result
-# 
+			## get relationship type
+			rel_type = rel[1]
+			assert rel_type, 'invalid relationship type'
+			
+			## get nodes
+			end = rel[2] # end node
+			start = rel[0]  # start node
+			for n in (start, end):
+				assert INeo4jNode.providedBy(n) or IGraphNodeNeo4j.providedBy(n)
 
-# 	relationship = get_relationship
-# 
-# 	def get_indexed_relationship(self, key, value, raw=False, props=True):
-# 		result = self.db.get_indexed_relationship("PKIndex", key, value)
-# 		if result is not None and props:
-# 			result.get_properties()
-# 		return 	Neo4jRelationship.create(result) \
-# 				if result is not None and not raw else result
-# 	
+			end = end if INeo4jNode.providedBy(end) else end.neo
+			start = start if INeo4jNode.providedBy(start) else start.neo
+			
+			## get properties
+			properties = {} if len(rel) < 4 or rel[3] is None  else rel[3]
+			assert isinstance(properties, Mapping)
 
-# 		
-# 	def delete_relationships(self, *objs):
-# 		# collect node4j rels
-# 		rels = set([self._do_get_relationship(x, False) for x in objs])
-# 		rels.discard(None)
-# 
-# 		wb = neo4j.WriteBatch(self.db)
-# 		for rel in rels:
-# 			wb.remove_from_index(neo4j.Relationship, "PKIndex", entity=rel)
-# 			wb.delete(rel)
-# 		wb.submit()
-# 
-# 		return True if rels else False
-# 
-# 	delete_relationship = delete_relationships
-# 
-# 	def delete_indexed_relationship(self, key, value):
-# 		try:
-# 			rel = self.db.get_indexed_relationship("PKIndex", key, value)
-# 		except GraphError:
-# 			rel = None
-# 
-# 		if rel is not None:
-# 			wb = neo4j.WriteBatch(self.db)
-# 			wb.remove_from_index(neo4j.Relationship, "PKIndex", entity=rel)
-# 			wb.delete(rel)
-# 			wb.submit()
-# 		return rel
-# 
-# 	def update_relationship(self, obj, properties=_marker):
-# 		rel = self._do_get_relationship(obj)
-# 		if rel is not None and properties != _marker:
-# 			rel.set_properties(properties)
-# 			return True
-# 		return False
+			## get unique
+			unique = False if len(rel) < 5 or rel[4] is None else rel[4]
+			if not unique:
+				rel = Relationship(start, str(rel_type), end, **properties)
+				wb.create(rel)
+			else:
+				query = _merge_rel_query(start._id, end._id, rel_type)
+				wb.append(CypherJob(query)) ## XXX Parameter maps cannot be used in MERGE patterns 
+
+		result = wb.submit()
+		return result
+
+	def delete_relationships(self, *objs):
+		## collect node4j rels
+		rels = [self._get_relationship(x, False) for x in objs]
+		
+		wb = WriteBatch(self.db)
+		for rel in rels:
+			if rel is not None:
+				wb.delete(rel)
+		wb.submit()
+
+		result = True if rels else False
+		return result
+
+	delete_relationship = delete_relationships
+
+	def update_relationship(self, obj, properties=_marker):
+		rel = self._get_relationship(obj)
+		if rel is not None and properties != _marker:
+			rel.set_properties(properties)
+			return True
+		return False

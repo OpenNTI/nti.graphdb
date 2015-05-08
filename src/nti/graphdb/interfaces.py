@@ -73,16 +73,10 @@ class IGraphDB(interface.Interface):
 	def match(start_node=None, end_node=None, rel_type=None, bidirectional=False, limit=None):
 		pass
 
-	def delete_indexed_relationship(key, value):
-		pass
-
 	def delete_relationships(*rels):
 		pass
 
 	def update_relationship(obj, properties=None):
-		pass
-
-	def get_indexed_relationship(key, value):
 		pass
 
 class IGraphNode(interface.Interface):
@@ -158,9 +152,9 @@ class IUniqueAttributeAdapter(interface.Interface):
 class IFriendOf(IRelationshipType):
 	pass
 
-# class IMemberOf(IRelationshipType):
-# 	pass
-# 
+class IMemberOf(IRelationshipType):
+	pass
+
 # class IParentOf(IRelationshipType):
 # 	pass
 # 

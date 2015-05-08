@@ -124,25 +124,25 @@ class TestNeo4jDB(GraphDBTestCase):
 		assert_that(res, has_length(1))
 
 		rel_type = str(FriendOf())
-		res = self.db.match(start=node1, end=node2, rel_type=rel_type)
-		assert_that(res, has_length(1))
-# 
-# 		res = self.db.match(start=user1, end=user2, rel_type="unknown")
-# 		assert_that(res, has_length(0))
-# 
-# 		self.db.delete_relationships(rel)
-# 		res = self.db.get_relationship(rel)
-# 		assert_that(res, is_(none()))
-# 
-# 	@WithMockDSTrans
-# 	def test_create_nodes(self):
-# 		users = []
-# 		for _ in range(4):
-# 			user = self._random_username()
-# 			users.append(self._create_user(user))
-# 
-# 		nodes = self.db.create_nodes(*users)
-# 		assert_that(nodes, has_length(len(users)))
-# 
-# 		deleted = self.db.delete_nodes(*users)
-# 		assert_that(deleted, is_(len(users)))
+		rels = self.db.match(start=node1, end=node2, rel_type=rel_type)
+		assert_that(rels, has_length(1))
+		
+		res = self.db.match(start=user1, end=user2, rel_type="unknown")
+		assert_that(res, has_length(0))
+		
+		
+		self.db.delete_relationship(rels[0])
+		
+		res = self.db.get_relationship(rels[0])
+		assert_that(res, is_(none()))	
+				
+		rels =[ (node1,'BROTHER_OF', node2, {}, True),
+				(node2,'FAMILY_OF', node1, {'a':1}, False) ]
+		res = self.db.create_relationships(*rels)
+		assert_that(res, has_length(2))
+		
+		rels = self.db.match(start=node1, end=node2, rel_type='BROTHER_OF')
+		assert_that(rels, has_length(1))
+		
+		res = self.db.update_relationship(rels[0],  {'a':2})
+		assert_that(res, is_(True))
