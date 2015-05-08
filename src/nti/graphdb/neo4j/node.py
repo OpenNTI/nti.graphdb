@@ -19,24 +19,27 @@ from nti.schema.fieldproperty import createDirectFieldProperties
 
 from ..interfaces import IGraphNode
 
+from .interfaces import INeo4jNode
+from .interfaces import IGraphNodeNeo4j
+
 @WithRepr
 @EqHash('id')
-@interface.implementer(IGraphNode)
+@interface.implementer(IGraphNodeNeo4j)
 class Neo4jNode(SchemaConfigured):
-	createDirectFieldProperties(IGraphNode)
+	createDirectFieldProperties(IGraphNodeNeo4j)
 
 	_v_neo = None
 	neo = alias('_v_neo')
 	
 	@classmethod
 	def create(cls, node):
-		if isinstance(node, Neo4jNode):
+		if IGraphNodeNeo4j.providedBy(node):
 			result = node
 		elif IGraphNode.providedBy(node):
 			result = Neo4jNode(id=node.id, uri=node.uri,
 							   label=node.label,
 							   properties=dict(node.properties))
-		elif node is not None:
+		elif INeo4jNode.providedBy(node):
 			labels = list(node.labels or ())
 			result = Neo4jNode(id=unicode(node._id), 
                                uri=unicode(node.uri.string),

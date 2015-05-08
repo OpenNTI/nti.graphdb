@@ -10,11 +10,11 @@
 	<include package="zope.security" />
 
 	<class class="py2neo.neo4j.Node">
-		<implements interface=".interfaces.INode4jNode" />
+		<implements interface=".interfaces.INeo4jNode" />
 	</class>
 	
 	<class class="py2neo.neo4j.Relationship">
-		<implements interface=".interfaces.INode4jRelationship" />
+		<implements interface=".interfaces.INeo4jRelationship" />
 	</class>
 
 </configure>

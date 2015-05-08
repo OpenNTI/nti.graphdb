@@ -22,24 +22,27 @@ from .node import Neo4jNode
 
 from ..interfaces import IGraphRelationship
 
+from .interfaces import INeo4jRelationship
+from .interfaces import IGraphRelationshipNeo4j
+
 @WithRepr
 @EqHash('id')
-@interface.implementer(IGraphRelationship)
+@interface.implementer(IGraphRelationshipNeo4j)
 class Neo4jRelationship(SchemaConfigured):
-	createDirectFieldProperties(IGraphRelationship)
+	createDirectFieldProperties(IGraphRelationshipNeo4j)
 
 	_v_neo = None
 	neo = alias('_v_neo')
 
 	@classmethod
 	def create(cls, rel):
-		if isinstance(rel, Neo4jRelationship):
+		if IGraphRelationshipNeo4j.providedBy(rel):
 			result = rel
 		elif IGraphRelationship.providedBy(rel):
 			result = Neo4jRelationship(id=rel.id, uri=rel.uri, type=rel.type,
 									   start=rel.start, end=rel.end,
 									   properties=dict(rel.properties))
-		elif rel is not None:
+		elif INeo4jRelationship.providedBy(rel):
 			result = Neo4jRelationship(id=unicode(rel._id),
 									   uri=unicode(rel.uri.string),
 									   type=rel.type,

@@ -21,8 +21,8 @@ import unittest
 
 from nti.dataserver.users import User
 
-#from nti.graphdb import relationships
 from nti.graphdb.neo4j import database
+from nti.graphdb.relationships import FriendOf
 
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
@@ -99,11 +99,11 @@ class TestNeo4jDB(GraphDBTestCase):
 	def test_relationship_funcs(self):
 		user1 = random_username()
 		user1 = self._create_user(user1)
-		self.db.create_node(user1)
+		node1 = self.db.create_node(user1)
 		
 		user2 = random_username()
 		user2 = self._create_user(user2)
-		self.db.create_node(user2)
+		node2 = self.db.create_node(user2)
 
 		rel = self.db.create_relationship(user1, user2, "IS_FRIEND_OF")
 
@@ -120,12 +120,12 @@ class TestNeo4jDB(GraphDBTestCase):
 		res = self.db.get_relationship(rel)
 		assert_that(res, is_not(none()))
 		
-# 		res = self.db.match(start=user1, end=user2, rel_type=relationships.FriendOf())
-# 		assert_that(res, has_length(1))
-# 
-# 		rel_type = str(relationships.FriendOf())
-# 		res = self.db.match(start=node1, end=node2, rel_type=rel_type)
-# 		assert_that(res, has_length(1))
+		res = self.db.match(start=user1, end=user2, rel_type=FriendOf())
+		assert_that(res, has_length(1))
+
+		rel_type = str(FriendOf())
+		res = self.db.match(start=node1, end=node2, rel_type=rel_type)
+		assert_that(res, has_length(1))
 # 
 # 		res = self.db.match(start=user1, end=user2, rel_type="unknown")
 # 		assert_that(res, has_length(0))

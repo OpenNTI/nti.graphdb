@@ -11,8 +11,17 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
-class INode4jNode(interface.Interface):
+from ..interfaces import IGraphNode
+from ..interfaces import IGraphRelationship
+
+class INeo4jNode(interface.Interface):
 	pass
 
-class INode4jRelationship(interface.Interface):
+class INeo4jRelationship(interface.Interface):
+	pass
+
+class IGraphNodeNeo4j(IGraphNode):
+	pass
+
+class IGraphRelationshipNeo4j(IGraphRelationship):
 	pass

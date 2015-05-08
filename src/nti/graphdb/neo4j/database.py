@@ -181,6 +181,8 @@ class Neo4jDB(object):
 		result = Neo4jNode.create(result) if result is not None and not raw else result
 		return result
 	
+	node = get_node
+	
 	def get_or_create_node(self, obj, raw=False, props=True):
 		result = self.get_node(obj, raw=raw, props=props) or \
  				 self.create_node(obj, raw=raw, props=props)
@@ -316,8 +318,8 @@ class Neo4jDB(object):
 
 	def _match(self, start_node=None, end_node=None, rel_type=None,
 				  bidirectional=False, limit=None):
-		n4j_end = self._do_get_node(end_node) if end_node is not None else None
-		n4j_start = self._do_get_node(start_node) if start_node is not None else None
+		n4j_end = self._get_node(end_node) if end_node is not None else None
+		n4j_start = self._get_node(start_node) if start_node is not None else None
 		n4j_type = str(rel_type) if rel_type is not None else None
 		result = self.db.match(n4j_start, n4j_type, n4j_end, bidirectional, limit)
 		return result
