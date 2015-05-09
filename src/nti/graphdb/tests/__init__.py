@@ -25,7 +25,7 @@ from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
 
 import zope.testing.cleanup
 
-DEFAULT_URI = u'http://localhost:7474/db/data/'
+DEFAULT_URI = 'http://localhost:7474/db/data'
 
 def random_username():
     splits = unicode(uuid.uuid4()).split('-')
@@ -62,3 +62,15 @@ import unittest
 
 class GraphDBTestCase(unittest.TestCase):
     layer = SharedConfiguringTestLayer
+
+def can_connect(uri=None):
+    from py2neo import Graph
+    try:
+        graph = Graph(uri)
+        assert graph.neo4j_version
+        return True
+    except Exception:
+        return False
+
+def cannot_connect(uri=None):
+    return not can_connect(uri)

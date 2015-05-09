@@ -37,7 +37,7 @@ DEFAULT_URI = 'http://localhost:7474/db/data'
 class TestNeo4jDB(GraphDBTestCase):
 
 	def setUp(self):
-		super(GraphDBTestCase, self).setUp()
+		super(TestNeo4jDB, self).setUp()
 		self.db = database.Neo4jDB(DEFAULT_URI)
 
 	def _create_user(self, username='nt@nti.com', password='temp001', **kwargs):
