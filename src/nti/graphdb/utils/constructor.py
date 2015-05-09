@@ -3,6 +3,7 @@
 """
 .. $Id$
 """
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
@@ -16,7 +17,7 @@ from zope import component
 from nti.async.utils.processor import Processor
 
 from nti.graphdb import QUEUE_NAME
-from nti.graphdb import interfaces as graph_interfaces
+from nti.graphdb.interfaces import IObjectProcessor
 
 class Constructor(Processor):
 
@@ -38,7 +39,7 @@ class Constructor(Processor):
 	def set_log_formatter(self, args):
 		super(Constructor, self).set_log_formatter(args)
 		if args.verbose:
-			for _, module in component.getUtilitiesFor(graph_interfaces.IObjectProcessor):
+			for _, module in component.getUtilitiesFor(IObjectProcessor):
 				module.logger.setLevel(logging.DEBUG)
 		self.tone_down_logging()
 

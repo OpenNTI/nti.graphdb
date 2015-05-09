@@ -3,182 +3,193 @@
 """
 .. $Id$
 """
- 
+
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
- 
+
 logger = __import__('logging').getLogger(__name__)
- 
-# from zope import component
-# from zope.intid import interfaces as intid_interfaces
-# from zope.lifecycleevent import interfaces as lce_interfaces
+
+from zope import component
+
+from zope.intid.interfaces import IIntIdRemovedEvent
+
+from zope.lifecycleevent.interfaces import IObjectAddedEvent
+from zope.lifecycleevent.interfaces import IObjectModifiedEvent
+
+from nti.dataserver.users import User
+from nti.dataserver.users import Entity
+from nti.dataserver.interfaces import IFriendsList
+from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
+
+from nti.ntiids.ntiids import find_object_with_ntiid
+
+from nti.schema.schema import EqHash
+
+from .relationships import FriendOf
+from .relationships import MemberOf
+
+from .common import get_entity
+
+from .interfaces import IObjectProcessor
+
+from . import create_job
+from . import get_graph_db
+from . import get_job_queue
+
 # 
 # from nti.dataserver import users
 # from nti.dataserver import interfaces as nti_interfaces
 # 
-# from nti.ntiids import ntiids
 # 
-# from .common import get_entity
+# 
+
 # from .common import to_external_ntiid_oid
-# 
-# from . import create_job
-# from . import get_graph_db
-# from . import get_job_queue
-# from . import relationships
-# from . import interfaces as graph_interfaces
-# 
-# class _Relationship(object):
-# 
-# 	def __init__(self, _from, _to, **kwargs):
-# 		self._to = _to
-# 		self._from = _from
-# 		self.__dict__.update(kwargs)
-# 
-# 	def __eq__(self, other):
-# 		try:
-# 			return self is other or (self._from == other._from
-# 									 and self._to == other._to)
-# 		except AttributeError:
-# 			return NotImplemented
-# 
-# 	def __hash__(self):
-# 		xhash = 47
-# 		xhash ^= hash(self._from)
-# 		xhash ^= hash(self._to)
-# 		return xhash
-# 
-# def _get_graph_connections(db, entity, rel_type):
-# 	result = set()
-# 	rels = db.match(start=entity, rel_type=rel_type)
-# 	for rel in rels:
-# 		end = db.get_node(rel.end)
-# 		username = end.properties.get('username') if end is not None else u''
-# 		friend = users.User.get_user(username or u'')
-# 		if friend is not None:
-# 			result.add(_Relationship(entity, friend, rel=rel))
-# 	return result
-# 
-# def _update_connections(db, entity, graph_relations_func, db_relations_func, rel_type):
-# 	# computer db/graph relationships
-# 	entity = get_entity(entity)
-# 	stored_db_relations = db_relations_func(entity)
-# 	current_graph_relations = graph_relations_func(db, entity)
-# 	to_add = stored_db_relations - current_graph_relations
-# 	to_remove = current_graph_relations - stored_db_relations
-# 
-# 	# remove old relationships
-# 	if to_remove:
-# 		db.delete_relationships(*[x.rel for x in to_remove])
-# 		logger.debug("%s connection relationship(s) deleted", len(to_remove))
-# 
-# 	# create nodes
-# 	to_create = set()
-# 	for fship in to_add:
-# 		to_create.add(fship._to)
-# 		to_create.add(fship._from)
-# 	if to_create:
-# 		to_create = list(to_create)
-# 		db.create_nodes(*to_create)
-# 
-# 	# add new relationships
-# 	result = []
-# 	for fship in to_add:
-# 		_to = fship._to
-# 		_from = fship._from
-# 		rel = db.create_relationship(_from, _to, rel_type)
-# 		logger.debug("connection relationship %s created", rel)
-# 		result.append(rel)
-# 	return result
-# 
-# # friendship
-# 
-# def graph_friends(db, entity):
-# 	result = _get_graph_connections(db, entity, rel_type=relationships.FriendOf())
-# 	return result
-# 
-# def db_friends(entity):
-# 	result = set()
-# 	friendlists = getattr(entity, 'friendsLists', {}).values()
-# 	for fnd_list in friendlists:
-# 		for friend in fnd_list:
-# 			result.add(_Relationship(entity, friend))
-# 	return result
-# 
-# def update_friendships(db, entity):
-# 	result = _update_connections(db, entity,
-# 								 graph_friends,
-# 								 db_friends,
-# 								 relationships.FriendOf())
-# 	return result
-# 
-# def _process_friendslist_event(db, obj):
-# 	if nti_interfaces.IDynamicSharingTargetFriendsList.providedBy(obj):
-# 		return # pragma no cover
-# 
-# 	username = getattr(obj.creator, 'username', obj.creator)
-# 	queue = get_job_queue()
-# 	job = create_job(update_friendships, db=db, entity=username)
-# 	queue.put(job)
-# 
-# @component.adapter(nti_interfaces.IFriendsList, lce_interfaces.IObjectAddedEvent)
-# def _friendslist_added(obj, event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		_process_friendslist_event(db, obj)
-# 
-# @component.adapter(nti_interfaces.IFriendsList, lce_interfaces.IObjectModifiedEvent)
-# def _friendslist_modified(obj, event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		_process_friendslist_event(db, obj)
-# 
-# @component.adapter(nti_interfaces.IFriendsList, intid_interfaces.IIntIdRemovedEvent)
-# def _friendslist_deleted(obj, event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		_process_friendslist_event(db, obj)
-# 
-# # membership
-# 
-# def graph_memberships(db, entity):
-# 	result = _get_graph_connections(db, entity, rel_type=relationships.MemberOf())
-# 	return result
-# 
-# def db_memberships(entity):
-# 	result = set()
-# 	everyone = users.Entity.get_entity('Everyone')
-# 	memberships = getattr(entity, 'dynamic_memberships', ())
-# 	for x in memberships:
-# 		if x != everyone:
-# 			result.add(_Relationship(entity, x))
-# 	return result
-# 
-# def update_memberships(db, entity):
-# 	result = _update_connections(db, entity,
-# 								 graph_memberships,
-# 								 db_memberships,
-# 								 relationships.MemberOf())
-# 	return result
-# 
-# def process_start_membership(db, source, target):
-# 	source = users.Entity.get_entity(source)
-# 	target = ntiids.find_object_with_ntiid(target)
-# 	if source and target:
-# 		rel = db.create_relationship(source, target, relationships.MemberOf())
-# 		logger.debug("entity membership relationship %s created", rel)
-# 		return rel
-# 	return None
-# 
-# def process_stop_membership(db, source, target):
-# 	source = users.Entity.get_entity(source)
-# 	target = ntiids.find_object_with_ntiid(target)
-# 	if source and target:
-# 		rels = db.match(start=source, end=target, rel_type=relationships.MemberOf())
-# 		if rels:
-# 			db.delete_relationships(*rels)
-# 			logger.debug("%s entity membership relationship(s) removed", len(rels))
-# 			return True
-# 	return False
+
+@EqHash('_from', '_to')
+class _Relationship(object):
+
+	def __init__(self, _from, _to, **kwargs):
+		self._to = _to
+		self._from = _from
+		self.__dict__.update(kwargs)
+
+def _get_graph_connections(db, entity, rel_type):
+	result = set()
+	rels = db.match(start=entity, rel_type=rel_type)
+	for rel in rels:
+		end = db.get_node(rel.end)
+		username = end.properties.get('username') if end is not None else None
+		friend = User.get_user(username) if username else None
+		if friend is not None:
+			result.add(_Relationship(entity, friend, rel=rel))
+	return result
+
+def _update_connections(db, entity, 
+						current_graph_relations,
+						stored_db_relations,
+					 	rel_type):
+	## computer db/graph relationships
+	entity = get_entity(entity)
+	to_add = stored_db_relations - current_graph_relations
+	to_remove = current_graph_relations - stored_db_relations
+
+	## remove old relationships
+	if to_remove:
+		db.delete_relationships(*[x.rel for x in to_remove])
+		logger.debug("%s connection relationship(s) deleted", len(to_remove))
+
+	## create nodes
+	to_create = set()
+	for fship in to_add:
+		to_create.add(fship._to)
+		to_create.add(fship._from)
+	if to_create:
+		to_create = list(to_create)
+		db.create_nodes(*to_create)
+
+	## add new relationships
+	result = []
+	for fship in to_add:
+		_to = fship._to
+		_from = fship._from
+		rel = db.create_relationship(_from, _to, rel_type)
+		logger.debug("Connection relationship %s created", rel)
+		result.append(rel)
+	return result
+
+## friendship 
+
+def graph_friends(db, entity):
+	result = _get_graph_connections(db, entity, rel_type=FriendOf())
+	return result
+
+def zodb_friends(entity):
+	result = set()
+	friendlists = getattr(entity, 'friendsLists', {}).values()
+	for fnd_list in friendlists:
+		for friend in fnd_list:
+			result.add(_Relationship(entity, friend))
+	return result
+
+def update_friendships(db, entity):
+	stored_db_relations = zodb_friends(entity)
+	graph_relations = graph_friends(db, entity)
+	result = _update_connections(db, entity,
+ 								 graph_relations,
+ 								 stored_db_relations,
+ 								 FriendOf())
+	return result
+
+def _process_friendslist_event(db, obj):
+	if IDynamicSharingTargetFriendsList.providedBy(obj):
+		return # pragma no cover
+
+	username = getattr(obj.creator, 'username', obj.creator)
+	queue = get_job_queue()
+	job = create_job(update_friendships, db=db, entity=username)
+	queue.put(job)
+
+@component.adapter(IFriendsList, IObjectAddedEvent)
+def _friendslist_added(obj, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_friendslist_event(db, obj)
+
+@component.adapter(IFriendsList, IObjectModifiedEvent)
+def _friendslist_modified(obj, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_friendslist_event(db, obj)
+
+@component.adapter(IFriendsList, IIntIdRemovedEvent)
+def _friendslist_deleted(obj, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_friendslist_event(db, obj)
+
+## membership
+
+def graph_memberships(db, entity):
+	result = _get_graph_connections(db, entity, rel_type=MemberOf())
+	return result
+
+def zodb_memberships(entity):
+	result = set()
+	everyone = Entity.get_entity('Everyone')
+	memberships = getattr(entity, 'dynamic_memberships', None)
+	for x in memberships or ():
+		if x != everyone:
+			result.add(_Relationship(entity, x))
+	return result
+
+def update_memberships(db, entity):
+	zodb_relations = zodb_memberships(entity)
+	graph_relations = graph_memberships(entity)
+	result = _update_connections(db, entity,
+								 graph_relations,
+								 zodb_relations,
+								 MemberOf())
+	return result
+
+def process_start_membership(db, source, target):
+	source = Entity.get_entity(source)
+	target = find_object_with_ntiid(target)
+	if source and target:
+		rel = db.create_relationship(source, target, MemberOf())
+		logger.debug("Entity membership relationship %s created", rel)
+		return rel
+	return None
+
+def process_stop_membership(db, source, target):
+	source = Entity.get_entity(source)
+	target = find_object_with_ntiid(target)
+	if source and target:
+		rels = db.match(start=source, end=target, rel_type=MemberOf())
+		if rels:
+			db.delete_relationships(*rels)
+			logger.debug("%s entity membership relationship(s) removed", len(rels))
+			return True
+	return False
 # 
 # def _process_membership_event(db, event):
 # 	source, target = event.object, event.target
@@ -327,7 +338,7 @@ logger = __import__('logging').getLogger(__name__)
 # 	job = create_job(update_friendships, db=db, entity=user.username)
 # 	queue.put(job)
 # 
-# component.moduleProvides(graph_interfaces.IObjectProcessor)
+component.moduleProvides(IObjectProcessor)
 # 
 # def init(db, obj):
 # 	result = False

@@ -12,6 +12,7 @@ logger = __import__('logging').getLogger(__name__)
 from zope import interface
 
 from .interfaces import IFriendOf
+from .interfaces import IMemberOf
 
 class _Singleton(object):
 	_instances = {}
@@ -26,14 +27,14 @@ class FriendOf(_Singleton):
 	def __str__(self):
 		return "IS_FRIEND_OF"
 	__repr__ = __str__
-# 
-# @interface.implementer(graph_interfaces.IMemberOf)
-# class MemberOf(_Singleton):
-# 
-# 	def __str__(self):
-# 		return "IS_MEMBER_OF"
-# 	__repr__ = __str__
-# 
+	
+@interface.implementer(IMemberOf)
+class MemberOf(_Singleton):
+
+	def __str__(self):
+		return "IS_MEMBER_OF"
+	__repr__ = __str__
+
 # @interface.implementer(graph_interfaces.IParentOf)
 # class ParentOf(_Singleton):
 # 

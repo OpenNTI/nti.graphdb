@@ -9,15 +9,15 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import interface
-
+from ..interfaces import INode
 from ..interfaces import IGraphNode
+from ..interfaces import IRelationship
 from ..interfaces import IGraphRelationship
 
-class INeo4jNode(interface.Interface):
+class INeo4jNode(INode):
 	pass
 
-class INeo4jRelationship(interface.Interface):
+class INeo4jRelationship(IRelationship):
 	pass
 
 class IGraphNodeNeo4j(IGraphNode):

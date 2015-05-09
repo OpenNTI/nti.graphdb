@@ -70,7 +70,7 @@ class IGraphDB(interface.Interface):
 	def get_relationship(obj):
 		pass
 
-	def match(start_node=None, end_node=None, rel_type=None, bidirectional=False, limit=None):
+	def match(start=None, end=None, rel_type=None, bidirectional=False, limit=None):
 		pass
 
 	def delete_relationships(*rels):
@@ -79,7 +79,12 @@ class IGraphDB(interface.Interface):
 	def update_relationship(obj, properties=None):
 		pass
 
-class IGraphNode(interface.Interface):
+class INode(interface.Interface):
+	"""
+	Marker interface for a node
+	"""
+
+class IGraphNode(INode):
 	id = ValidTextLine(title="node id")
 	label = ValidTextLine(title="label", required=False)
 	uri = ValidTextLine(title="uri identifier", required=False)
@@ -99,32 +104,31 @@ class IObjectProcessor(interface.Interface):
 
 class IRelationshipType(interface.Interface):
 	"""
-	Marker interface for a relationship
+	Marker interface for a relationship type
 	"""
 
 	def __str__():
 		pass
 
-class IGraphRelationship(interface.Interface):
+class IRelationship(interface.Interface):
+	"""
+	Marker interface for a relationship
+	"""
+
+class IGraphRelationship(IRelationship):
 
 	id = ValidTextLine(title="relationship id")
 
 	uri = ValidTextLine(title="uri identifier", required=False)
 
 	type = Variant((Object(IRelationshipType, description="A :class:`.Interface`"),
-						   ValidTextLine(title='relationship type')),
-						   title="The relationship type")
+					ValidTextLine(title='relationship type')),
+					title="The relationship type")
 
-	start = Variant((Object(IGraphNode, description="A :class:`.IGraphNode`"),
-					 Object(interface.Interface, description="A :class:`.Interface`")),
-					title="The start node",
-					required=False)
+	start = Object(INode, title="The start node", required=False)
 
-	end = Variant((Object(IGraphNode, description="A :class:`.IGraphNode`"),
-							  Object(interface.Interface, description="A :class:`.Interface`")),
-							 title="The end node",
-							 required=False)
-
+	end = Object(INode, title="The end node", required=False)
+	
 	properties = Dict(ValidTextLine(title="key"),
 					  Variant((ValidTextLine(title="value string"),
 							   Number(title="value number"),
