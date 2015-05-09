@@ -31,6 +31,7 @@ from nti.dataserver.interfaces import ICreated
 from nti.dataserver.interfaces import ICommunity
 from nti.dataserver.interfaces import ITitledContent
 from nti.dataserver.interfaces import IModeledContent
+from nti.dataserver.interfaces import IUseNTIIDAsExternalUsername
 from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
 
 from nti.dataserver.contenttypes.forums.interfaces import IBoard
@@ -40,18 +41,14 @@ from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 
 from nti.dataserver.users.interfaces import IFriendlyNamed
 
-from nti.externalization.externalization import to_external_ntiid_oid
-
+from .common import get_oid
+from .common import get_ntiid
 from .common import get_creator
 
 from .interfaces import IPropertyAdapter
 
-def get_ntiid(obj):
-	result = getattr(obj, 'NTIID', None) or getattr(obj, 'ntiid', None)
-	return result
-
 def add_oid(obj, ext):
-	ext['oid'] = to_external_ntiid_oid(obj)
+	ext['oid'] = get_oid(obj)
 	return ext
 
 def add_type(obj, ext):
@@ -89,6 +86,10 @@ def _EntityPropertyAdpater(entity):
 			result[key] = unicode(value)
 	add_oid(entity, result)
 	add_intid(entity, result)
+	## check for external username
+	if IUseNTIIDAsExternalUsername.providedBy(entity):
+		result['name'] = result['username']
+		result['username'] = get_ntiid(entity) or get_oid(entity)
 	return result
 
 @component.adapter(ICommunity)
@@ -179,7 +180,7 @@ def _TopicPropertyAdpater(topic):
 	result['ntiid'] = topic.NTIID
 	result['createdTime'] = topic.createdTime
 	result['lastModified'] = getattr(topic, 'lastModified', 0)
-	result['forum'] = to_external_ntiid_oid(topic.__parent__)
+	result['forum'] = get_oid(topic.__parent__)
 	add_oid(topic, result)
 	add_intid(topic, result)
 	return result

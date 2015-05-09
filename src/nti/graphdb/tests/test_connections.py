@@ -15,13 +15,19 @@ import unittest
 
 from nti.dataserver.users import User
 from nti.dataserver.users import FriendsList
+from nti.dataserver.users import DynamicFriendsList
 
 from nti.graphdb.relationships import FriendOf
 from nti.graphdb.neo4j.database import Neo4jDB
+
 from nti.graphdb.connections import zodb_friends
 from nti.graphdb.connections import graph_friends
 from nti.graphdb.connections import _Relationship
 from nti.graphdb.connections import update_friendships
+
+from nti.graphdb.connections import zodb_memberships
+from nti.graphdb.connections import graph_memberships
+from nti.graphdb.connections import update_memberships
 
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
@@ -92,3 +98,24 @@ class TestFriendships(GraphDBTestCase):
 
 		result = update_friendships(self.db, user1)
 		assert_that(result, has_length(1))
+
+	@WithMockDSTrans
+	def test_memberships(self):
+		user1 = self._create_random_user()
+		user2 = self._create_random_user()
+		user3 = self._create_random_user()
+
+		dfl = DynamicFriendsList(username='mydfl')
+		dfl.creator = user1  # Creator must be set
+		user1.addContainedObject(dfl)
+		dfl.addFriend(user2)
+		dfl.addFriend(user3)
+
+		m = zodb_memberships(user2)
+		assert_that(m, has_length(1))
+
+		m = update_memberships(self.db, user2)
+		assert_that(m, has_length(1))
+		
+		m = graph_memberships(self.db, user2)
+		assert_that(m, has_length(1))

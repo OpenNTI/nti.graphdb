@@ -19,6 +19,9 @@ from nti.common.representation import WithRepr
 from nti.contentlibrary.interfaces import IContentUnit 
 
 from nti.dataserver.interfaces import IEntity
+from nti.dataserver.interfaces import IUseNTIIDAsExternalUsername
+from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
+
 from nti.dataserver.contenttypes.forums.interfaces import ITopic
 from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 
@@ -28,8 +31,8 @@ from . common import to_external_oid
 from .interfaces import IUniqueAttributeAdapter
 
 @WithRepr
-@interface.implementer(IUniqueAttributeAdapter)
 @component.adapter(interface.Interface)
+@interface.implementer(IUniqueAttributeAdapter)
 class _GenericUniqueAttributeAdpater(object):
 
 	key = value = None
@@ -58,18 +61,30 @@ class _OIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 		result = to_external_oid(self.obj)
 		return result
 
-@interface.implementer(IUniqueAttributeAdapter)
 @component.adapter(IEntity)
+@interface.implementer(IUniqueAttributeAdapter)
 class _EntityUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
 	key = "username"
 
 	@property
 	def value(self):
+		if IUseNTIIDAsExternalUsername.providedBy(self.obj):
+			return to_external_oid(self.obj)
 		return self.obj.username
 
 @interface.implementer(IUniqueAttributeAdapter)
+@component.adapter(IDynamicSharingTargetFriendsList)
+class _DFLUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
+
+	key = "username"
+
+	@property
+	def value(self):
+		return to_external_oid(self.obj)
+	
 @component.adapter(ITopic)
+@interface.implementer(IUniqueAttributeAdapter)
 class _TopicUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
 	key = "oid"
@@ -85,8 +100,8 @@ class _HeadlinePostUniqueAttributeAdpater(_TopicUniqueAttributeAdpater):
 	def __init__(self, obj):
 		super(_HeadlinePostUniqueAttributeAdpater, self).__init__(obj.__parent__)
 
-@interface.implementer(IUniqueAttributeAdapter)
 @component.adapter(IContentUnit)
+@interface.implementer(IUniqueAttributeAdapter)
 class _ContentUnitAttributeAdpater(_OIDUniqueAttributeAdpater):
 
 	@property

@@ -32,6 +32,7 @@ def get_creator(obj):
 def to_external_oid(obj):
     result = to_external_ntiid_oid(obj) if obj is not None else None
     return result
+get_oid = to_external_oid
 
 def get_ntiid(obj):
     return getattr(obj, 'NTIID', None) or  getattr(obj, 'ntiid', None)

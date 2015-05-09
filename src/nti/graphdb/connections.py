@@ -16,12 +16,16 @@ from zope.intid.interfaces import IIntIdRemovedEvent
 from zope.lifecycleevent.interfaces import IObjectAddedEvent
 from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 
-from nti.dataserver.users import User
 from nti.dataserver.users import Entity
+from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IFriendsList
+from nti.dataserver.interfaces import IStopDynamicMembershipEvent
+from nti.dataserver.interfaces import IStartDynamicMembershipEvent
 from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
 
 from nti.ntiids.ntiids import find_object_with_ntiid
+
+from nti.externalization.externalization import to_external_ntiid_oid
 
 from nti.schema.schema import EqHash
 
@@ -35,15 +39,6 @@ from .interfaces import IObjectProcessor
 from . import create_job
 from . import get_graph_db
 from . import get_job_queue
-
-# 
-# from nti.dataserver import users
-# from nti.dataserver import interfaces as nti_interfaces
-# 
-# 
-# 
-
-# from .common import to_external_ntiid_oid
 
 @EqHash('_from', '_to')
 class _Relationship(object):
@@ -59,7 +54,7 @@ def _get_graph_connections(db, entity, rel_type):
 	for rel in rels:
 		end = db.get_node(rel.end)
 		username = end.properties.get('username') if end is not None else None
-		friend = User.get_user(username) if username else None
+		friend = Entity.get_entity(username) if username else None
 		if friend is not None:
 			result.add(_Relationship(entity, friend, rel=rel))
 	return result
@@ -164,7 +159,7 @@ def zodb_memberships(entity):
 
 def update_memberships(db, entity):
 	zodb_relations = zodb_memberships(entity)
-	graph_relations = graph_memberships(entity)
+	graph_relations = graph_memberships(db, entity)
 	result = _update_connections(db, entity,
 								 graph_relations,
 								 zodb_relations,
@@ -190,35 +185,35 @@ def process_stop_membership(db, source, target):
 			logger.debug("%s entity membership relationship(s) removed", len(rels))
 			return True
 	return False
-# 
-# def _process_membership_event(db, event):
-# 	source, target = event.object, event.target
-# 	everyone = users.Entity.get_entity('Everyone')
-# 	if target == everyone:
-# 		return # pragma no cover
-# 
-# 	source = source.username
-# 	target = to_external_ntiid_oid(target)
-# 	start_membership = nti_interfaces.IStartDynamicMembershipEvent.providedBy(event)
-# 
-# 	queue = get_job_queue()
-# 	if start_membership:
-# 		job = create_job(process_start_membership, db=db, source=source, target=target)
-# 	else:
-# 		job = create_job(process_stop_membership, db=db, source=source, target=target)
-# 	queue.put(job)
-# 
-# @component.adapter(nti_interfaces.IStartDynamicMembershipEvent)
-# def _start_dynamic_membership_event(event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		_process_membership_event(db, event)
-# 
-# @component.adapter(nti_interfaces.IStopDynamicMembershipEvent)
-# def _stop_dynamic_membership_event(event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		_process_membership_event(db, event)
+
+def _process_membership_event(db, event):
+	source, target = event.object, event.target
+	everyone = Entity.get_entity('Everyone')
+	if target == everyone:
+		return # pragma no cover
+
+	source = source.username
+	target = to_external_ntiid_oid(target)
+	start_membership = IStartDynamicMembershipEvent.providedBy(event)
+
+	queue = get_job_queue()
+	if start_membership:
+		job = create_job(process_start_membership, db=db, source=source, target=target)
+	else:
+		job = create_job(process_stop_membership, db=db, source=source, target=target)
+	queue.put(job)
+
+@component.adapter(IStartDynamicMembershipEvent)
+def _start_dynamic_membership_event(event):
+	db = get_graph_db()
+	if db is not None:
+		_process_membership_event(db, event)
+
+@component.adapter(IStopDynamicMembershipEvent)
+def _stop_dynamic_membership_event(event):
+	db = get_graph_db()
+	if db is not None:
+		_process_membership_event(db, event)
 # 
 # def _delete_index_relationship(db, keyref):
 # 	for key, value in keyref.items():
@@ -339,12 +334,12 @@ def process_stop_membership(db, source, target):
 # 	queue.put(job)
 # 
 component.moduleProvides(IObjectProcessor)
-# 
-# def init(db, obj):
-# 	result = False
-# 	if nti_interfaces.IUser.providedBy(obj):
+
+def init(db, obj):
+	result = False
+	if IUser.providedBy(obj):
 # 		_process_following(db, obj)
 # 		_process_memberships(db, obj)
 # 		_process_friendships(db, obj)
-# 		result = True
-# 	return result
+		result = True
+	return result
