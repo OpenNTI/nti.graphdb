@@ -56,10 +56,10 @@ class TestFriendships(GraphDBTestCase):
 
 	@WithMockDSTrans
 	def test_entity_friends(self):
-		owner = self._create_user("owner@bar")
-		user1 = self._create_user("1foo@bar")
-		user2 = self._create_user("2foo@bar")
-		user3 = self._create_user("3foo@bar")
+		owner = self._create_random_user()
+		user1 = self._create_random_user()
+		user2 = self._create_random_user()
+		user3 = self._create_random_user()
 
 		self._create_friendslist(owner, "mycontacts1", user1, user2)
 		self._create_friendslist(owner, "mycontacts2", user3)
