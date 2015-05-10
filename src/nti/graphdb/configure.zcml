@@ -109,14 +109,13 @@
 	-->
 
 	<!-- Graph stores
-	<include package="." file="meta.zcml" />
-		
+	<include package="." file="meta.zcml" />		
 	<configure zcml:condition="have devmode">
 		<gdb:registerGraphDB
 			url="http://localhost:7474/db/data/" />
 	</configure>
 	 -->
-
+	 
 	<configure zcml:condition="have devmode">
 		<configure zcml:condition="not-have testmode">
 			<gdb:registerRedisProcessingQueue />

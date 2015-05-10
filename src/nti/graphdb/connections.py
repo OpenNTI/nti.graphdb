@@ -16,7 +16,6 @@ from zope.intid.interfaces import IIntIdRemovedEvent
 from zope.lifecycleevent.interfaces import IObjectAddedEvent
 from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 
-from nti.dataserver.users import Entity
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IFriendsList
 from nti.dataserver.interfaces import IStopFollowingEvent
@@ -58,7 +57,7 @@ def _get_graph_connections(db, entity, rel_type):
 	for rel in rels:
 		end = db.get_node(rel.end)
 		username = end.properties.get('username') if end is not None else None
-		friend = Entity.get_entity(username) if username else None
+		friend = get_entity(username) if username else None
 		if friend is not None:
 			result.add(_Relationship(entity, friend, rel=rel))
 	return result
@@ -111,13 +110,16 @@ def zodb_friends(entity):
 	return result
 
 def update_friendships(db, entity):
-	stored_db_relations = zodb_friends(entity)
-	graph_relations = graph_friends(db, entity)
-	result = _update_connections(db, entity,
- 								 graph_relations,
- 								 stored_db_relations,
- 								 FriendOf())
-	return result
+	entity = get_entity(entity)
+	if entity is not None:
+		stored_db_relations = zodb_friends(entity)
+		graph_relations = graph_friends(db, entity)
+		result = _update_connections(db, entity,
+	 								 graph_relations,
+	 								 stored_db_relations,
+	 								 FriendOf())
+		return result
+	return ()
 
 def _process_friendslist_event(db, obj):
 	if IDynamicSharingTargetFriendsList.providedBy(obj):
@@ -154,7 +156,7 @@ def graph_memberships(db, entity):
 
 def zodb_memberships(entity):
 	result = set()
-	everyone = Entity.get_entity('Everyone')
+	everyone = get_entity('Everyone')
 	memberships = getattr(entity, 'dynamic_memberships', None)
 	for x in memberships or ():
 		if x != everyone:
@@ -162,16 +164,19 @@ def zodb_memberships(entity):
 	return result
 
 def update_memberships(db, entity):
-	zodb_relations = zodb_memberships(entity)
-	graph_relations = graph_memberships(db, entity)
-	result = _update_connections(db, entity,
-								 graph_relations,
-								 zodb_relations,
-								 MemberOf())
-	return result
+	entity = get_entity(entity)
+	if entity is not None:
+		zodb_relations = zodb_memberships(entity)
+		graph_relations = graph_memberships(db, entity)
+		result = _update_connections(db, entity,
+									 graph_relations,
+									 zodb_relations,
+									 MemberOf())
+		return result
+	return ()
 
 def process_start_membership(db, source, target):
-	source = Entity.get_entity(source)
+	source = get_entity(source)
 	target = find_object_with_ntiid(target)
 	if source and target:
 		rel = db.create_relationship(source, target, MemberOf())
@@ -180,7 +185,7 @@ def process_start_membership(db, source, target):
 	return None
 
 def process_stop_membership(db, source, target):
-	source = Entity.get_entity(source)
+	source = get_entity(source)
 	target = find_object_with_ntiid(target)
 	if source and target:
 		rels = db.match(start=source, end=target, rel_type=MemberOf())
@@ -191,8 +196,8 @@ def process_stop_membership(db, source, target):
 	return False
 
 def _process_membership_event(db, event):
+	everyone = get_entity('Everyone')
 	source, target = event.object, event.target
-	everyone = Entity.get_entity('Everyone')
 	if target == everyone:
 		return # pragma no cover
 
@@ -244,8 +249,8 @@ def _dfl_deleted(obj, event):
 ## follow/unfollow
 
 def process_follow(db, source, followed):
-	source = Entity.get_entity(source)
-	followed = Entity.get_entity(followed)
+	source = get_entity(source)
+	followed = get_entity(followed)
 	if source and followed:
 		rel = db.create_relationship(source, followed, Follow())
 		logger.debug("Follow relationship %s created", rel)
@@ -253,8 +258,8 @@ def process_follow(db, source, followed):
 	return None
 
 def process_unfollow(db, source, followed):
-	source = Entity.get_entity(source)
-	followed = Entity.get_entity(followed)
+	source = get_entity(source)
+	followed = get_entity(followed)
 	if source and followed:
 		rels = db.match(start=source, end=followed, rel_type=Follow())
 		if rels:
@@ -321,7 +326,7 @@ def _process_following(db, user):
 def _process_memberships(db, user):
 	source = user.username
 	queue = get_job_queue()
-	everyone = Entity.get_entity('Everyone')
+	everyone = get_entity('Everyone')
 	for target in getattr(user, 'dynamic_memberships', ()):
 		if target != everyone:
 			target = to_external_oid(target)

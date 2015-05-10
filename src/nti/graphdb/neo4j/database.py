@@ -109,7 +109,7 @@ class Neo4jDB(object):
 		self._v_db__ = None
 
 	def _create_node(self, obj, key=None, value=None, label=None, properties=None, 
-					 props=True):
+					 props=False):
 		
 		## Get object properties
 		properties = dict(properties or {})
@@ -127,9 +127,8 @@ class Neo4jDB(object):
 			result = self.db.merge_one(label, key, value)
 			result.properties.update(properties)
 			result.push()
-			if props:
+			if props: # refresh
 				self.db.pull(result)
-			
 		else:
 			node = Node(label, **properties)
 			result = self.db.create(node)[0]
@@ -181,8 +180,9 @@ class Neo4jDB(object):
 				if adapted is not None:
 					label = ILabelAdapter(obj)
 					result = self.db.find_one(label, adapted.key, adapted.value)
+					props = False ## no need to refresh
 			if result is not None and props:
-				result.pull()
+				self.db.pull(result)
 		except GraphError as e:
 			if not _is_404(e):
 				raise e
@@ -333,8 +333,8 @@ class Neo4jDB(object):
 	
 	def _match(self, start_node=None, end_node=None, rel_type=None,
 				  bidirectional=False, limit=None):
-		n4j_end = self._get_node(end_node) if end_node is not None else None
-		n4j_start = self._get_node(start_node) if start_node is not None else None
+		n4j_end = self._get_node(end_node, False) if end_node is not None else None
+		n4j_start = self._get_node(start_node, False) if start_node is not None else None
 		n4j_type = str(rel_type) if rel_type is not None else None
 		result = self.db.match(n4j_start, n4j_type, n4j_end, bidirectional, limit)
 		return result
