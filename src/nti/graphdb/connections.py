@@ -5,7 +5,6 @@
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
-from nti.graphdb.interfaces import ILabelAdapter, IUniqueAttributeAdapter
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -37,7 +36,9 @@ from .relationships import MemberOf
 from .common import get_entity
 from .common import to_external_oid
 
+from .interfaces import ILabelAdapter
 from .interfaces import IObjectProcessor
+from .interfaces import IUniqueAttributeAdapter
 
 from . import create_job
 from . import get_graph_db
