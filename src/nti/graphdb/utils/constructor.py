@@ -10,7 +10,6 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 import logging
-import argparse
 
 from zope import component
 
@@ -21,12 +20,8 @@ from nti.graphdb.interfaces import IObjectProcessor
 
 class Constructor(Processor):
 
-	def create_arg_parser(self):
-		arg_parser = argparse.ArgumentParser(description="Graph processor")
-		arg_parser.add_argument('-v', '--verbose', help="Be verbose",
-								action='store_true', dest='verbose')
-		return arg_parser
-
+	processor_name = "Graph processor"
+	
 	def tone_down_logging(self):
 		try:
 			package = 'py2neo.packages.httpstream.http'
@@ -44,6 +39,7 @@ class Constructor(Processor):
 		self.tone_down_logging()
 
 	def process_args(self, args):
+		setattr(args, 'redis', True)  # use redis
 		setattr(args, 'library', True)  # load library
 		setattr(args, 'name', QUEUE_NAME)  # set queue name
 		super(Constructor, self).process_args(args)
