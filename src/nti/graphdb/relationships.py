@@ -11,6 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
+from .interfaces import IFollow
 from .interfaces import IFriendOf
 from .interfaces import IMemberOf
 
@@ -35,18 +36,18 @@ class MemberOf(_Singleton):
 		return "IS_MEMBER_OF"
 	__repr__ = __str__
 
+@interface.implementer(IFollow)
+class Follow(_Singleton):
+
+	def __str__(self):
+		return "FOLLOWS"
+	__repr__ = __str__
+
 # @interface.implementer(graph_interfaces.IParentOf)
 # class ParentOf(_Singleton):
 # 
 # 	def __str__(self):
 # 		return "IS_PARENT_OF"
-# 	__repr__ = __str__
-# 
-# @interface.implementer(graph_interfaces.IFollow)
-# class Follow(_Singleton):
-# 
-# 	def __str__(self):
-# 		return "FOLLOWS"
 # 	__repr__ = __str__
 # 
 # @interface.implementer(graph_interfaces.ICommentOn)

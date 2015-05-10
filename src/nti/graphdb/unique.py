@@ -14,6 +14,7 @@ import zope.intid
 from zope import component
 from zope import interface
 
+from nti.common.property import Lazy
 from nti.common.representation import WithRepr
 
 from nti.contentlibrary.interfaces import IContentUnit 
@@ -25,8 +26,8 @@ from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
 from nti.dataserver.contenttypes.forums.interfaces import ITopic
 from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 
+from . common import get_oid
 from . common import get_ntiid
-from . common import to_external_oid
 
 from .interfaces import IUniqueAttributeAdapter
 
@@ -45,7 +46,7 @@ class _IntIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
 	key = "intid"
 
-	@property
+	@Lazy
 	def value(self):
 		intids = component.queryUtility(zope.intid.IIntIds)
 		result = intids.queryId(self.obj) if intids is not None else None
@@ -56,9 +57,9 @@ class _OIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
 	key = "oid"
 
-	@property
+	@Lazy
 	def value(self):
-		result = to_external_oid(self.obj)
+		result = get_oid(self.obj)
 		return result
 
 @component.adapter(IEntity)
@@ -67,10 +68,10 @@ class _EntityUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
 	key = "username"
 
-	@property
+	@Lazy
 	def value(self):
 		if IUseNTIIDAsExternalUsername.providedBy(self.obj):
-			return to_external_oid(self.obj)
+			return get_ntiid(self.obj) or get_oid(self.obj)
 		return self.obj.username
 
 @interface.implementer(IUniqueAttributeAdapter)
@@ -79,9 +80,9 @@ class _DFLUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
 	key = "username"
 
-	@property
+	@Lazy
 	def value(self):
-		return to_external_oid(self.obj)
+		return get_ntiid(self.obj) or get_oid(self.obj)
 	
 @component.adapter(ITopic)
 @interface.implementer(IUniqueAttributeAdapter)
@@ -89,7 +90,7 @@ class _TopicUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
 	key = "oid"
 
-	@property
+	@Lazy
 	def value(self):
 		return self.obj.NTIID
 
@@ -104,7 +105,7 @@ class _HeadlinePostUniqueAttributeAdpater(_TopicUniqueAttributeAdpater):
 @interface.implementer(IUniqueAttributeAdapter)
 class _ContentUnitAttributeAdpater(_OIDUniqueAttributeAdpater):
 
-	@property
+	@Lazy
 	def value(self):
 		return self.obj.ntiid
 
@@ -113,6 +114,6 @@ class _NTIIDUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 
 	key = "oid"
 
-	@property
+	@Lazy
 	def value(self):
 		return get_ntiid(self.obj)

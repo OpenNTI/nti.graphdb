@@ -159,10 +159,10 @@ class IFriendOf(IRelationshipType):
 class IMemberOf(IRelationshipType):
 	pass
 
+class IFollow(IRelationshipType):
+	pass
+
 # class IParentOf(IRelationshipType):
-# 	pass
-# 
-# class IFollow(IRelationshipType):
 # 	pass
 # 
 # class ICommentOn(IRelationshipType):

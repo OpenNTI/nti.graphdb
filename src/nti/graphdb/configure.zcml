@@ -32,20 +32,21 @@
 	<subscriber handler=".entities._entity_added" />
 	<subscriber handler=".entities._entity_removed" />
 		   
+	<subscriber handler=".connections._friendslist_added" />
+	<subscriber handler=".connections._friendslist_deleted" />
+	<subscriber handler=".connections._friendslist_modified" />
+
+	<subscriber handler=".connections._stop_dynamic_membership_event" />
+	<subscriber handler=".connections._start_dynamic_membership_event" />
+
 	<!-- Subscribers
 	<subscriber handler=".search._search_completed" />
-
-	<subscriber handler=".connections._friendslist_added" />
-	<subscriber handler=".connections._friendslist_modified" />
-	<subscriber handler=".connections._friendslist_deleted" />
-	
+		
 	<subscriber handler=".connections._dfl_deleted" />
 	
 	<subscriber handler=".connections._stop_following_event" />
 	<subscriber handler=".connections._start_following_event" />
-	
-	<subscriber handler=".connections._stop_dynamic_membership_event" />
-	<subscriber handler=".connections._start_dynamic_membership_event" />
+
 	
 	<subscriber handler=".discussions._topic_added" />
 	<subscriber handler=".discussions._topic_removed" />

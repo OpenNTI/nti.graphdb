@@ -7,6 +7,7 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
+from hamcrest import is_
 from hamcrest import is_in
 from hamcrest import has_length
 from hamcrest import assert_that
@@ -20,14 +21,23 @@ from nti.dataserver.users import DynamicFriendsList
 from nti.graphdb.relationships import FriendOf
 from nti.graphdb.neo4j.database import Neo4jDB
 
+from nti.graphdb.interfaces import ILabelAdapter
+from nti.graphdb.interfaces import IUniqueAttributeAdapter
+
+from nti.graphdb.connections import _Relationship
+
 from nti.graphdb.connections import zodb_friends
 from nti.graphdb.connections import graph_friends
-from nti.graphdb.connections import _Relationship
 from nti.graphdb.connections import update_friendships
 
+from nti.graphdb.connections import _do_delete_dfl
 from nti.graphdb.connections import zodb_memberships
 from nti.graphdb.connections import graph_memberships
 from nti.graphdb.connections import update_memberships
+
+from nti.graphdb.connections import zodb_following
+from nti.graphdb.connections import graph_following
+from nti.graphdb.connections import update_following
 
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
@@ -113,9 +123,32 @@ class TestFriendships(GraphDBTestCase):
 
 		m = zodb_memberships(user2)
 		assert_that(m, has_length(1))
-
+		
 		m = update_memberships(self.db, user2)
 		assert_that(m, has_length(1))
 		
 		m = graph_memberships(self.db, user2)
 		assert_that(m, has_length(1))
+
+		label = ILabelAdapter(dfl)
+		unique = IUniqueAttributeAdapter(dfl)
+		m = _do_delete_dfl(self.db, label, unique.key, unique.value)
+		assert_that(m, is_(True))
+		
+	@WithMockDSTrans
+	def test_following(self):
+		user1 = self._create_random_user()
+		user2 = self._create_random_user()
+		user3 = self._create_random_user()
+
+		user1.follow(user2)
+		user1.follow(user3)
+		
+		m = zodb_following(user1)
+		assert_that(m, has_length(2))
+
+		m = update_following(self.db, user1)
+		assert_that(m, has_length(2))
+		
+		m = graph_following(self.db, user1)
+		assert_that(m, has_length(2))

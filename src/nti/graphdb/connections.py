@@ -5,6 +5,7 @@
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
+from nti.graphdb.interfaces import ILabelAdapter, IUniqueAttributeAdapter
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -19,20 +20,22 @@ from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 from nti.dataserver.users import Entity
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IFriendsList
+from nti.dataserver.interfaces import IStopFollowingEvent
+from nti.dataserver.interfaces import IEntityFollowingEvent
 from nti.dataserver.interfaces import IStopDynamicMembershipEvent
 from nti.dataserver.interfaces import IStartDynamicMembershipEvent
 from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
 
 from nti.ntiids.ntiids import find_object_with_ntiid
 
-from nti.externalization.externalization import to_external_ntiid_oid
-
 from nti.schema.schema import EqHash
 
+from .relationships import Follow
 from .relationships import FriendOf
 from .relationships import MemberOf
 
 from .common import get_entity
+from .common import to_external_oid
 
 from .interfaces import IObjectProcessor
 
@@ -193,7 +196,7 @@ def _process_membership_event(db, event):
 		return # pragma no cover
 
 	source = source.username
-	target = to_external_ntiid_oid(target)
+	target = to_external_oid(target)
 	start_membership = IStartDynamicMembershipEvent.providedBy(event)
 
 	queue = get_job_queue()
@@ -214,132 +217,130 @@ def _stop_dynamic_membership_event(event):
 	db = get_graph_db()
 	if db is not None:
 		_process_membership_event(db, event)
-# 
-# def _delete_index_relationship(db, keyref):
-# 	for key, value in keyref.items():
-# 		rel = db.delete_indexed_relationship(key, value)
-# 		if rel is not None:
-# 			logger.debug("relationship %s deleted", rel)
-# 			
-# def _do_membership_deletions(db, keyref):
-# 	queue = get_job_queue()
-# 	job = create_job(_delete_index_relationship, db=db, keyref=keyref)
-# 	queue.put(job)
-# 
-# @component.adapter(nti_interfaces.IDynamicSharingTargetFriendsList,
-# 				   intid_interfaces.IIntIdRemovedEvent)
-# def _dfl_deleted(obj, event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		result = {}
-# 		rel_type = relationships.MemberOf()
-# 		for user in obj:
-# 			adapted = component.queryMultiAdapter(
-# 										(user, obj, rel_type),
-# 										graph_interfaces.IUniqueAttributeAdapter)
-# 			if adapted:
-# 				result[adapted.key] = adapted.value
-# 		if result:
-# 			_do_membership_deletions(db, result)
-# 
-# # follow/unfollow
-# 
-# def process_follow(db, source, followed):
-# 	source = users.Entity.get_entity(source)
-# 	followed = users.Entity.get_entity(followed)
-# 	if source and followed:
-# 		rel = db.create_relationship(source, followed, relationships.Follow())
-# 		logger.debug("follow relationship %s created", rel)
-# 		return rel
-# 	return None
-# 
-# def process_unfollow(db, source, followed):
-# 	source = users.Entity.get_entity(source)
-# 	followed = users.Entity.get_entity(followed)
-# 	if source and followed:
-# 		rels = db.match(start=source, end=followed, rel_type=relationships.Follow())
-# 		if rels:
-# 			db.delete_relationships(*rels)
-# 			logger.debug("%s follow relationship(s) removed", len(rels))
-# 			return True
-# 	return False
-# 
-# def _process_follow_event(db, event):
-# 	source = getattr(event.object, 'username', event.object)
-# 	stop_following = nti_interfaces.IStopFollowingEvent.providedBy(event)
-# 	followed = event.not_following if stop_following else event.now_following
-# 	followed = getattr(followed, 'username', followed)
-# 	
-# 	queue = get_job_queue()
-# 	if stop_following:
-# 		job = create_job(process_unfollow, db=db, source=source, followed=followed)
-# 	else:
-# 		job = create_job(process_follow, db=db, source=source, followed=followed)
-# 	queue.put(job)
-# 
-# @component.adapter(nti_interfaces.IEntityFollowingEvent)
-# def _start_following_event(event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		_process_follow_event(db, event)
-# 
-# @component.adapter(nti_interfaces.IStopFollowingEvent)
-# def _stop_following_event(event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		_process_follow_event(db, event)
-# 
-# def graph_following(db, entity):
-# 	result = _get_graph_connections(db, entity, rel_type=relationships.Follow())
-# 	return result
-# 
-# def db_following(entity):
-# 	result = set()
-# 	entities_followed = getattr(entity, 'entities_followed', ())
-# 	for followed in entities_followed:
-# 		result.add(_Relationship(entity, followed))
-# 	return result
-# 
-# def update_following(db, entity):
-# 	result = _update_connections(db, entity,
-# 								 graph_following,
-# 								 db_following,
-# 								 relationships.Follow())
-# 	return result
-# 
-# # utils
-# 
-# def _process_following(db, user):
-# 	source = user.username
-# 	queue = get_job_queue()
-# 	for followed in getattr(user, 'entities_followed', ()):
-# 		followed = getattr(followed, 'username', followed)
-# 		job = create_job(process_follow, db=db, source=source, followed=followed)
-# 		queue.put(job)
-# 
-# def _process_memberships(db, user):
-# 	source = user.username
-# 	queue = get_job_queue()
-# 	everyone = users.Entity.get_entity('Everyone')
-# 	for target in getattr(user, 'dynamic_memberships', ()):
-# 		if target != everyone:
-# 			target = to_external_ntiid_oid(target)
-# 			job = create_job(process_start_membership, db=db, source=source,
-# 							 target=target)
-# 			queue.put(job)
-# 
-# def _process_friendships(db, user):
-# 	queue = get_job_queue()
-# 	job = create_job(update_friendships, db=db, entity=user.username)
-# 	queue.put(job)
-# 
+
+def _do_delete_dfl(db, label, key, value):
+	node = db.get_indexed_node(label, key, value)
+	if node is not None:
+		db.delete_node(node)
+		logger.debug("Node %s deleted", node)
+		return True
+	return False
+			
+def _process_dfl_removal(db, obj):
+	label = ILabelAdapter(obj)
+	unique = IUniqueAttributeAdapter(obj)
+	key, value = unique.key, unique.value
+	queue = get_job_queue()
+	job = create_job(_do_delete_dfl, db=db, label=label, key=key, value=value)
+	queue.put(job)
+
+@component.adapter(IDynamicSharingTargetFriendsList, IIntIdRemovedEvent)
+def _dfl_deleted(obj, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_dfl_removal(db, obj)
+
+## follow/unfollow
+
+def process_follow(db, source, followed):
+	source = Entity.get_entity(source)
+	followed = Entity.get_entity(followed)
+	if source and followed:
+		rel = db.create_relationship(source, followed, Follow())
+		logger.debug("Follow relationship %s created", rel)
+		return rel
+	return None
+
+def process_unfollow(db, source, followed):
+	source = Entity.get_entity(source)
+	followed = Entity.get_entity(followed)
+	if source and followed:
+		rels = db.match(start=source, end=followed, rel_type=Follow())
+		if rels:
+			db.delete_relationships(*rels)
+			logger.debug("%s follow relationship(s) removed", len(rels))
+			return True
+	return False
+
+def _process_follow_event(db, event):
+	source = getattr(event.object, 'username', event.object)
+	stop_following = IStopFollowingEvent.providedBy(event)
+	followed = event.not_following if stop_following else event.now_following
+	followed = getattr(followed, 'username', followed)
+
+	queue = get_job_queue()
+	if stop_following:
+		job = create_job(process_unfollow, db=db, source=source, followed=followed)
+	else:
+		job = create_job(process_follow, db=db, source=source, followed=followed)
+	queue.put(job)
+
+@component.adapter(IEntityFollowingEvent)
+def _start_following_event(event):
+	db = get_graph_db()
+	if db is not None:
+		_process_follow_event(db, event)
+
+@component.adapter(IStopFollowingEvent)
+def _stop_following_event(event):
+	db = get_graph_db()
+	if db is not None:
+		_process_follow_event(db, event)
+
+def graph_following(db, entity):
+	result = _get_graph_connections(db, entity, rel_type=Follow())
+	return result
+
+def zodb_following(entity):
+	result = set()
+	entities_followed = getattr(entity, 'entities_followed', ())
+	for followed in entities_followed:
+		result.add(_Relationship(entity, followed))
+	return result
+
+def update_following(db, entity):
+	zodb_relations = zodb_following(entity)
+	graph_relations = graph_following(db, entity)
+	result = _update_connections(db, entity,
+								 graph_relations,
+								 zodb_relations,
+								 Follow())
+	return result
+
+## utils
+
+def _process_following(db, user):
+	source = user.username
+	queue = get_job_queue()
+	for followed in getattr(user, 'entities_followed', ()):
+		followed = getattr(followed, 'username', followed)
+		job = create_job(process_follow, db=db, source=source, followed=followed)
+		queue.put(job)
+
+def _process_memberships(db, user):
+	source = user.username
+	queue = get_job_queue()
+	everyone = Entity.get_entity('Everyone')
+	for target in getattr(user, 'dynamic_memberships', ()):
+		if target != everyone:
+			target = to_external_oid(target)
+			job = create_job(process_start_membership, db=db, 
+							 source=source,
+							 target=target)
+			queue.put(job)
+
+def _process_friendships(db, user):
+	queue = get_job_queue()
+	job = create_job(update_friendships, db=db, entity=user)
+	queue.put(job)
+
 component.moduleProvides(IObjectProcessor)
 
 def init(db, obj):
 	result = False
 	if IUser.providedBy(obj):
-# 		_process_following(db, obj)
-# 		_process_memberships(db, obj)
-# 		_process_friendships(db, obj)
+		_process_following(db, obj)
+		_process_memberships(db, obj)
+		_process_friendships(db, obj)
 		result = True
 	return result
