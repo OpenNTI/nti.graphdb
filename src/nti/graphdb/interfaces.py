@@ -52,6 +52,9 @@ class IGraphDB(interface.Interface):
 	def get_indexed_node(label, key, value):
 		pass
 	
+	def get_indexed_nodes(tuples):
+		pass
+
 	def get_node_properties(obj):
 		pass
 
@@ -174,6 +177,15 @@ class ILike(IRelationshipType):
 class IRate(IRelationshipType):
 	pass
 
+class IAuthor(IRelationshipType):
+	pass
+
+class IShared(IRelationshipType):
+	pass
+
+class IIsSharedTo(IRelationshipType):
+	pass
+
 # class IParentOf(IRelationshipType):
 # 	pass
 # 
@@ -187,15 +199,6 @@ class IRate(IRelationshipType):
 # 	pass
 # 
 # class IIsReplyOf(IRelationshipType):
-# 	pass
-# 
-# class IAuthor(IRelationshipType):
-# 	pass
-# 
-# class IShared(IRelationshipType):
-# 	pass
-# 
-# class IIsSharedTo(IRelationshipType):
 # 	pass
 # 
 # class IFeedback(IRelationshipType):

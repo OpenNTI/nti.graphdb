@@ -53,14 +53,14 @@
 	<subscriber handler=".created._message_posted_to_room" />
 	
 	<subscriber handler=".ratings._object_rated" />
-				
-	<!-- Subscribers
-	<subscriber handler=".search._search_completed" />
 			
 	<subscriber handler=".discussions._topic_added" />
 	<subscriber handler=".discussions._topic_removed" />
 	<subscriber handler=".discussions._topic_modified" />
-		
+			
+	<!-- Subscribers
+	<subscriber handler=".search._search_completed" />
+
 	<subscriber handler=".discussions._forum_added" />
 	<subscriber handler=".discussions._forum_removed" />
 	<subscriber handler=".discussions._forum_modified" />

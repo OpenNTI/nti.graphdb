@@ -13,11 +13,14 @@ from zope import interface
 
 from .interfaces import ILike
 from .interfaces import IRate
+from .interfaces import IAuthor
 from .interfaces import IFollow
+from .interfaces import IShared
 from .interfaces import ICreated
 from .interfaces import IFlagged
 from .interfaces import IFriendOf
 from .interfaces import IMemberOf
+from .interfaces import IIsSharedTo
 
 class _Singleton(object):
 	_instances = {}
@@ -75,6 +78,27 @@ class Rate(_Singleton):
 		return "HAS_RATED"
 	__repr__ = __str__
 
+@interface.implementer(IAuthor)
+class Author(_Singleton):
+
+	def __str__(self):
+		return "HAS_AUTHORED"
+	__repr__ = __str__
+
+@interface.implementer(IShared)
+class Shared(_Singleton):
+
+	def __str__(self):
+		return "HAS_SHARED"
+	__repr__ = __str__
+
+@interface.implementer(IIsSharedTo)
+class IsSharedTo(_Singleton):
+
+	def __str__(self):
+		return "IS_SHARED_TO"
+	__repr__ = __str__
+
 # @interface.implementer(graph_interfaces.IParentOf)
 # class ParentOf(_Singleton):
 # 
@@ -109,28 +133,7 @@ class Rate(_Singleton):
 # 	def __str__(self):
 # 		return "IS_REPLY_OF"
 # 	__repr__ = __str__
-# 
-# @interface.implementer(graph_interfaces.IAuthor)
-# class Author(_Singleton):
-# 
-# 	def __str__(self):
-# 		return "HAS_AUTHORED"
-# 	__repr__ = __str__
-# 
-# @interface.implementer(graph_interfaces.IShared)
-# class Shared(_Singleton):
-# 
-# 	def __str__(self):
-# 		return "HAS_SHARED"
-# 	__repr__ = __str__
-# 
-# @interface.implementer(graph_interfaces.IIsSharedTo)
-# class IsSharedTo(_Singleton):
-# 
-# 	def __str__(self):
-# 		return "IS_SHARED_TO"
-# 	__repr__ = __str__
-# 
+#
 # @interface.implementer(graph_interfaces.IFeedback)
 # class Feedback(_Singleton):
 # 

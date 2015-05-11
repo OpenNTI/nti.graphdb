@@ -224,6 +224,18 @@ class Neo4jDB(object):
 			result.pull()
 		result = Neo4jNode.create(result) if result is not None and not raw else result
 		return result
+	
+	def get_indexed_nodes(self, tuples):
+		rb = ReadBatch(self.db)
+		for label, key, value in tuples:
+			query = _match_node_query(label, key, value)
+			rb.append(CypherJob(query))
+
+		nodes = []
+		for node in rb.submit():
+			if node is not None:
+				nodes.append(node)
+		return nodes
 
 	def update_node(self, obj, properties=_marker):
 		node = self._get_node(obj, props=False)

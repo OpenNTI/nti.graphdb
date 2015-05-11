@@ -5,7 +5,7 @@
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
-from nti.graphdb.interfaces import ILabelAdapter, IUniqueAttributeAdapter
+
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -21,6 +21,9 @@ from nti.dataserver.users import Entity
 from nti.dataserver.interfaces import IEntity
 
 from nti.externalization.externalization import to_external_ntiid_oid
+
+from .interfaces import ILabelAdapter
+from .interfaces import IUniqueAttributeAdapter
 
 def get_current_principal():
 	interaction = queryInteraction()
