@@ -54,6 +54,14 @@ def get_creator(obj):
 	except (TypeError, POSKeyError):
 		return None
 
+def get_createdTime(obj, default=0):
+	result = getattr(obj, 'createdTime', None) or default
+	return result
+	
+def get_lastModified(obj, default=0):
+	result = getattr(obj, 'lastModified', None) or default
+	return result
+
 def to_external_oid(obj):
 	result = to_external_ntiid_oid(obj) if obj is not None else None
 	return result

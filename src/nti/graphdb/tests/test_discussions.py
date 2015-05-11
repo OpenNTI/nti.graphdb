@@ -27,9 +27,13 @@ from nti.graphdb.neo4j.database import Neo4jDB
 
 from nti.graphdb.common import get_oid
 from nti.graphdb.common import get_node_pk
+
 from nti.graphdb.discussions import _delete_node
 from nti.graphdb.discussions import _add_topic_node
+from nti.graphdb.discussions import _delete_comment
 from nti.graphdb.discussions import _update_topic_node
+from nti.graphdb.discussions import _add_comment_relationship
+from nti.graphdb.discussions import _get_comment_relationship
 from nti.graphdb.discussions import _add_membership_relationship
 
 from nti.graphdb.relationships import Author
@@ -61,7 +65,7 @@ class TestDiscussions(GraphDBTestCase):
 		return user
 
 	@WithMockDSTrans
-	def xtest_user_blog_node(self):
+	def test_user_blog_node(self):
 		user = self._create_random_user()
 		blog = IPersonalBlog(user)
 		entry = PersonalBlogEntry()
@@ -103,7 +107,6 @@ class TestDiscussions(GraphDBTestCase):
 
 	@WithMockDSTrans
 	def test_user_blog_comment(self):
-		from IPython.core.debugger import Tracer; Tracer()()
 		user = self._create_random_user()
 		blog = IPersonalBlog(user)
 		entry = PersonalBlogEntry()
@@ -120,19 +123,18 @@ class TestDiscussions(GraphDBTestCase):
 		comment.createdTime = comment.lastModified = 43
 		mock_dataserver.current_transaction.add(comment)
 
-# 		oid = get_oid(comment)
-# 		comment_rel_pk = discussions.get_comment_relationship_PK(comment)
-# 				
-# 		rel = discussions._add_comment_relationship(self.db, oid, comment_rel_pk)
-# 		assert_that(rel, is_not(none()))
-# 		assert_that(rel, has_property('properties', has_entry('created', 43)))
-# 
-# 		node = self.db.get_indexed_node("username", user.username)
-# 		assert_that(node, is_not(none()))
-# 
-# 		pk = get_node_pk(entry)
-# 		node = self.db.get_indexed_node(pk.label, pk.key, pk.value)
-# 		assert_that(node, is_not(none()))
-# 
-# 		rels = self.db.match(start=user, rel_type=CommentOn())
-# 		assert_that(rels, has_length(1))
+		oid = get_oid(comment)
+		res = _add_comment_relationship(self.db, oid)
+		assert_that(res, is_not(none()))
+		assert_that(res, has_property('properties', has_entry('oid', is_not(none()))))
+		
+		res = _get_comment_relationship(self.db, comment)
+		assert_that(res, is_not(none()))
+		assert_that(res, has_property('properties', has_entry('oid', is_not(none()))))
+
+		pk = get_node_pk(comment)
+		res = _delete_comment(self.db, oid, pk.label, pk.key, pk.value)
+		assert_that(res, is_(True))
+		
+		rels = self.db.match(entry, blog, CommentOn())
+		assert_that(rels, has_length(0))

@@ -18,8 +18,12 @@ from zope.intid.interfaces import IIntIdRemovedEvent
 from zope.lifecycleevent.interfaces import IObjectAddedEvent
 from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 
+from nti.dataserver.interfaces import IDeletedObjectPlaceholder
+
 from nti.dataserver.contenttypes.forums.interfaces import IForum
 from nti.dataserver.contenttypes.forums.interfaces import ITopic
+from nti.dataserver.contenttypes.forums.interfaces import IGeneralForumComment
+from nti.dataserver.contenttypes.forums.interfaces import IPersonalBlogComment
 
 from nti.ntiids.ntiids import find_object_with_ntiid
 
@@ -29,10 +33,13 @@ from .common import get_node_pk
 
 from .relationships import Author
 from .relationships import MemberOf
+from .relationships import CommentOn
 
 from .interfaces import ADD_EVENT
 from .interfaces import MODIFY_EVENT
+from .interfaces import REMOVE_EVENT
 from .interfaces import IPropertyAdapter
+from .interfaces import IObjectProcessor
 
 from . import create_job
 from . import get_graph_db
@@ -162,90 +169,92 @@ def _topic_removed(topic, event):
 	if db is not None:
 		_remove_topic(db, topic)
 
-# comments
+## comments
 
-# def get_comment_relationship_PK(comment):
-# 	author = get_creator(comment)
-# 	rel_type = relationships.CommentOn()
-# 	adapted = component.getMultiAdapter(
-# 							(author, comment, rel_type),
-# 							graph_interfaces.IUniqueAttributeAdapter)
-# 	return utils.PrimaryKey(adapted.key, adapted.value)
-# 
-# def _add_comment_relationship(db, oid, comment_rel_pk):
-# 	result = None
-# 	comment = ntiids.find_object_with_ntiid(oid)
-# 	if comment is not None:
-# 		# comment are special case. we build a relationship between the commenting user
-# 		# and the topic. We force key/value to identify the relationship
-# 		# Note we don't create a comment node.
-# 		author = get_creator(comment)
-# 		topic = comment.__parent__
-# 		rel_type = relationships.CommentOn()
-# 		properties = component.getMultiAdapter(
-# 									(author, comment, rel_type),
-# 									graph_interfaces.IPropertyAdapter)
-# 		result = db.create_relationship(author, topic, rel_type,
-# 										properties=properties,
-# 										key=comment_rel_pk.key,
-# 										value=comment_rel_pk.value)
-# 		logger.debug("comment-on relationship %s created", result)
-# 	return result
-#  
-# def _delete_comment(db, comment_pk, comment_rel_pk):
-# 	node = db.get_indexed_node(comment_pk.key, comment_pk.value) # check for comment node
-# 	if node is not None:
-# 		db.delete_node(node)
-# 		logger.debug("comment-on node %s deleted", node)
-# 	rel = db.delete_indexed_relationship(comment_rel_pk.key, comment_rel_pk.value)
-# 	if rel is not None:
-# 		logger.debug("comment-on relationship %s deleted", rel)
-# 		return True
-# 	return False
-#  
-# def _process_comment_event(db, comment, event):
-# 	queue = get_job_queue()
-# 	oid = to_external_ntiid_oid(comment)
-# 	comment_pk = get_primary_key(comment)
-# 	comment_rel_pk = get_comment_relationship_PK(comment)
-#  
-# 	if event == graph_interfaces.ADD_EVENT:
-# 		job = create_job(_add_comment_relationship, db=db, oid=oid,
-# 						 comment_rel_pk=comment_rel_pk)
-# 		queue.put(job)
-#  		
-# 		parent = to_external_ntiid_oid(comment.__parent__)
-# 		job = create_job(add_membership_relationship, db=db, child=oid, parent=parent)
-# 		queue.put(job)
-# 	else:
-# 		job = create_job(_delete_comment, db=db, comment_pk=comment_pk,
-# 						 comment_rel_pk=comment_rel_pk)
-# 		queue.put(job)
-#  	
-# @component.adapter(frm_interfaces.IPersonalBlogComment, lce_interfaces.IObjectAddedEvent)
-# def _add_personal_blog_comment(comment, event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		_process_comment_event(db, comment, graph_interfaces.ADD_EVENT)
-#  
-# @component.adapter(frm_interfaces.IGeneralForumComment, lce_interfaces.IObjectAddedEvent)
-# def _add_general_forum_comment(comment, event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		_process_comment_event(db, comment, graph_interfaces.ADD_EVENT)
-#  
-# @component.adapter(frm_interfaces.IPersonalBlogComment,
-# 				   lce_interfaces.IObjectModifiedEvent)
-# def _modify_personal_blog_comment(comment, event):
-# 	db = get_graph_db()
-# 	if db is not None and nti_interfaces.IDeletedObjectPlaceholder.providedBy(comment):
-# 		_process_comment_event(db, comment, graph_interfaces.REMOVE_EVENT)
-#  
-# @component.adapter(frm_interfaces.IGeneralForumComment,
-# 				   lce_interfaces.IObjectModifiedEvent)
-# def _modify_general_forum_comment(comment, event):
-# 	_modify_personal_blog_comment(comment, event)
-# 
+def _get_comment_relationship(db, comment):
+	pk = get_node_pk(comment)
+	topic = comment.__parent__
+	author = get_creator(comment)
+	rels = db.match(author, topic, CommentOn())
+	for rel in rels or ():
+		props = getattr(rel, 'properties', None) or {}
+		if props.get(pk.key) == pk.value:
+			return rel
+	return None
+
+def _add_comment_relationship(db, oid):
+	result = None
+	comment = find_object_with_ntiid(oid)
+	if comment is not None:
+		## Comments are special case. we build a relationship between the 
+		## commenting user and the topic. We identify the relationship with
+		## the primary key of the comment
+		## Note we don't create a comment node.
+		pk = get_node_pk(comment)
+		topic = comment.__parent__
+		author = get_creator(comment)
+		properties = {pk.key: pk.value}
+		result = db.create_relationship(author, topic, CommentOn(),
+										properties=properties,
+										unique=False)
+		logger.debug("CommentOn relationship %s created", result)
+	return result
+
+def _delete_comment(db, oid, label, key, value):
+	comment = find_object_with_ntiid(oid)
+	if comment is not None:
+		node = db.get_indexed_node(label, key, value) # check for comment node
+		if node is not None:
+			db.delete_node(node)
+			logger.debug("Comment node %s deleted", node)
+
+		rel = _get_comment_relationship(db, comment)
+		if rel is not None:
+			db.delete_relationship(rel)
+			logger.debug("Comment-on relationship %s deleted", rel)
+			return True
+		return False
+
+def _process_comment_event(db, comment, event):
+	queue = get_job_queue()
+	oid = get_oid(comment)
+
+	if event == ADD_EVENT:
+		## add user->topic relationship
+		job = create_job(_add_comment_relationship, db=db, oid=oid)
+		queue.put(job)
+		## create comment->topic relationship
+		parent = get_oid(comment.__parent__)
+		job = create_job(_add_membership_relationship, db=db, child=oid, parent=parent)
+		queue.put(job)
+	else:
+		pk = get_node_pk(comment)
+		job = create_job(_delete_comment, db=db, oid=oid,
+						 label=pk.label,
+						 key=pk.key, value=pk.value)
+		queue.put(job)
+
+@component.adapter(IPersonalBlogComment, IObjectAddedEvent)
+def _add_personal_blog_comment(comment, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_comment_event(db, comment, ADD_EVENT)
+
+@component.adapter(IGeneralForumComment, IObjectAddedEvent)
+def _add_general_forum_comment(comment, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_comment_event(db, comment, ADD_EVENT)
+
+@component.adapter(IPersonalBlogComment, IObjectModifiedEvent)
+def _modify_personal_blog_comment(comment, event):
+	db = get_graph_db()
+	if db is not None and IDeletedObjectPlaceholder.providedBy(comment):
+		_process_comment_event(db, comment, REMOVE_EVENT)
+
+@component.adapter(IGeneralForumComment, IObjectModifiedEvent)
+def _modify_general_forum_comment(comment, event):
+	_modify_personal_blog_comment(comment, event)
 
 ## forums
 
@@ -278,18 +287,19 @@ def _forum_removed(forum, event):
 			_remove_topic(db, topic)
 		## remove forum node
 		_process_discussion_remove_events(db, [get_node_pk(forum)])
-#  
-# component.moduleProvides(graph_interfaces.IObjectProcessor)
-#  
-# def init(db, obj):
-# 	result = True
-# 	if frm_interfaces.IForum.providedBy(obj):
-# 		_process_forum_add_mod_event(db, obj, graph_interfaces.ADD_EVENT)
-# 	elif frm_interfaces.ITopic.providedBy(obj):
-# 		_process_topic_add_mod_event(db, obj, graph_interfaces.ADD_EVENT)
-# 	elif frm_interfaces.IPersonalBlogComment.providedBy(obj) or \
-# 		 frm_interfaces.IGeneralForumComment.providedBy(obj):
-# 		_process_comment_event(db, obj, graph_interfaces.ADD_EVENT)
-# 	else:
-# 		result = False
-# 	return result
+
+component.moduleProvides(IObjectProcessor)
+
+def init(db, obj):
+	result = True
+	if IForum.providedBy(obj):
+		_process_forum_event(db, obj, ADD_EVENT)
+	elif ITopic.providedBy(obj):
+		_process_topic_event(db, obj, ADD_EVENT)
+	elif IPersonalBlogComment.providedBy(obj) or \
+		 IGeneralForumComment.providedBy(obj):
+		##_process_comment_event(db, obj, ADD_EVENT)
+		pass
+	else:
+		result = False
+	return result

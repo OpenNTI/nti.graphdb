@@ -16,6 +16,8 @@ from hamcrest import has_entries
 from hamcrest import assert_that
 from hamcrest import has_property
 
+from numbers import Number
+
 from nti.contentfragments.interfaces import IPlainTextContentFragment
 
 from nti.dataserver.users import User
@@ -54,7 +56,7 @@ class TestAdapters(GraphDBTestCase):
 										'username', 'owner@bar',
 										'oid', is_not(none()),
 										'intid', is_(int),
-										'createdTime', is_(float) ) )
+										'createdTime', is_(Number) ) )
 
 	@WithMockDSTrans
 	def test_community_adapter(self):
@@ -72,7 +74,7 @@ class TestAdapters(GraphDBTestCase):
 										'username', 'cs',
 										'oid', is_not(none()),
 										'intid', is_(int),
-										'createdTime', is_(float) ) )
+										'createdTime', is_(Number) ) )
 
 	@WithMockDSTrans
 	def test_generic_adapter(self):
@@ -83,7 +85,7 @@ class TestAdapters(GraphDBTestCase):
 		props = IPropertyAdapter(obj, None)
 		assert_that(props, is_not(none()))
 		assert_that(props, has_length(2))
-		assert_that(props, has_entry('createdTime', is_(float)))
+		assert_that(props, has_entry('createdTime', is_(Number)))
 
 	@WithMockDSTrans
 	def test_unique_entity_attr_adapter(self):
@@ -130,7 +132,7 @@ class TestAdapters(GraphDBTestCase):
 										'title', is_(u''),
 										'type', is_(u'Topic'),
 										'forum', is_not(none()),
-										'createdTime', is_(float) ) )
+										'createdTime', is_(Number) ) )
 
 		label = ILabelAdapter(comment, None)
 		assert_that(label, is_('Comment'))
@@ -141,4 +143,4 @@ class TestAdapters(GraphDBTestCase):
 										'oid', is_not(none()),
 										'type', is_(u'Comment'),
 										'topic', is_not(none()),
-										'createdTime', is_(float) ) )
+										'createdTime', is_(Number) ) )

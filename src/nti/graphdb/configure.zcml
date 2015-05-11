@@ -62,14 +62,14 @@
 	<subscriber handler=".discussions._forum_removed" />
 	<subscriber handler=".discussions._forum_modified" />
 	
+	<subscriber handler=".discussions._add_general_forum_comment" />
+	<subscriber handler=".discussions._add_personal_blog_comment" />
+	<subscriber handler=".discussions._modify_general_forum_comment" />
+	<subscriber handler=".discussions._modify_personal_blog_comment" />
+	
 	<!-- Subscribers
 	<subscriber handler=".search._search_completed" />
 
-	<subscriber handler=".discussions._add_personal_blog_comment" />
-	<subscriber handler=".discussions._add_general_forum_comment" />
-	<subscriber handler=".discussions._modify_personal_blog_comment" />
-	<subscriber handler=".discussions._modify_general_forum_comment" />
-	
 	<subscriber handler=".threadables._threadable_added" />
 	<subscriber handler=".threadables._threadable_removed" />
 	<subscriber handler=".threadables._threadable_modified" />
