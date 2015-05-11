@@ -77,6 +77,10 @@ class TestNeo4jDB(GraphDBTestCase):
 		node = self.db.get_indexed_node("User", 'username', username)
 		assert_that(node, is_not(none()))
 		
+		nodes = self.db.get_indexed_nodes( ("User", 'username', user.username),
+										   ("User", 'username', user2.username) )
+		assert_that(nodes, has_length(2))
+		
 		props = dict(node.properties)
 		props['language'] = 'latin'
 		res = self.db.update_node(node, properties=props)

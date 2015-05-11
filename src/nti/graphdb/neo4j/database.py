@@ -225,7 +225,7 @@ class Neo4jDB(object):
 		result = Neo4jNode.create(result) if result is not None and not raw else result
 		return result
 	
-	def get_indexed_nodes(self, tuples):
+	def get_indexed_nodes(self, *tuples):
 		rb = ReadBatch(self.db)
 		for label, key, value in tuples:
 			query = _match_node_query(label, key, value)
