@@ -35,12 +35,13 @@ from nti.schema.schema import EqHash
 from .node import Neo4jNode
 from .relationship import Neo4jRelationship
 
+from ..common import get_node_pk
+
 from ..interfaces import IGraphDB
 from ..interfaces import IGraphNode
 from ..interfaces import ILabelAdapter
 from ..interfaces import IPropertyAdapter
 from ..interfaces import IGraphRelationship
-from ..interfaces import IUniqueAttributeAdapter
 
 from .interfaces import INeo4jNode
 from .interfaces import IGraphNodeNeo4j
@@ -117,14 +118,11 @@ class Neo4jDB(object):
 		
 		## Get object labels
 		label = label or ILabelAdapter(obj)
-		assert label
+		assert label, "must provide an object label"
 	
-		unique = IUniqueAttributeAdapter(obj, None)
-		key = key or (unique.key if unique is not None else None)
-		value = value or (unique.value if unique is not None else None)
-		
-		if key and value is not None:
-			result = self.db.merge_one(label, key, value)
+		pk = get_node_pk(obj)	
+		if pk is not None:
+			result = self.db.merge_one(label, pk.key, pk.value)
 			result.properties.update(properties)
 			result.push()
 			if props: # refresh
@@ -144,16 +142,16 @@ class Neo4jDB(object):
 	def create_nodes(self, *objs):
 		wb = WriteBatch(self.db)
 		for o in objs:
-			label = ILabelAdapter(o)
+			pk = get_node_pk(o)	
 			properties = IPropertyAdapter(o)
-			adapted = IUniqueAttributeAdapter(o, None)
-			if adapted is not None and adapted.key and adapted.value:
-				query = _merge_node_query(label, adapted.key, adapted.value)
+			if pk is not None:
+				query = _merge_node_query(pk.label, pk.key, pk.value)
 				wb.append(CypherJob(query))
 				if properties:
-					query = _set_properties_query(label, adapted.key, adapted.value)
+					query = _set_properties_query(pk.label, pk.key, pk.value)
 					wb.append(CypherJob(query, parameters={"props":properties}))
 			else:
+				label = ILabelAdapter(o)
 				abstract = node4j(label, **properties)
 				wb.create(abstract)
 		result = []
@@ -176,10 +174,9 @@ class Neo4jDB(object):
 			elif IGraphNode.providedBy(obj):
 				result = self.db.node(obj.id)
 			elif obj is not None:
-				adapted = IUniqueAttributeAdapter(obj, None)
-				if adapted is not None:
-					label = ILabelAdapter(obj)
-					result = self.db.find_one(label, adapted.key, adapted.value)
+				pk = get_node_pk(obj)	
+				if pk is not None:
+					result = self.db.find_one(pk.label, pk.key, pk.value)
 					props = False ## no need to refresh
 			if result is not None and props:
 				self.db.pull(result)
@@ -205,9 +202,8 @@ class Neo4jDB(object):
 		nodes = []
 		rb = ReadBatch(self.db)
 		for o in objs:
-			label = ILabelAdapter(o)
-			adapted = IUniqueAttributeAdapter(o)
-			query = _match_node_query(label, adapted.key, adapted.value)
+			pk = get_node_pk(o)	
+			query = _match_node_query(pk.label, pk.key, pk.value)
 			rb.append(CypherJob(query))
 			
 		for result in rb.submit():
@@ -265,9 +261,8 @@ class Neo4jDB(object):
 		## get all the nodes at once
 		rb = ReadBatch(self.db)
 		for o in objs:
-			label = ILabelAdapter(o)
-			adapted = IUniqueAttributeAdapter(o)
-			query = _match_node_query(label, adapted.key, adapted.value)
+			pk = get_node_pk(o)	
+			query = _match_node_query(pk.label, pk.key, pk.value)
 			rb.append(CypherJob(query))
 
 		for node in rb.submit():
