@@ -20,7 +20,7 @@ import unittest
 from nti.dataserver.users import User
 
 from nti.dataserver.contenttypes.forums.topic import PersonalBlogEntry
-#from nti.dataserver.contenttypes.forums.post import PersonalBlogComment
+from nti.dataserver.contenttypes.forums.post import PersonalBlogComment
 from nti.dataserver.contenttypes.forums.interfaces import IPersonalBlog
 
 from nti.graphdb.neo4j.database import Neo4jDB
@@ -34,8 +34,9 @@ from nti.graphdb.discussions import _add_membership_relationship
 
 from nti.graphdb.relationships import Author
 from nti.graphdb.relationships import MemberOf
+from nti.graphdb.relationships import CommentOn
 
-#import nti.dataserver.tests.mock_dataserver as mock_dataserver
+import nti.dataserver.tests.mock_dataserver as mock_dataserver
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
 from nti.graphdb.tests import DEFAULT_URI
@@ -60,7 +61,7 @@ class TestDiscussions(GraphDBTestCase):
 		return user
 
 	@WithMockDSTrans
-	def test_user_blog_node(self):
+	def xtest_user_blog_node(self):
 		user = self._create_random_user()
 		blog = IPersonalBlog(user)
 		entry = PersonalBlogEntry()
@@ -100,38 +101,38 @@ class TestDiscussions(GraphDBTestCase):
 		res = _delete_node(self.db, pk.label, pk.key, pk.value)
 		assert_that(res, is_(False))
 
-# 	@mock_dataserver.WithMockDSTrans
-# 	def xtest_user_blog_comment(self):
-#        from IPython.core.debugger import Tracer; Tracer()()
-# 		user = self._create_random_user()
-# 		blog = frm_interfaces.IPersonalBlog(user)
-# 		entry = PersonalBlogEntry()
-# 		entry.creator = user
-# 		blog['bleach'] = entry
-# 		entry.__parent__ = blog
-# 		entry.createdTime = entry.lastModified = 42
-# 		mock_dataserver.current_transaction.add(entry)
-#  
-# 		comment = PersonalBlogComment()
-# 		comment.creator = user
-# 		entry['comment316072059'] = comment
-# 		comment.__parent__ = entry
-# 		comment.createdTime = comment.lastModified = 43
-# 		mock_dataserver.current_transaction.add(comment)
-#  
-# 		oid = discussions.to_external_ntiid_oid(comment)
+	@WithMockDSTrans
+	def test_user_blog_comment(self):
+		from IPython.core.debugger import Tracer; Tracer()()
+		user = self._create_random_user()
+		blog = IPersonalBlog(user)
+		entry = PersonalBlogEntry()
+		entry.creator = user
+		blog['bleach'] = entry
+		entry.__parent__ = blog
+		entry.createdTime = entry.lastModified = 42
+		mock_dataserver.current_transaction.add(entry)
+
+		comment = PersonalBlogComment()
+		comment.creator = user
+		entry['comment316072059'] = comment
+		comment.__parent__ = entry
+		comment.createdTime = comment.lastModified = 43
+		mock_dataserver.current_transaction.add(comment)
+
+# 		oid = get_oid(comment)
 # 		comment_rel_pk = discussions.get_comment_relationship_PK(comment)
-#  				
+# 				
 # 		rel = discussions._add_comment_relationship(self.db, oid, comment_rel_pk)
 # 		assert_that(rel, is_not(none()))
 # 		assert_that(rel, has_property('properties', has_entry('created', 43)))
-#  
+# 
 # 		node = self.db.get_indexed_node("username", user.username)
 # 		assert_that(node, is_not(none()))
-#  
-# 		pk = graph_interfaces.IUniqueAttributeAdapter(entry)
-# 		node = self.db.get_indexed_node(pk.key, pk.value)
+# 
+# 		pk = get_node_pk(entry)
+# 		node = self.db.get_indexed_node(pk.label, pk.key, pk.value)
 # 		assert_that(node, is_not(none()))
-#  
-# 		rels = self.db.match(start=user, rel_type=relationships.CommentOn())
+# 
+# 		rels = self.db.match(start=user, rel_type=CommentOn())
 # 		assert_that(rels, has_length(1))

@@ -20,6 +20,7 @@ from .interfaces import ICreated
 from .interfaces import IFlagged
 from .interfaces import IFriendOf
 from .interfaces import IMemberOf
+from .interfaces import ICommentOn
 from .interfaces import IIsSharedTo
 
 class _Singleton(object):
@@ -99,18 +100,18 @@ class IsSharedTo(_Singleton):
 		return "IS_SHARED_TO"
 	__repr__ = __str__
 
+@interface.implementer(ICommentOn)
+class CommentOn(_Singleton):
+
+	def __str__(self):
+		return "HAS_COMMENTED_ON"
+	__repr__ = __str__
+
 # @interface.implementer(graph_interfaces.IParentOf)
 # class ParentOf(_Singleton):
 # 
 # 	def __str__(self):
 # 		return "IS_PARENT_OF"
-# 	__repr__ = __str__
-# 
-# @interface.implementer(graph_interfaces.ICommentOn)
-# class CommentOn(_Singleton):
-# 
-# 	def __str__(self):
-# 		return "HAS_COMMENTED_ON"
 # 	__repr__ = __str__
 # 
 # @interface.implementer(graph_interfaces.ITakeAssessment)

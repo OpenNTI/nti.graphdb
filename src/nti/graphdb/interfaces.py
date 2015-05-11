@@ -186,10 +186,10 @@ class IShared(IRelationshipType):
 class IIsSharedTo(IRelationshipType):
 	pass
 
+class ICommentOn(IRelationshipType):
+	pass
+
 # class IParentOf(IRelationshipType):
-# 	pass
-# 
-# class ICommentOn(IRelationshipType):
 # 	pass
 # 
 # class ITakeAssessment(IRelationshipType):

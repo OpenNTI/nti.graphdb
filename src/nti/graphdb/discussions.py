@@ -18,6 +18,7 @@ from zope.intid.interfaces import IIntIdRemovedEvent
 from zope.lifecycleevent.interfaces import IObjectAddedEvent
 from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 
+from nti.dataserver.contenttypes.forums.interfaces import IForum
 from nti.dataserver.contenttypes.forums.interfaces import ITopic
 
 from nti.ntiids.ntiids import find_object_with_ntiid
@@ -244,40 +245,39 @@ def _topic_removed(topic, event):
 # 				   lce_interfaces.IObjectModifiedEvent)
 # def _modify_general_forum_comment(comment, event):
 # 	_modify_personal_blog_comment(comment, event)
-#  
-# # forums
-#  
-# def _process_forum_add_mod_event(db, forum, event):
-# 	oid = to_external_ntiid_oid(forum)
-# 	adapted = graph_interfaces.IUniqueAttributeAdapter(forum)
-# 	key, value = adapted.key, adapted.value
-#  
-# 	func = 	add_forum_node \
-# 			if event == graph_interfaces.ADD_EVENT else modify_forum_node
-#  
-# 	queue = get_job_queue()
-# 	job = create_job(func, db=db, oid=oid, key=key, value=value)
-# 	queue.put(job)
-#  
-# @component.adapter(frm_interfaces.IForum, lce_interfaces.IObjectAddedEvent)
-# def _forum_added(forum, event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		_process_forum_add_mod_event(db, forum, graph_interfaces.ADD_EVENT)
-#  
-# @component.adapter(frm_interfaces.IForum, lce_interfaces.IObjectModifiedEvent)
-# def _forum_modified(forum, event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		_process_forum_add_mod_event(db, forum, graph_interfaces.MODIFY_EVENT)
-#  
-# @component.adapter(frm_interfaces.IForum, intid_interfaces.IIntIdRemovedEvent)
-# def _forum_removed(forum, event):
-# 	db = get_graph_db()
-# 	if db is not None:
-# 		for topic in forum.values():  # remove topics
-# 			_remove_topic(db, topic)
-# 		_process_discussion_remove_events(db, [get_primary_key(forum)])
+# 
+
+## forums
+
+def _process_forum_event(db, forum, event):
+	oid = get_oid(forum)
+	pk = get_node_pk(forum)
+	queue = get_job_queue()
+	func = 	_add_forum_node if event == ADD_EVENT else _update_forum_node
+	job = create_job(func, db=db, oid=oid, label=pk.label, key=pk.key, value=pk.value)
+	queue.put(job)
+
+@component.adapter(IForum, IObjectAddedEvent)
+def _forum_added(forum, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_forum_event(db, forum, ADD_EVENT)
+
+@component.adapter(IForum, IObjectModifiedEvent)
+def _forum_modified(forum, event):
+	db = get_graph_db()
+	if db is not None:
+		_process_forum_event(db, forum, MODIFY_EVENT)
+
+@component.adapter(IForum, IIntIdRemovedEvent)
+def _forum_removed(forum, event):
+	db = get_graph_db()
+	if db is not None:
+		## remove topics
+		for topic in forum.values(): 
+			_remove_topic(db, topic)
+		## remove forum node
+		_process_discussion_remove_events(db, [get_node_pk(forum)])
 #  
 # component.moduleProvides(graph_interfaces.IObjectProcessor)
 #  
