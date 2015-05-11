@@ -225,11 +225,11 @@ class Neo4jDB(object):
 		result = Neo4jNode.create(result) if result is not None and not raw else result
 		return result
 
-	def update_node(self, obj, labels=_marker, properties=_marker):
+	def update_node(self, obj, properties=_marker):
 		node = self._get_node(obj, props=False)
-		if node is not None:
-			if properties != _marker:
-				node.set_properties(properties)
+		if node is not None and properties != _marker:
+			node.set_properties(properties)
+			node.push()
 			return True
 		return False
 

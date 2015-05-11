@@ -30,7 +30,7 @@ from . import create_job
 from . import get_graph_db
 from . import get_job_queue
 
-def add_flagged_relationship(db, username, oid):
+def _add_flagged_relationship(db, username, oid):
 	result = None
 	author = get_entity(username)
 	obj = find_object_with_ntiid(oid)
@@ -39,7 +39,7 @@ def add_flagged_relationship(db, username, oid):
 		logger.debug("Flagged relationship %s created", result)
 	return result
 
-def remove_flagged_relationship(db, username, oid):
+def _remove_flagged_relationship(db, username, oid):
 	result = False
 	author = get_entity(username)
 	obj = find_object_with_ntiid(oid)
@@ -57,10 +57,10 @@ def _process_flagging_event(db, flaggable, username=None, is_flagged=True):
 		oid = get_oid(flaggable)
 		queue = get_job_queue()
 		if is_flagged:
-			job = create_job(add_flagged_relationship, db=db, username=username,
+			job = create_job(_add_flagged_relationship, db=db, username=username,
 							 oid=oid)
 		else:
-			job = create_job(remove_flagged_relationship, db=db, username=username,
+			job = create_job(_remove_flagged_relationship, db=db, username=username,
 							 oid=oid)
 		queue.put(job)
 

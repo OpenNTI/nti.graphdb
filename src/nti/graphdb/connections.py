@@ -32,12 +32,11 @@ from .relationships import Follow
 from .relationships import FriendOf
 from .relationships import MemberOf
 
+from .common import get_oid
 from .common import get_entity
-from .common import to_external_oid
+from .common import get_node_pk
 
-from .interfaces import ILabelAdapter
 from .interfaces import IObjectProcessor
-from .interfaces import IUniqueAttributeAdapter
 
 from . import create_job
 from . import get_graph_db
@@ -202,7 +201,7 @@ def _process_membership_event(db, event):
 		return # pragma no cover
 
 	source = source.username
-	target = to_external_oid(target)
+	target = get_oid(target)
 	start_membership = IStartDynamicMembershipEvent.providedBy(event)
 
 	queue = get_job_queue()
@@ -233,12 +232,14 @@ def _do_delete_dfl(db, label, key, value):
 	return False
 			
 def _process_dfl_removal(db, obj):
-	label = ILabelAdapter(obj)
-	unique = IUniqueAttributeAdapter(obj)
-	key, value = unique.key, unique.value
-	queue = get_job_queue()
-	job = create_job(_do_delete_dfl, db=db, label=label, key=key, value=value)
-	queue.put(job)
+	pk = get_node_pk(obj)
+	if pk is not None:
+		queue = get_job_queue()
+		job = create_job(_do_delete_dfl, db=db, 
+						 label=pk.label,
+						 key=pk.key,
+						 value=pk.value)
+		queue.put(job)
 
 @component.adapter(IDynamicSharingTargetFriendsList, IIntIdRemovedEvent)
 def _dfl_deleted(obj, event):
@@ -329,7 +330,7 @@ def _process_memberships(db, user):
 	everyone = get_entity('Everyone')
 	for target in getattr(user, 'dynamic_memberships', ()):
 		if target != everyone:
-			target = to_external_oid(target)
+			target = get_oid(target)
 			job = create_job(process_start_membership, db=db, 
 							 source=source,
 							 target=target)

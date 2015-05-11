@@ -165,6 +165,9 @@ class IFollow(IRelationshipType):
 class IFlagged(IRelationshipType):
 	pass
 
+class ICreated(IRelationshipType):
+	pass
+
 # class IParentOf(IRelationshipType):
 # 	pass
 # 
@@ -208,9 +211,6 @@ class IFlagged(IRelationshipType):
 # 	pass
 # 
 # class IContained(IRelationshipType):
-# 	pass
-# 
-# class ICreated(IRelationshipType):
 # 	pass
 # 
 # class IView(IRelationshipType):

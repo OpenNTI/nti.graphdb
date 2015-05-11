@@ -47,6 +47,11 @@
 	<subscriber handler=".flagging._object_flagged" />
 	<subscriber handler=".flagging._object_unflagged" />
 	
+	<subscriber handler=".created._object_created" />
+	<subscriber handler=".created._object_removed" />
+	<subscriber handler=".created._object_modified" />
+	<subscriber handler=".created._message_posted_to_room" />
+	
 	<!-- Subscribers
 	<subscriber handler=".search._search_completed" />
 			
@@ -87,20 +92,16 @@
 	<subscriber handler=".containers._contained_removed" />
 	<subscriber handler=".containers._contained_modified" />
 		
-	<subscriber handler=".creators._object_created" />
-	<subscriber handler=".creators._object_modified" />
-	<subscriber handler=".creators._object_removed" />
-	<subscriber handler=".creators._message_posted_to_room" />
 	-->
 	
 	<!-- Utilities -->
-	
+	<utility component=".created" provides=".interfaces.IObjectProcessor" name="created"/>
 	<utility component=".entities" provides=".interfaces.IObjectProcessor" name="entities"/>
 	<utility component=".flagging" provides=".interfaces.IObjectProcessor" name="flagging"/>
 	
 	<!-- 
 	<utility component=".connections" provides=".interfaces.IObjectProcessor" name="connections"/>
-	<utility component=".creators" provides=".interfaces.IObjectProcessor" name="creators"/>
+	
 	<utility component=".containers" provides=".interfaces.IObjectProcessor" name="containers"/>
 	<utility component=".threadables" provides=".interfaces.IObjectProcessor" name="threadables"/>
 	<utility component=".sharing" provides=".interfaces.IObjectProcessor" name="sharing"/>

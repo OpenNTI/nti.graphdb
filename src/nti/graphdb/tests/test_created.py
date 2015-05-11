@@ -7,6 +7,7 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
+from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
 from hamcrest import has_length
@@ -18,12 +19,14 @@ from nti.dataserver.users import User
 
 from nti.dataserver.contenttypes import Note
 
-from nti.graphdb.relationships import Flagged
+from nti.graphdb.relationships import Created
 from nti.graphdb.neo4j.database import Neo4jDB
 
 from nti.graphdb.common import get_oid
-from nti.graphdb.flagging import _add_flagged_relationship
-from nti.graphdb.flagging import _remove_flagged_relationship
+from nti.graphdb.common import get_node_pk
+from nti.graphdb.created import _remove_created
+from nti.graphdb.created import _update_created
+from nti.graphdb.created import _add_created_relationship
 
 from nti.ntiids.ntiids import make_ntiid
 
@@ -36,10 +39,10 @@ from nti.graphdb.tests import random_username
 from nti.graphdb.tests import GraphDBTestCase
 
 @unittest.skipIf(cannot_connect(DEFAULT_URI), "Neo4j not available")
-class TestFlagging(GraphDBTestCase):
+class TestCreated(GraphDBTestCase):
 
 	def setUp(self):
-		super(TestFlagging, self).setUp()
+		super(TestCreated, self).setUp()
 		self.db = Neo4jDB(DEFAULT_URI)
 
 	def _create_user(self, username='nt@nti.com', password='temp001'):
@@ -66,13 +69,17 @@ class TestFlagging(GraphDBTestCase):
 		note = user.addContainedObject(note)
 		
 		oid = get_oid(note)
-		m = _add_flagged_relationship(self.db, user.username, oid)
+		m = _add_created_relationship(self.db, user.username, oid)
 		assert_that(m, is_not(none()))
 
-		rels = self.db.match(user, note, Flagged())
+		rels = self.db.match(user, note, Created())
 		assert_that(rels, has_length(1))
 		
-		_remove_flagged_relationship(self.db, user.username, oid)
+		m = _update_created(self.db, oid)
+		assert_that(m, is_not(none()))
 		
-		rels = self.db.match(user, note, Flagged())
-		assert_that(rels, has_length(0))
+		pk = get_node_pk(note)
+		_remove_created(self.db, pk.label, pk.key, pk.value)
+		
+		n = self.db.get_indexed_node(pk.label, pk.key, pk.value)
+		assert_that(n, is_(none()))

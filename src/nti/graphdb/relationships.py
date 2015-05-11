@@ -12,6 +12,7 @@ logger = __import__('logging').getLogger(__name__)
 from zope import interface
 
 from .interfaces import IFollow
+from .interfaces import ICreated
 from .interfaces import IFlagged
 from .interfaces import IFriendOf
 from .interfaces import IMemberOf
@@ -51,6 +52,13 @@ class Flagged(_Singleton):
 		return "HAS_FLAGGED"
 	__repr__ = __str__
 
+@interface.implementer(ICreated)
+class Created(_Singleton):
+
+	def __str__(self):
+		return "HAS_CREATED"
+	__repr__ = __str__
+
 # @interface.implementer(graph_interfaces.IParentOf)
 # class ParentOf(_Singleton):
 # 
@@ -85,7 +93,6 @@ class Flagged(_Singleton):
 # 	def __str__(self):
 # 		return "HAS_RATED"
 # 	__repr__ = __str__
-# 
 # 
 # @interface.implementer(graph_interfaces.IReply)
 # class Reply(_Singleton):
@@ -155,13 +162,6 @@ class Flagged(_Singleton):
 # 
 # 	def __str__(self):
 # 		return "IS_CONTAINED"
-# 	__repr__ = __str__
-# 
-# @interface.implementer(graph_interfaces.ICreated)
-# class Created(_Singleton):
-# 
-# 	def __str__(self):
-# 		return "HAS_CREATED"
 # 	__repr__ = __str__
 # 
 # @interface.implementer(graph_interfaces.IView)
