@@ -108,17 +108,13 @@
 	<utility component=".assessments" provides=".interfaces.IObjectProcessor" name="assessments"/>
 	-->
 
-	<!-- Graph stores
-	<include package="." file="meta.zcml" />		
-	<configure zcml:condition="have devmode">
-		<gdb:registerGraphDB
-			url="http://localhost:7474/db/data/" />
-	</configure>
-	 -->
-	 
+	<!-- Graph store -->
+	<include package="." file="meta.zcml" />
+
 	<configure zcml:condition="have devmode">
 		<configure zcml:condition="not-have testmode">
 			<gdb:registerRedisProcessingQueue />
+			<gdb:registerGraphDB url="http://localhost:7474/db/data/" />
 		</configure>
 		<configure zcml:condition="have testmode">
 			<gdb:registerImmediateProcessingQueue />
