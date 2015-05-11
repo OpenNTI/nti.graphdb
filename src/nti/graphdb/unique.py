@@ -92,7 +92,7 @@ class _TopicUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
 	@Lazy
 	def value(self):
-		return self.obj.NTIID
+		return get_oid(self.obj)
 
 @interface.implementer(IUniqueAttributeAdapter)
 @component.adapter(IHeadlinePost)
