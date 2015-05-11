@@ -21,7 +21,7 @@ from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
 
 from nti.ntiids.ntiids import find_object_with_ntiid
 
-from .common import to_external_oid
+from .common import get_oid
 
 from .interfaces import ILabelAdapter
 from .interfaces import IObjectProcessor
@@ -63,7 +63,7 @@ def _process_entity_removed(db, entity):
 	queue.put(job)
 
 def _process_entity_added(db, entity):
-	oid = to_external_oid(entity)
+	oid = get_oid(entity)
 	queue = get_job_queue()
 	job = create_job(_add_entity, db=db, oid=oid)
 	queue.put(job)
