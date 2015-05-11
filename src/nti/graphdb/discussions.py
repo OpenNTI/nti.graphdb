@@ -9,6 +9,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from six import string_types
+
 from zope import component
 
 from zope.intid.interfaces import IIntIdRemovedEvent
@@ -95,8 +97,8 @@ def _update_topic_node(db, oid, label, key, value):
 	return node, topic
 
 def _add_membership_relationship(db, child, parent):
-	child = find_object_with_ntiid(child)
-	parent = find_object_with_ntiid(parent)
+	child = find_object_with_ntiid(child) if isinstance(child, string_types) else child
+	parent = find_object_with_ntiid(parent) if isinstance(parent, string_types) else parent
 	if child is not None and parent is not None:
 		result = db.create_relationship(child, parent, MemberOf())
 		logger.debug("Membership relationship %s created", result)
