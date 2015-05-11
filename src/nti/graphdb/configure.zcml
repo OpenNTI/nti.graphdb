@@ -52,6 +52,8 @@
 	<subscriber handler=".created._object_modified" />
 	<subscriber handler=".created._message_posted_to_room" />
 	
+	<subscriber handler=".ratings._object_rated" />
+				
 	<!-- Subscribers
 	<subscriber handler=".search._search_completed" />
 			
@@ -67,9 +69,6 @@
 	<subscriber handler=".discussions._add_general_forum_comment" />
 	<subscriber handler=".discussions._modify_personal_blog_comment" />
 	<subscriber handler=".discussions._modify_general_forum_comment" />
-	
-	<subscriber handler=".ratings._topic_rated" />
-	<subscriber handler=".ratings._object_rated" />
 	
 	<subscriber handler=".threadables._threadable_added" />
 	<subscriber handler=".threadables._threadable_removed" />

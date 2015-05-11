@@ -11,6 +11,8 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
+from .interfaces import ILike
+from .interfaces import IRate
 from .interfaces import IFollow
 from .interfaces import ICreated
 from .interfaces import IFlagged
@@ -59,6 +61,20 @@ class Created(_Singleton):
 		return "HAS_CREATED"
 	__repr__ = __str__
 
+@interface.implementer(ILike)
+class Like(_Singleton):
+
+	def __str__(self):
+		return "LIKES"
+	__repr__ = __str__
+
+@interface.implementer(IRate)
+class Rate(_Singleton):
+
+	def __str__(self):
+		return "HAS_RATED"
+	__repr__ = __str__
+
 # @interface.implementer(graph_interfaces.IParentOf)
 # class ParentOf(_Singleton):
 # 
@@ -78,20 +94,6 @@ class Created(_Singleton):
 # 
 # 	def __str__(self):
 # 		return "HAS_TAKEN"
-# 	__repr__ = __str__
-# 
-# @interface.implementer(graph_interfaces.ILike)
-# class Like(_Singleton):
-# 
-# 	def __str__(self):
-# 		return "LIKES"
-# 	__repr__ = __str__
-# 
-# @interface.implementer(graph_interfaces.IRate)
-# class Rate(_Singleton):
-# 
-# 	def __str__(self):
-# 		return "HAS_RATED"
 # 	__repr__ = __str__
 # 
 # @interface.implementer(graph_interfaces.IReply)

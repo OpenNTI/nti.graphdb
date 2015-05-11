@@ -168,6 +168,12 @@ class IFlagged(IRelationshipType):
 class ICreated(IRelationshipType):
 	pass
 
+class ILike(IRelationshipType):
+	pass
+
+class IRate(IRelationshipType):
+	pass
+
 # class IParentOf(IRelationshipType):
 # 	pass
 # 
@@ -175,12 +181,6 @@ class ICreated(IRelationshipType):
 # 	pass
 # 
 # class ITakeAssessment(IRelationshipType):
-# 	pass
-# 
-# class ILike(IRelationshipType):
-# 	pass
-# 
-# class IRate(IRelationshipType):
 # 	pass
 #
 # class IReply(IRelationshipType):
