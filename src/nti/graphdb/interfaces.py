@@ -162,6 +162,9 @@ class IMemberOf(IRelationshipType):
 class IFollow(IRelationshipType):
 	pass
 
+class IFlagged(IRelationshipType):
+	pass
+
 # class IParentOf(IRelationshipType):
 # 	pass
 # 
@@ -176,10 +179,7 @@ class IFollow(IRelationshipType):
 # 
 # class IRate(IRelationshipType):
 # 	pass
-# 
-# class IFlagged(IRelationshipType):
-# 	pass
-# 
+#
 # class IReply(IRelationshipType):
 # 	pass
 # 

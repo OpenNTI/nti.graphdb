@@ -9,6 +9,9 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from zope.security.interfaces import IPrincipal
+from zope.security.management import queryInteraction
+
 from ZODB.POSException import POSKeyError
 
 from nti.dataserver.users import Entity
@@ -16,10 +19,26 @@ from nti.dataserver.interfaces import IEntity
 
 from nti.externalization.externalization import to_external_ntiid_oid
 
+def get_current_principal():
+    interaction = queryInteraction()
+    participations = list(getattr(interaction, 'participations', None) or ())
+    participation = participations[0] if participations else None
+    principal = getattr(participation, 'principal', None)
+    result = principal.id if principal is not None else None
+    return result
+
 def get_entity(entity):
     if entity is not None and not IEntity.providedBy(entity):
         entity = Entity.get_entity(str(entity))
     return entity
+
+def get_current_user(user=None):
+    if user is None:
+        user = get_current_principal()
+    elif IPrincipal.providedBy(user):
+        user = user.id
+    result = get_entity(user)
+    return result
 
 def get_creator(obj):
     try:

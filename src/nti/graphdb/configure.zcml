@@ -32,22 +32,24 @@
 	<subscriber handler=".entities._entity_added" />
 	<subscriber handler=".entities._entity_removed" />
 		   
+	<subscriber handler=".connections._dfl_deleted" />
+	
 	<subscriber handler=".connections._friendslist_added" />
 	<subscriber handler=".connections._friendslist_deleted" />
 	<subscriber handler=".connections._friendslist_modified" />
 
-	<subscriber handler=".connections._stop_dynamic_membership_event" />
-	<subscriber handler=".connections._start_dynamic_membership_event" />
-
-	<!-- Subscribers
-	<subscriber handler=".search._search_completed" />
-		
-	<subscriber handler=".connections._dfl_deleted" />
-	
 	<subscriber handler=".connections._stop_following_event" />
 	<subscriber handler=".connections._start_following_event" />
 
+	<subscriber handler=".connections._stop_dynamic_membership_event" />
+	<subscriber handler=".connections._start_dynamic_membership_event" />
 	
+	<subscriber handler=".flagging._object_flagged" />
+	<subscriber handler=".flagging._object_unflagged" />
+	
+	<!-- Subscribers
+	<subscriber handler=".search._search_completed" />
+			
 	<subscriber handler=".discussions._topic_added" />
 	<subscriber handler=".discussions._topic_removed" />
 	<subscriber handler=".discussions._topic_modified" />
@@ -71,9 +73,6 @@
 	<subscriber handler=".sharing._shareable_added" />
 	<subscriber handler=".sharing._shareable_modified" />
 	
-	<subscriber handler=".flagging._object_flagged" />
-	<subscriber handler=".flagging._object_unflagged" />
-	
 	<subscriber handler=".assessments._grade_added" />
 	<subscriber handler=".assessments._grade_modified" />
 	
@@ -94,15 +93,19 @@
 	<subscriber handler=".creators._message_posted_to_room" />
 	-->
 	
-	<!-- Utilities
+	<!-- Utilities -->
+	
 	<utility component=".entities" provides=".interfaces.IObjectProcessor" name="entities"/>
+	<utility component=".flagging" provides=".interfaces.IObjectProcessor" name="flagging"/>
+	
+	<!-- 
 	<utility component=".connections" provides=".interfaces.IObjectProcessor" name="connections"/>
 	<utility component=".creators" provides=".interfaces.IObjectProcessor" name="creators"/>
 	<utility component=".containers" provides=".interfaces.IObjectProcessor" name="containers"/>
 	<utility component=".threadables" provides=".interfaces.IObjectProcessor" name="threadables"/>
 	<utility component=".sharing" provides=".interfaces.IObjectProcessor" name="sharing"/>
 	<utility component=".tagging" provides=".interfaces.IObjectProcessor" name="tagging"/>
-	<utility component=".flagging" provides=".interfaces.IObjectProcessor" name="flagging"/>
+	
 	<utility component=".ratings" provides=".interfaces.IObjectProcessor" name="ratings"/>
 	<utility component=".discussions" provides=".interfaces.IObjectProcessor" name="discussions"/>
 	<utility component=".assessments" provides=".interfaces.IObjectProcessor" name="assessments"/>
