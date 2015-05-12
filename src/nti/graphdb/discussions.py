@@ -298,7 +298,7 @@ def init(db, obj):
 		_process_topic_event(db, obj, ADD_EVENT)
 	elif IPersonalBlogComment.providedBy(obj) or \
 		 IGeneralForumComment.providedBy(obj):
-		##_process_comment_event(db, obj, ADD_EVENT)
+		_process_comment_event(db, obj, ADD_EVENT)
 		pass
 	else:
 		result = False
