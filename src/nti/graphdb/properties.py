@@ -268,6 +268,14 @@ def _AssignmentPropertyAdpater(obj):
 	result['lastModified'] = get_lastModified(obj)
 	return result
 
+@interface.implementer(IPropertyAdapter)
+def _CreatedTimePropertyAdpater(source, target, _rel):
+	result = {'createdTime':time.time()}
+	return result
+
+_LikeRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
+_RateRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
+
 # IPersonalBlogComment, IGeneralForumComment
 @interface.implementer(IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(entity, post, rel):

@@ -100,7 +100,15 @@
 	<adapter for="nti.assessment.interfaces.IQAssignment"
 			 factory=".properties._AssignmentPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
-		 	 
+
+	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.ILikeable .interfaces.ILike"
+			 factory=".properties._LikeRelationshipPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
+	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IRatable .interfaces.IRate"
+			 factory=".properties._RateRelationshipPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.IPersonalBlogComment .interfaces.ICommentOn"
 			 factory=".properties._CommentRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
