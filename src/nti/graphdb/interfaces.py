@@ -51,7 +51,7 @@ class IGraphDB(interface.Interface):
 
 	def get_indexed_node(label, key, value):
 		pass
-	
+
 	def get_indexed_nodes(tuples):
 		pass
 
@@ -60,7 +60,7 @@ class IGraphDB(interface.Interface):
 
 	def update_node(obj, properties=None):
 		pass
-	
+
 	def delete_node(obj):
 		pass
 
@@ -131,7 +131,7 @@ class IGraphRelationship(IRelationship):
 	start = Object(INode, title="The start node", required=False)
 
 	end = Object(INode, title="The end node", required=False)
-	
+
 	properties = Dict(ValidTextLine(title="key"),
 					  Variant((ValidTextLine(title="value string"),
 							   Number(title="value number"),
@@ -183,7 +183,7 @@ class IAuthor(IRelationshipType):
 class IShared(IRelationshipType):
 	pass
 
-class IIsSharedTo(IRelationshipType):
+class IIsSharedWith(IRelationshipType):
 	pass
 
 class ICommentOn(IRelationshipType):
@@ -191,36 +191,36 @@ class ICommentOn(IRelationshipType):
 
 # class IParentOf(IRelationshipType):
 # 	pass
-# 
+#
 # class ITakeAssessment(IRelationshipType):
 # 	pass
 #
 # class IReply(IRelationshipType):
 # 	pass
-# 
+#
 # class IIsReplyOf(IRelationshipType):
 # 	pass
-# 
+#
 # class IFeedback(IRelationshipType):
 # 	pass
-# 
+#
 # class IAssignmentFeedback(IRelationshipType):
 # 	pass
-# 
+#
 # class ISearch(IRelationshipType):
 # 	pass
-# 
+#
 # class ITaggedTo(IRelationshipType):
 # 	pass
-# 
+#
 # class IContained(IRelationshipType):
 # 	pass
-# 
+#
 # class IView(IRelationshipType):
 # 	pass
-# 
+#
 # class ISubmit(IRelationshipType):
 # 	pass
-# 
+#
 # class IBelong(IRelationshipType):
 # 	pass

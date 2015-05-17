@@ -21,7 +21,7 @@ from .interfaces import IFlagged
 from .interfaces import IFriendOf
 from .interfaces import IMemberOf
 from .interfaces import ICommentOn
-from .interfaces import IIsSharedTo
+from .interfaces import IIsSharedWith
 
 class _Singleton(object):
 	_instances = {}
@@ -36,7 +36,7 @@ class FriendOf(_Singleton):
 	def __str__(self):
 		return "IS_FRIEND_OF"
 	__repr__ = __str__
-	
+
 @interface.implementer(IMemberOf)
 class MemberOf(_Singleton):
 
@@ -93,11 +93,11 @@ class Shared(_Singleton):
 		return "HAS_SHARED"
 	__repr__ = __str__
 
-@interface.implementer(IIsSharedTo)
-class IsSharedTo(_Singleton):
+@interface.implementer(IIsSharedWith)
+class IsSharedWith(_Singleton):
 
 	def __str__(self):
-		return "IS_SHARED_TO"
+		return "IS_SHARED_WITH"
 	__repr__ = __str__
 
 @interface.implementer(ICommentOn)
@@ -109,84 +109,84 @@ class CommentOn(_Singleton):
 
 # @interface.implementer(graph_interfaces.IParentOf)
 # class ParentOf(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "IS_PARENT_OF"
 # 	__repr__ = __str__
-# 
+#
 # @interface.implementer(graph_interfaces.ITakeAssessment)
 # class TakeAssessment(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "HAS_TAKEN"
 # 	__repr__ = __str__
-# 
+#
 # @interface.implementer(graph_interfaces.IReply)
 # class Reply(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "HAS_REPLIED_TO"
 # 	__repr__ = __str__
-# 
+#
 # @interface.implementer(graph_interfaces.IIsReplyOf)
 # class IsReplyOf(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "IS_REPLY_OF"
 # 	__repr__ = __str__
 #
 # @interface.implementer(graph_interfaces.IFeedback)
 # class Feedback(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "HAS_FEEDBACKED"
 # 	__repr__ = __str__
-# 
+#
 # @interface.implementer(graph_interfaces.IAssignmentFeedback)
 # class AssigmentFeedback(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "ASM_FEEDBACKED"
 # 	__repr__ = __str__
-# 
+#
 # @interface.implementer(graph_interfaces.ISearch)
 # class Search(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "HAS_SEARCHED"
 # 	__repr__ = __str__
-# 
+#
 # @interface.implementer(graph_interfaces.ITaggedTo)
 # class TaggedTo(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "IS_TAGGED_TO"
 # 	__repr__ = __str__
-# 
+#
 # @interface.implementer(graph_interfaces.IContained)
 # class Contained(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "IS_CONTAINED"
 # 	__repr__ = __str__
-# 
+#
 # @interface.implementer(graph_interfaces.IView)
 # class View(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "HAS_VIEWED"
 # 	__repr__ = __str__
-# 
+#
 # @interface.implementer(graph_interfaces.ISubmit)
 # class Submit(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "HAS_SUBMITTED"
 # 	__repr__ = __str__
-# 
+#
 # @interface.implementer(graph_interfaces.IBelong)
 # class Belong(_Singleton):
-# 
+#
 # 	def __str__(self):
 # 		return "BELONG_TO"
 # 	__repr__ = __str__
