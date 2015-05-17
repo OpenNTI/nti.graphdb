@@ -41,6 +41,7 @@ def _underlying(oid):
 	return obj
 
 def _delete_is_shared_with_rels(db, oid, sharedWith=()):
+	result = 0
 	obj = _underlying(oid)
 	if obj and sharedWith:
 		for entity in sharedWith:
@@ -50,7 +51,9 @@ def _delete_is_shared_with_rels(db, oid, sharedWith=()):
 			rels = db.match(obj, entity, IsSharedWith())
 			if rels:
 				db.delete_relationships(*rels)
-				logger.debug("%s IsSharedWith relationshi(s) %s deleted", len(rels))
+				logger.debug("%s IsSharedWith relationshi(s) deleted", len(rels))
+				result += 1
+	return result
 
 def _create_is_shared_with_rels(db, oid, sharedWith=()):
 	result = []
@@ -64,21 +67,25 @@ def _create_is_shared_with_rels(db, oid, sharedWith=()):
 				result.append(rel)
 	return result
 
-def _create_shared_rel(db, oid):
+def _create_shared_rel(db, oid, entity=None):
 	obj = _underlying(oid)
 	if obj is not None:
-		creator = get_creator(obj)
-		creator = get_entity(obj.creator)
+		creator = entity or get_creator(obj)
+		creator = get_entity(creator)
 		rel = db.create_relationship(creator, obj, Shared())
-		logger.debug("shared relationship %s created", rel)
-		return (obj, rel)
-	return (None, None)
+		logger.debug("Shared relationship %s created", rel)
+		return rel
+	return None
+
+def _get_sharedWith(obj, sharedWith=()):
+	result = sharedWith or getattr(obj, 'sharedWith', ())
+	return result
 
 def _process_shareable(db, obj, sharedWith=()):
-	sharedWith = sharedWith or getattr(obj, 'sharedWith', ())
+	sharedWith = _get_sharedWith(obj, sharedWith)
 	if sharedWith:
-		queue = get_job_queue()
 		oid = get_oid(obj)
+		queue = get_job_queue()
 		sharedWith = [getattr(x, 'username', x) for x in sharedWith]
 		job = create_job(_create_is_shared_with_rels, db=db,
 						 oid=oid, sharedWith=sharedWith)
