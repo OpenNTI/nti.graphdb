@@ -101,6 +101,14 @@
 			 factory=".properties._AssignmentPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseInstance"
+			 factory=".properties._CourseInstancePropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseCatalogEntry"
+			 factory=".properties._CourseCatalogEntryPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.ILikeable .interfaces.ILike"
 			 factory=".properties._LikeRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

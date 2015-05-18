@@ -21,6 +21,9 @@ from nti.chatserver.interfaces import IMessageInfo
 
 from nti.contentlibrary.interfaces import IContentUnit
 
+from nti.contenttypes.courses.interfaces import ICourseInstance
+from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
+
 from nti.dataserver.interfaces import INote
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IEntity
@@ -116,3 +119,13 @@ def _QuestionSetLabelAdpater(meeting):
 @interface.implementer(ILabelAdapter)
 def _AssignmentLabelAdpater(message):
 	return u'Assignment'
+
+@component.adapter(ICourseInstance)
+@interface.implementer(ILabelAdapter)
+def _CourseInstanceLabelAdpater(message):
+	return u'CourseInstance'
+
+@interface.implementer(ILabelAdapter)
+@component.adapter(ICourseCatalogEntry)
+def _CourseCatalogEntryLabelAdpater(message):
+	return u'CatalogEntry'

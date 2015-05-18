@@ -65,17 +65,24 @@
 			 factory=".label._ContentUnitLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 		 
-	<adapter for=" nti.assessment.interfaces.IQuestion"
+	<adapter for="nti.assessment.interfaces.IQuestion"
 			 factory=".label._QuestionLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 	
-	<adapter for=" nti.assessment.interfaces.IQuestionSet"
+	<adapter for="nti.assessment.interfaces.IQuestionSet"
 			 factory=".label._QuestionSetLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 	
-	<adapter for=" nti.assessment.interfaces.IQAssignment"
+	<adapter for="nti.assessment.interfaces.IQAssignment"
 			 factory=".label._AssignmentLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseInstance"
+			 factory=".label._CourseInstanceLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseCatalogEntry"
+			 factory=".label._CourseCatalogEntryLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
 </configure>
 

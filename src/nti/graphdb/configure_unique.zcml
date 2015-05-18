@@ -93,5 +93,13 @@
 			 factory=".unique._NTIIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 			 	  	  
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseInstance"
+			 factory=".unique._OIDUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseCatalogEntry"
+			 factory=".unique._NTIIDUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+
 </configure>
 

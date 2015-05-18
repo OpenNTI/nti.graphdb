@@ -25,6 +25,9 @@ from nti.chatserver.interfaces import IMessageInfo
 
 from nti.contentlibrary.interfaces import IContentUnit
 
+from nti.contenttypes.courses.interfaces import ICourseInstance
+from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
+
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IEntity
 from nti.dataserver.interfaces import ICreated
@@ -264,6 +267,25 @@ def _QuestionPropertyAdpater(obj):
 def _AssignmentPropertyAdpater(obj):
 	result = {'type':'Assignment'}
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
+	result['createdTime'] = get_createdTime(obj)
+	result['lastModified'] = get_lastModified(obj)
+	return result
+
+@component.adapter(ICourseInstance)
+@interface.implementer(IPropertyAdapter)
+def _CourseInstancePropertyAdpater(obj):
+	result = {'type':'CourseInstance'}
+	result['ntiid'] = result['oid'] = get_ntiid(obj)
+	result['createdTime'] = get_createdTime(obj)
+	result['lastModified'] = get_lastModified(obj)
+	return result
+
+@component.adapter(ICourseCatalogEntry)
+@interface.implementer(IPropertyAdapter)
+def _CourseCatalogEntryPropertyAdpater(obj):
+	result = {'type':'CatalogEntry'}
+	result['ntiid'] = result['oid'] = get_ntiid(obj)
+	result['provider'] = obj.ProviderUniqueID
 	result['createdTime'] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
 	return result
