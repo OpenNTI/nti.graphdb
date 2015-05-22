@@ -13,6 +13,7 @@ from zope import interface
 
 from .interfaces import ILike
 from .interfaces import IRate
+from .interfaces import IView
 from .interfaces import IAuthor
 from .interfaces import IFollow
 from .interfaces import IShared
@@ -20,6 +21,7 @@ from .interfaces import ICreated
 from .interfaces import IFlagged
 from .interfaces import IFriendOf
 from .interfaces import IMemberOf
+from .interfaces import ITaggedTo
 from .interfaces import ICommentOn
 from .interfaces import IIsSharedWith
 
@@ -107,6 +109,19 @@ class CommentOn(_Singleton):
 		return "HAS_COMMENTED_ON"
 	__repr__ = __str__
 
+@interface.implementer(ITaggedTo)
+class TaggedTo(_Singleton):
+	def __str__(self):
+		return "IS_TAGGED_TO"
+	__repr__ = __str__
+
+@interface.implementer(IView)
+class View(_Singleton):
+
+	def __str__(self):
+		return "HAS_VIEWED"
+	__repr__ = __str__
+
 # @interface.implementer(graph_interfaces.IParentOf)
 # class ParentOf(_Singleton):
 #
@@ -156,25 +171,11 @@ class CommentOn(_Singleton):
 # 		return "HAS_SEARCHED"
 # 	__repr__ = __str__
 #
-# @interface.implementer(graph_interfaces.ITaggedTo)
-# class TaggedTo(_Singleton):
-#
-# 	def __str__(self):
-# 		return "IS_TAGGED_TO"
-# 	__repr__ = __str__
-#
 # @interface.implementer(graph_interfaces.IContained)
 # class Contained(_Singleton):
 #
 # 	def __str__(self):
 # 		return "IS_CONTAINED"
-# 	__repr__ = __str__
-#
-# @interface.implementer(graph_interfaces.IView)
-# class View(_Singleton):
-#
-# 	def __str__(self):
-# 		return "HAS_VIEWED"
 # 	__repr__ = __str__
 #
 # @interface.implementer(graph_interfaces.ISubmit)

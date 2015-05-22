@@ -189,6 +189,12 @@ class IIsSharedWith(IRelationshipType):
 class ICommentOn(IRelationshipType):
 	pass
 
+class ITaggedTo(IRelationshipType):
+	pass
+
+class IView(IRelationshipType):
+	pass
+
 # class IParentOf(IRelationshipType):
 # 	pass
 #
@@ -210,14 +216,10 @@ class ICommentOn(IRelationshipType):
 # class ISearch(IRelationshipType):
 # 	pass
 #
-# class ITaggedTo(IRelationshipType):
-# 	pass
-#
 # class IContained(IRelationshipType):
 # 	pass
 #
-# class IView(IRelationshipType):
-# 	pass
+
 #
 # class ISubmit(IRelationshipType):
 # 	pass
