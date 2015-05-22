@@ -50,9 +50,9 @@ class _Relationship(object):
 		self._from = _from
 		self.__dict__.update(kwargs)
 
-def _get_graph_connections(db, entity, rel_type):
+def _get_graph_connections(db, entity, rel_type, loose=True):
 	result = set()
-	rels = db.match(start=entity, rel_type=rel_type)
+	rels = db.match(start=entity, rel_type=rel_type, loose=loose)
 	for rel in rels:
 		end = db.get_node(rel.end)
 		username = end.properties.get('username') if end is not None else None
@@ -61,21 +61,21 @@ def _get_graph_connections(db, entity, rel_type):
 			result.add(_Relationship(entity, friend, rel=rel))
 	return result
 
-def _update_connections(db, entity, 
+def _update_connections(db, entity,
 						current_graph_relations,
 						stored_db_relations,
 					 	rel_type):
-	## computer db/graph relationships
+	# computer db/graph relationships
 	entity = get_entity(entity)
 	to_add = stored_db_relations - current_graph_relations
 	to_remove = current_graph_relations - stored_db_relations
 
-	## remove old relationships
+	# remove old relationships
 	if to_remove:
 		db.delete_relationships(*[x.rel for x in to_remove])
 		logger.debug("%s connection relationship(s) deleted", len(to_remove))
 
-	## create nodes
+	# create nodes
 	to_create = set()
 	for fship in to_add:
 		to_create.add(fship._to)
@@ -84,7 +84,7 @@ def _update_connections(db, entity,
 		to_create = list(to_create)
 		db.create_nodes(*to_create)
 
-	## add new relationships
+	# add new relationships
 	result = []
 	for fship in to_add:
 		_to = fship._to
@@ -94,7 +94,7 @@ def _update_connections(db, entity,
 		result.append(rel)
 	return result
 
-## friendship 
+# friendship
 
 def graph_friends(db, entity):
 	result = _get_graph_connections(db, entity, rel_type=FriendOf())
@@ -122,7 +122,7 @@ def update_friendships(db, entity):
 
 def _process_friendslist_event(db, obj):
 	if IDynamicSharingTargetFriendsList.providedBy(obj):
-		return # pragma no cover
+		return  # pragma no cover
 
 	username = getattr(obj.creator, 'username', obj.creator)
 	queue = get_job_queue()
@@ -147,7 +147,7 @@ def _friendslist_deleted(obj, event):
 	if db is not None:
 		_process_friendslist_event(db, obj)
 
-## membership
+# membership
 
 def graph_memberships(db, entity):
 	result = _get_graph_connections(db, entity, rel_type=MemberOf())
@@ -198,7 +198,7 @@ def _process_membership_event(db, event):
 	everyone = get_entity('Everyone')
 	source, target = event.object, event.target
 	if target == everyone:
-		return # pragma no cover
+		return  # pragma no cover
 
 	source = source.username
 	target = get_oid(target)
@@ -230,12 +230,12 @@ def _do_delete_dfl(db, label, key, value):
 		logger.debug("Node %s deleted", node)
 		return True
 	return False
-			
+
 def _process_dfl_removal(db, obj):
 	pk = get_node_pk(obj)
 	if pk is not None:
 		queue = get_job_queue()
-		job = create_job(_do_delete_dfl, db=db, 
+		job = create_job(_do_delete_dfl, db=db,
 						 label=pk.label,
 						 key=pk.key,
 						 value=pk.value)
@@ -247,7 +247,7 @@ def _dfl_deleted(obj, event):
 	if db is not None:
 		_process_dfl_removal(db, obj)
 
-## follow/unfollow
+# follow/unfollow
 
 def process_follow(db, source, followed):
 	source = get_entity(source)
@@ -314,27 +314,19 @@ def update_following(db, entity):
 								 Follow())
 	return result
 
-## utils
+# utils
 
 def _process_following(db, user):
 	source = user.username
 	queue = get_job_queue()
-	for followed in getattr(user, 'entities_followed', ()):
-		followed = getattr(followed, 'username', followed)
-		job = create_job(process_follow, db=db, source=source, followed=followed)
-		queue.put(job)
+	job = create_job(update_following, db=db, entity=source)
+	queue.put(job)
 
 def _process_memberships(db, user):
 	source = user.username
 	queue = get_job_queue()
-	everyone = get_entity('Everyone')
-	for target in getattr(user, 'dynamic_memberships', ()):
-		if target != everyone:
-			target = get_oid(target)
-			job = create_job(process_start_membership, db=db, 
-							 source=source,
-							 target=target)
-			queue.put(job)
+	job = create_job(update_memberships, db=db, entity=source)
+	queue.put(job)
 
 def _process_friendships(db, user):
 	queue = get_job_queue()

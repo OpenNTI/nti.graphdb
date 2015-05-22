@@ -17,7 +17,7 @@ from zope import interface
 from nti.common.property import Lazy
 from nti.common.representation import WithRepr
 
-from nti.contentlibrary.interfaces import IContentUnit 
+from nti.contentlibrary.interfaces import IContentUnit
 
 from nti.dataserver.interfaces import IEntity
 from nti.dataserver.interfaces import IUseNTIIDAsExternalUsername
@@ -83,7 +83,7 @@ class _DFLUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 	@Lazy
 	def value(self):
 		return get_ntiid(self.obj) or get_oid(self.obj)
-	
+
 @component.adapter(ITopic)
 @interface.implementer(IUniqueAttributeAdapter)
 class _TopicUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):

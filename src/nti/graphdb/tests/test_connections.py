@@ -96,7 +96,7 @@ class TestFriendships(GraphDBTestCase):
 		user3 = self._create_random_user()
 		self._create_friendslist(user1, "mycontacts1", user2, user3)
 
-		# create in grapth
+		# create in graph
 		self.db.create_relationship(user1, user2, FriendOf())
 		self.db.create_relationship(user1, user3, FriendOf())
 
@@ -123,10 +123,10 @@ class TestFriendships(GraphDBTestCase):
 
 		m = zodb_memberships(user2)
 		assert_that(m, has_length(1))
-		
+
 		m = update_memberships(self.db, user2)
 		assert_that(m, has_length(1))
-		
+
 		m = graph_memberships(self.db, user2)
 		assert_that(m, has_length(1))
 
@@ -134,7 +134,7 @@ class TestFriendships(GraphDBTestCase):
 		unique = IUniqueAttributeAdapter(dfl)
 		m = _do_delete_dfl(self.db, label, unique.key, unique.value)
 		assert_that(m, is_(True))
-		
+
 	@WithMockDSTrans
 	def test_following(self):
 		user1 = self._create_random_user()
@@ -143,12 +143,12 @@ class TestFriendships(GraphDBTestCase):
 
 		user1.follow(user2)
 		user1.follow(user3)
-		
+
 		m = zodb_following(user1)
 		assert_that(m, has_length(2))
 
 		m = update_following(self.db, user1)
 		assert_that(m, has_length(2))
-		
+
 		m = graph_following(self.db, user1)
 		assert_that(m, has_length(2))

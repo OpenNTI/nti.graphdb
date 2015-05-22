@@ -122,70 +122,70 @@ class View(_Singleton):
 		return "HAS_VIEWED"
 	__repr__ = __str__
 
-# @interface.implementer(graph_interfaces.IParentOf)
+# @interface.implementer(IParentOf)
 # class ParentOf(_Singleton):
 #
 # 	def __str__(self):
 # 		return "IS_PARENT_OF"
 # 	__repr__ = __str__
 #
-# @interface.implementer(graph_interfaces.ITakeAssessment)
+# @interface.implementer(ITakeAssessment)
 # class TakeAssessment(_Singleton):
 #
 # 	def __str__(self):
 # 		return "HAS_TAKEN"
 # 	__repr__ = __str__
 #
-# @interface.implementer(graph_interfaces.IReply)
+# @interface.implementer(IReply)
 # class Reply(_Singleton):
 #
 # 	def __str__(self):
 # 		return "HAS_REPLIED_TO"
 # 	__repr__ = __str__
 #
-# @interface.implementer(graph_interfaces.IIsReplyOf)
+# @interface.implementer(IIsReplyOf)
 # class IsReplyOf(_Singleton):
 #
 # 	def __str__(self):
 # 		return "IS_REPLY_OF"
 # 	__repr__ = __str__
 #
-# @interface.implementer(graph_interfaces.IFeedback)
+# @interface.implementer(IFeedback)
 # class Feedback(_Singleton):
 #
 # 	def __str__(self):
 # 		return "HAS_FEEDBACKED"
 # 	__repr__ = __str__
 #
-# @interface.implementer(graph_interfaces.IAssignmentFeedback)
+# @interface.implementer(IAssignmentFeedback)
 # class AssigmentFeedback(_Singleton):
 #
 # 	def __str__(self):
 # 		return "ASM_FEEDBACKED"
 # 	__repr__ = __str__
 #
-# @interface.implementer(graph_interfaces.ISearch)
+# @interface.implementer(ISearch)
 # class Search(_Singleton):
 #
 # 	def __str__(self):
 # 		return "HAS_SEARCHED"
 # 	__repr__ = __str__
 #
-# @interface.implementer(graph_interfaces.IContained)
+# @interface.implementer(IContained)
 # class Contained(_Singleton):
 #
 # 	def __str__(self):
 # 		return "IS_CONTAINED"
 # 	__repr__ = __str__
 #
-# @interface.implementer(graph_interfaces.ISubmit)
+# @interface.implementer(ISubmit)
 # class Submit(_Singleton):
 #
 # 	def __str__(self):
 # 		return "HAS_SUBMITTED"
 # 	__repr__ = __str__
 #
-# @interface.implementer(graph_interfaces.IBelong)
+# @interface.implementer(IBelong)
 # class Belong(_Singleton):
 #
 # 	def __str__(self):

@@ -339,16 +339,24 @@ class Neo4jDB(object):
 	relationship = get_relationship
 	
 	def _match(self, start_node=None, end_node=None, rel_type=None,
-				  bidirectional=False, limit=None):
+				  bidirectional=False, limit=None, loose=False):
+		n4j_type = str(rel_type) if rel_type is not None else None
 		n4j_end = self._get_node(end_node, False) if end_node is not None else None
 		n4j_start = self._get_node(start_node, False) if start_node is not None else None
-		n4j_type = str(rel_type) if rel_type is not None else None
-		result = self.db.match(n4j_start, n4j_type, n4j_end, bidirectional, limit)
+		if not loose and (n4j_type is None or n4j_start is None or n4j_end is None):
+			result = ()
+		else:
+			result = self.db.match(n4j_start, n4j_type, n4j_end, bidirectional, limit)
 		return result
 
 	def match(self, start=None, end=None, rel_type=None, bidirectional=False,
-			  limit=None, raw=False):
-		result = self._match(start, end, rel_type, bidirectional, limit)
+			  limit=None, raw=False, loose=False):
+		result = self._match(start_node=start,
+							 end_node=end,
+							 rel_type=rel_type,
+							 bidirectional=bidirectional, 
+							 limit=limit, 
+							 loose=loose)
 		result = [Neo4jRelationship.create(x) for x in result or ()] \
 				 if not raw else result
 		return result or ()

@@ -39,7 +39,7 @@ def _remove_entity(db, label, key, value):
 	node = db.get_indexed_node(label, key, value)
 	if node is not None:
 		db.delete_node(node)
-		logger.debug("node %s deleted", node)
+		logger.debug("Node %s deleted", node)
 		return True
 	return False
 
@@ -47,7 +47,7 @@ def _add_entity(db, oid):
 	entity = find_object_with_ntiid(oid)
 	if entity is not None:
 		node = db.get_or_create_node(entity)
-		logger.debug("entity node %s created/retrieved", node)
+		logger.debug("Entity node %s created/retrieved", node)
 		return entity, node
 	return None, None
 
@@ -73,7 +73,7 @@ def _entity_added(entity, event):
 	db = get_graph_db()
 	queue = get_job_queue()
 	if 	db is not None and queue is not None and \
-		not _is_regular_dfl(entity):  # check queue b/c of Everyone comm
+		not _is_regular_dfl(entity): # check queue b/c of Everyone comm
 		_process_entity_added(db, entity)
 
 @component.adapter(IEntity, IIntIdRemovedEvent)

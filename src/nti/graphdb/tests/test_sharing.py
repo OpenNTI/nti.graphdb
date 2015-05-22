@@ -13,6 +13,7 @@ from hamcrest import is_not
 from hamcrest import has_length
 from hamcrest import assert_that
 
+import fudge
 import unittest
 
 from nti.dataserver.users import User
@@ -63,8 +64,11 @@ class TestSharing(GraphDBTestCase):
 		note.containerId = containerId or make_ntiid(nttype='bleach', specific='manga')
 		return note
 
+	@fudge.patch('nti.graphdb.sharing.get_graph_db')
 	@WithMockDSTrans
-	def test_sharing(self):
+	def test_sharing(self, mock_ggdb):
+		mock_ggdb.is_callable().with_args().returns(None)
+
 		user_1 = self._create_random_user()
 		user_2 = self._create_random_user()
 		user_3 = self._create_random_user()

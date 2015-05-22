@@ -79,7 +79,7 @@ def _ForumLabelAdpater(context):
 @interface.implementer(ILabelAdapter)
 def _TopicLabelAdpater(context):
 	return u'Topic'
-	
+
 @component.adapter(IBoard)
 @interface.implementer(ILabelAdapter)
 def _BoardLabelAdpater(context):

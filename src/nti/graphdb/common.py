@@ -5,7 +5,6 @@
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
-
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -57,7 +56,7 @@ def get_creator(obj):
 def get_createdTime(obj, default=0):
 	result = getattr(obj, 'createdTime', None) or default
 	return result
-	
+
 def get_lastModified(obj, default=0):
 	result = getattr(obj, 'lastModified', None) or default
 	return result

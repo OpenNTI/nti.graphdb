@@ -103,9 +103,9 @@ def _process_created_removed(db, created):
 	pk = get_node_pk(created) if created is not None else None
 	if pk is not None:
 		queue = get_job_queue()
-		job = create_job(_remove_created, db=db, 
+		job = create_job(_remove_created, db=db,
 						 label=pk.label,
-						 key=pk.key, 
+						 key=pk.key,
 						 value=pk.value)
 		queue.put(job)
 

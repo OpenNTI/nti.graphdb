@@ -38,6 +38,14 @@ from . import interfaces as graph_interfaces
 LIKE_CAT_NAME = 'likes'
 RATING_CAT_NAME = 'rating'
 
+def _get_relationship(db, username, oid, rel_type):
+	result = None
+	author = get_entity(username)
+	obj = find_object_with_ntiid(oid)
+	if obj is not None and author is not None:
+		result = db.match(author, obj, rel_type)
+	return result
+
 def _add_relationship(db, username, oid, rel_type, properties=None):
 	result = None
 	author = get_entity(username)
@@ -48,21 +56,18 @@ def _add_relationship(db, username, oid, rel_type, properties=None):
 	return result
 
 def _remove_relationship(db, username, oid, rel_type):
-	result = False
-	author = get_entity(username)
-	obj = find_object_with_ntiid(oid)
-	if obj is not None and author is not None:
-		rels = db.match(author, obj, rel_type)
-		if rels:
-			db.delete_relationships(*rels)
-			logger.debug("%s relationship deleted", rel_type)
-			result = True
-	return result
+	rels = _get_relationship(db, username, oid, rel_type)
+	if rels:
+		db.delete_relationships(*rels)
+		logger.debug("%s relationship deleted", rel_type)
+		return True
+	return False
 
-## like
+# like
 
 def _add_like_relationship(db, username, oid):
-	result = _add_relationship(db, username, oid, Like())
+	if not _get_relationship(db, username, oid, Like()):
+		result = _add_relationship(db, username, oid, Like())
 	return result
 
 def _remove_like_relationship(db, username, oid):
@@ -77,17 +82,19 @@ def _process_like_event(db, username, oid, is_like=True):
 		job = create_job(_remove_like_relationship, db=db, username=username, oid=oid)
 	queue.put(job)
 
-## rate
+# rate
 
 def _remove_rate_relationship(db, username, oid):
 	result = _remove_relationship(db, username, oid, Rate())
 	return result
 
-def _add_rate_relationship(db, username, oid, rating):
+def _add_rate_relationship(db, username, oid, rating, check_existing=False):
+	if check_existing and _get_relationship(db, username, oid, Rate()):
+		return
 	rating = rating if rating is not None else 0
-	## remove previous if present
+	# remove previous if present
 	_remove_rate_relationship(db, username, oid)
-	## add relationship
+	# add relationship
 	result = _add_relationship(db, username, oid, Rate(),
 							   properties={"rating":int(rating)})
 	return result
@@ -116,13 +123,13 @@ def _object_rated(event):
 			is_rate = not IObjectUnratedEvent.providedBy(event)
 			_process_rate_event(db, username, oid, rating, is_rate)
 
-## utils
+# utils
 
 def _get_ratings(context, category):
-	## Get the key from the storage, or use a default
+	# Get the key from the storage, or use a default
 	key = getattr(UserRatingStorage, 'annotation_key', BASE_KEY)
-	## Append the category name to the dotted annotation key name
-	key = str(key + '.' + category) ## see ds ratinglookup_rating_for_read
+	# Append the category name to the dotted annotation key name
+	key = str(key + '.' + category)  # # see ds rating.lookup_rating_for_read
 	storage = IAnnotations(context, {}).get(key)
 	if storage is not None:
 		return storage.all_user_ratings()
@@ -148,7 +155,7 @@ def _record_ratings(db, obj):
 		username = rating.userid or u''
 		if get_entity(username) is not None:
 			job = create_job(_add_rate_relationship, db=db, username=username,
-							 oid=oid, rating=rating)
+							 oid=oid, rating=rating, check_existing=True)
 			queue.put(job)
 			result += 1
 	return result

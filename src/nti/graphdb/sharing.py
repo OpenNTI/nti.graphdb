@@ -61,7 +61,7 @@ def _create_is_shared_with_rels(db, oid, sharedWith=()):
 	if obj and sharedWith:
 		for entity in sharedWith:
 			entity = get_entity(entity)
-			if entity is not None:
+			if entity is not None and not db.match(obj, entity, IsSharedWith()):
 				rel = db.create_relationship(obj, entity, IsSharedWith())
 				logger.debug("IsSharedWith relationship %s created", rel)
 				result.append(rel)
@@ -72,14 +72,19 @@ def _create_shared_rel(db, oid, entity=None):
 	if obj is not None:
 		creator = entity or get_creator(obj)
 		creator = get_entity(creator)
-		rel = db.create_relationship(creator, obj, Shared())
-		logger.debug("Shared relationship %s created", rel)
-		return rel
+		if not db.match(creator, obj, Shared()):
+			rel = db.create_relationship(creator, obj, Shared())
+			logger.debug("Shared relationship %s created", rel)
+			return rel
 	return None
 
 def _get_sharedWith(obj, sharedWith=()):
 	result = sharedWith or getattr(obj, 'sharedWith', ())
 	return result
+
+def _create_sharable_rels(db, oid, sharedWith):
+	_create_is_shared_with_rels(db=db, oid=oid, sharedWith=sharedWith)
+	_create_shared_rel(db=db, oid=oid)
 
 def _process_shareable(db, obj, sharedWith=()):
 	sharedWith = _get_sharedWith(obj, sharedWith)
@@ -87,10 +92,8 @@ def _process_shareable(db, obj, sharedWith=()):
 		oid = get_oid(obj)
 		queue = get_job_queue()
 		sharedWith = [getattr(x, 'username', x) for x in sharedWith]
-		job = create_job(_create_is_shared_with_rels, db=db,
+		job = create_job(_create_sharable_rels, db=db,
 						 oid=oid, sharedWith=sharedWith)
-		queue.put(job)
-		job = create_job(_create_shared_rel, db=db, oid=oid)
 		queue.put(job)
 
 @component.adapter(IReadableShared, IObjectAddedEvent)

@@ -45,7 +45,7 @@ from . import create_job
 from . import get_graph_db
 from . import get_job_queue
 
-## utils
+# utils
 
 def _add_node(db, oid, label, key, value):
 	created = False
@@ -76,7 +76,7 @@ def _delete_nodes(db, pks=()):
 	result = db.delete_nodes(*nodes)
 	logger.debug("%s node(s) deleted", len(result))
 
-## forums
+# forums
 
 def _add_forum_node(db, oid, label, key, value):
 	node, forum, _ = _add_node(db, oid, key, value)
@@ -88,7 +88,7 @@ def _update_forum_node(db, oid, label, key, value):
 		_update_node(db, node, forum)
 	return node, forum
 
-## topics
+# topics
 
 def _add_topic_node(db, oid, label, key, value):
 	node, topic, created = _add_node(db, oid, label, key, value)
@@ -112,28 +112,35 @@ def _add_membership_relationship(db, child, parent):
 		logger.debug("Membership relationship %s created", result)
 		return result
 
+def _process_add_topic_event(db, oid, label, key, value, parent):
+	# create topic node
+	_add_topic_node(db=db, oid=oid,
+					label=label,
+					key=key,
+					value=value)
+	# membership
+	_add_membership_relationship(db=db, 
+								 child=oid,
+								 parent=parent)
+
 def _process_topic_event(db, topic, event):
 	oid = get_oid(topic)
 	pk = get_node_pk(topic)
 	queue = get_job_queue()
 	if pk is not None:
 		if event == ADD_EVENT:
-			job = create_job(_add_topic_node, db=db,
+			parent = get_oid(topic.__parent__)
+			job = create_job(_process_add_topic_event, 
+							 db=db,
 							 oid=oid,
 							 label=pk.label,
 							 key=pk.key,
-							 value=pk.value)
-			queue.put(job)
-
-			## membership
-			parent = get_oid(topic.__parent__)
-			job = create_job(_add_membership_relationship, db=db,
-							 child=oid, 
+							 value=pk.value,
 							 parent=parent)
 			queue.put(job)
 		else:
-			job = create_job(_update_topic_node, db=db, 
-							oid=oid, 
+			job = create_job(_update_topic_node, db=db,
+							oid=oid,
 							label=pk.label,
 							key=pk.key,
 							value=pk.value)
@@ -169,7 +176,7 @@ def _topic_removed(topic, event):
 	if db is not None:
 		_remove_topic(db, topic)
 
-## comments
+# comments
 
 def _get_comment_relationship(db, comment):
 	pk = get_node_pk(comment)
@@ -186,10 +193,10 @@ def _add_comment_relationship(db, oid):
 	result = None
 	comment = find_object_with_ntiid(oid)
 	if comment is not None:
-		## Comments are special case. we build a relationship between the 
-		## commenting user and the topic. We identify the relationship with
-		## the primary key of the comment
-		## Note we don't create a comment node.
+		# Comments are special case. we build a relationship between the
+		# commenting user and the topic. We identify the relationship with
+		# the primary key of the comment
+		# Note we don't create a comment node.
 		pk = get_node_pk(comment)
 		topic = comment.__parent__
 		author = get_creator(comment)
@@ -203,7 +210,7 @@ def _add_comment_relationship(db, oid):
 def _delete_comment(db, oid, label, key, value):
 	comment = find_object_with_ntiid(oid)
 	if comment is not None:
-		node = db.get_indexed_node(label, key, value) # check for comment node
+		node = db.get_indexed_node(label, key, value)  # check for comment node
 		if node is not None:
 			db.delete_node(node)
 			logger.debug("Comment node %s deleted", node)
@@ -215,17 +222,18 @@ def _delete_comment(db, oid, label, key, value):
 			return True
 		return False
 
+def _process_add_comment_event(db, oid, parent):
+	# add user->topic relationship
+	_add_comment_relationship(db=db, oid=oid)
+	# create comment->topic relationship
+	_add_membership_relationship(db=db, child=oid, parent=parent)
+
 def _process_comment_event(db, comment, event):
 	queue = get_job_queue()
 	oid = get_oid(comment)
-
 	if event == ADD_EVENT:
-		## add user->topic relationship
-		job = create_job(_add_comment_relationship, db=db, oid=oid)
-		queue.put(job)
-		## create comment->topic relationship
 		parent = get_oid(comment.__parent__)
-		job = create_job(_add_membership_relationship, db=db, child=oid, parent=parent)
+		job = create_job(_process_add_comment_event, db=db, oid=oid, parent=parent)
 		queue.put(job)
 	else:
 		pk = get_node_pk(comment)
@@ -256,13 +264,13 @@ def _modify_personal_blog_comment(comment, event):
 def _modify_general_forum_comment(comment, event):
 	_modify_personal_blog_comment(comment, event)
 
-## forums
+# forums
 
 def _process_forum_event(db, forum, event):
 	oid = get_oid(forum)
 	pk = get_node_pk(forum)
 	queue = get_job_queue()
-	func = 	_add_forum_node if event == ADD_EVENT else _update_forum_node
+	func = _add_forum_node if event == ADD_EVENT else _update_forum_node
 	job = create_job(func, db=db, oid=oid, label=pk.label, key=pk.key, value=pk.value)
 	queue.put(job)
 
@@ -282,10 +290,10 @@ def _forum_modified(forum, event):
 def _forum_removed(forum, event):
 	db = get_graph_db()
 	if db is not None:
-		## remove topics
-		for topic in forum.values(): 
+		# remove topics
+		for topic in forum.values():
 			_remove_topic(db, topic)
-		## remove forum node
+		# remove forum node
 		_process_discussion_remove_events(db, [get_node_pk(forum)])
 
 component.moduleProvides(IObjectProcessor)

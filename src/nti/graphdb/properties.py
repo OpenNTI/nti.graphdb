@@ -291,12 +291,12 @@ def _CourseCatalogEntryPropertyAdpater(obj):
 	return result
 
 @interface.implementer(IPropertyAdapter)
-def _CreatedTimePropertyAdpater(source, target, _rel):
+def _CurrentTimePropertyAdpater(source, target, _rel):
 	result = {'createdTime':time.time()}
 	return result
 
-_LikeRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
-_RateRelationshipPropertyAdpater = _CreatedTimePropertyAdpater
+_LikeRelationshipPropertyAdpater = _CurrentTimePropertyAdpater
+_RateRelationshipPropertyAdpater = _CurrentTimePropertyAdpater
 
 # IPersonalBlogComment, IGeneralForumComment
 @interface.implementer(IPropertyAdapter)

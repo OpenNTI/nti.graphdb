@@ -34,7 +34,8 @@ def _add_flagged_relationship(db, username, oid):
 	result = None
 	author = get_entity(username)
 	obj = find_object_with_ntiid(oid)
-	if obj is not None and author is not None:
+	if 	obj is not None and author is not None and \
+		not db.match(author, obj, Flagged()):
 		result = db.create_relationship(author, obj, Flagged())
 		logger.debug("Flagged relationship %s created", result)
 	return result
@@ -84,7 +85,7 @@ def init(db, obj):
 		store = IGlobalFlagStorage(obj)
 		if store.is_flagged(obj):
 			creator = getattr(obj, 'creator', None)
-			## asume all sharedWith users have flagged object
+			# asume all sharedWith users have flagged object
 			flaggers = list(getattr(obj, 'sharedWith', None) or ())
 			if not flaggers and creator:
 				flaggers.append(creator)

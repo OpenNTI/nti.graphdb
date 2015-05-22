@@ -73,7 +73,8 @@ class IGraphDB(interface.Interface):
 	def get_relationship(obj):
 		pass
 
-	def match(start=None, end=None, rel_type=None, bidirectional=False, limit=None):
+	def match(start=None, end=None, rel_type=None, bidirectional=False, 
+			  limit=None, loose=False):
 		pass
 
 	def delete_relationships(*rels):
@@ -218,8 +219,6 @@ class IView(IRelationshipType):
 #
 # class IContained(IRelationshipType):
 # 	pass
-#
-
 #
 # class ISubmit(IRelationshipType):
 # 	pass
