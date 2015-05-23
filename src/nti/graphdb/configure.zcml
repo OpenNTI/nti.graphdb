@@ -67,6 +67,10 @@
 	<subscriber handler=".discussions._modify_general_forum_comment" />
 	<subscriber handler=".discussions._modify_personal_blog_comment" />
 	
+	<subscriber handler=".tagging._user_tagged_content_added" />
+	<subscriber handler=".tagging._user_tagged_content_removed" />
+	<subscriber handler=".tagging._user_tagged_content_modified" />	
+	
 	<!-- Subscribers
 	<subscriber handler=".search._search_completed" />
 
@@ -96,6 +100,7 @@
 	<utility component=".ratings" provides=".interfaces.IObjectProcessor" name="ratings"/>
 	<utility component=".created" provides=".interfaces.IObjectProcessor" name="created"/>
 	<utility component=".sharing" provides=".interfaces.IObjectProcessor" name="sharing"/>
+	<utility component=".tagging" provides=".interfaces.IObjectProcessor" name="tagging"/>
 	<utility component=".entities" provides=".interfaces.IObjectProcessor" name="entities"/>
 	<utility component=".flagging" provides=".interfaces.IObjectProcessor" name="flagging"/>
 	<utility component=".connections" provides=".interfaces.IObjectProcessor" name="connections"/>
@@ -104,7 +109,6 @@
 	<!-- 
 	<utility component=".containers" provides=".interfaces.IObjectProcessor" name="containers"/>
 	<utility component=".threadables" provides=".interfaces.IObjectProcessor" name="threadables"/>
-	<utility component=".tagging" provides=".interfaces.IObjectProcessor" name="tagging"/>
 	<utility component=".assessments" provides=".interfaces.IObjectProcessor" name="assessments"/>
 	-->
 
