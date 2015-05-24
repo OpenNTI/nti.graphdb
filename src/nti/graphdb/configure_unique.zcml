@@ -92,7 +92,15 @@
 	<adapter for="nti.assessment.interfaces.IQAssignment"
 			 factory=".unique._NTIIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
-			 	  	  
+		
+	<adapter for="nti.assessment.interfaces.IQPoll"
+			 factory=".unique._NTIIDUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+			 
+	<adapter for="nti.assessment.interfaces.IQSurvey"
+			 factory=".unique._NTIIDUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+	 	  	  
 	<adapter for="nti.contenttypes.courses.interfaces.ICourseInstance"
 			 factory=".unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
