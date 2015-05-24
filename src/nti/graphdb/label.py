@@ -12,6 +12,8 @@ logger = __import__('logging').getLogger(__name__)
 from zope import component
 from zope import interface
 
+from nti.assessment.interfaces import IQPoll
+from nti.assessment.interfaces import IQSurvey
 from nti.assessment.interfaces import IQuestion
 from nti.assessment.interfaces import IQAssignment
 from nti.assessment.interfaces import IQuestionSet
@@ -119,6 +121,16 @@ def _QuestionSetLabelAdpater(meeting):
 @interface.implementer(ILabelAdapter)
 def _AssignmentLabelAdpater(message):
 	return u'Assignment'
+
+@component.adapter(IQSurvey)
+@interface.implementer(ILabelAdapter)
+def _SurveyLabelAdpater(meeting):
+	return u'Survey'
+
+@component.adapter(IQPoll)
+@interface.implementer(ILabelAdapter)
+def _PollLabelAdpater(message):
+	return u'Poll'
 
 @component.adapter(ICourseInstance)
 @interface.implementer(ILabelAdapter)

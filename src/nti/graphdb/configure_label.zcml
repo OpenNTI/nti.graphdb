@@ -77,6 +77,14 @@
 			 factory=".label._AssignmentLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 
+	<adapter for="nti.assessment.interfaces.IQSurvey"
+			 factory=".label._SurveyLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+
+	<adapter for="nti.assessment.interfaces.IQPoll"
+			 factory=".label._PollLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+
 	<adapter for="nti.contenttypes.courses.interfaces.ICourseInstance"
 			 factory=".label._CourseInstanceLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />

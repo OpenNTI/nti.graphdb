@@ -16,6 +16,8 @@ import zope.intid
 from zope import component
 from zope import interface
 
+from nti.assessment.interfaces import IQPoll
+from nti.assessment.interfaces import IQSurvey
 from nti.assessment.interfaces import IQuestion
 from nti.assessment.interfaces import IQAssignment
 from nti.assessment.interfaces import IQuestionSet
@@ -271,13 +273,35 @@ def _AssignmentPropertyAdpater(obj):
 	result['lastModified'] = get_lastModified(obj)
 	return result
 
+@component.adapter(IQSurvey)
+@interface.implementer(IPropertyAdapter)
+def _SurveyPropertyAdpater(obj):
+	result = {'type':'Survey'}
+	result['createdTime'] = get_createdTime(obj)
+	result['lastModified'] = get_lastModified(obj)
+	result['ntiid'] = result['oid'] = get_ntiid(obj)
+	add_intid(obj, result)
+	return result
+
+@component.adapter(IQPoll)
+@interface.implementer(IPropertyAdapter)
+def _PollPropertyAdpater(obj):
+	result = {'type':'Poll'}
+	result['createdTime'] = get_createdTime(obj)
+	result['lastModified'] = get_lastModified(obj)
+	result['ntiid'] = result['oid'] = get_ntiid(obj)
+	add_intid(obj, result)
+	return result
+
 @component.adapter(ICourseInstance)
 @interface.implementer(IPropertyAdapter)
 def _CourseInstancePropertyAdpater(obj):
 	result = {'type':'CourseInstance'}
-	result['ntiid'] = result['oid'] = get_ntiid(obj)
+	result['ntiid'] = get_ntiid(obj)
 	result['createdTime'] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
+	add_oid(obj, result)
+	add_intid(obj, result)
 	return result
 
 @component.adapter(ICourseCatalogEntry)
@@ -288,6 +312,7 @@ def _CourseCatalogEntryPropertyAdpater(obj):
 	result['provider'] = obj.ProviderUniqueID
 	result['createdTime'] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
+	add_intid(obj, result)
 	return result
 
 @interface.implementer(IPropertyAdapter)

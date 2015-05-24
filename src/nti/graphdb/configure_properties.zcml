@@ -101,6 +101,14 @@
 			 factory=".properties._AssignmentPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 
+	<adapter for="nti.assessment.interfaces.IQSurvey"
+			 factory=".properties._SurveyPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+
+	<adapter for="nti.assessment.interfaces.IQPoll"
+			 factory=".properties._PollPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+
 	<adapter for="nti.contenttypes.courses.interfaces.ICourseInstance"
 			 factory=".properties._CourseInstancePropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
