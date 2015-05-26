@@ -37,6 +37,7 @@ from nti.dataserver.contenttypes.forums.interfaces import ITopic
 from nti.dataserver.contenttypes.forums.interfaces import IForum
 from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 
+from .interfaces import IContainer
 from .interfaces import ILabelAdapter
 
 @interface.implementer(ILabelAdapter)
@@ -141,3 +142,9 @@ def _CourseInstanceLabelAdpater(message):
 @component.adapter(ICourseCatalogEntry)
 def _CourseCatalogEntryLabelAdpater(message):
 	return u'CatalogEntry'
+
+@component.adapter(IContainer)
+@interface.implementer(ILabelAdapter)
+def _ContainerLabelAdpater(container):
+	result = 'Container'
+	return result

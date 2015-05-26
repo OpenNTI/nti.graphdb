@@ -196,10 +196,16 @@ class ITaggedTo(IRelationshipType):
 class IView(IRelationshipType):
 	pass
 
+class ITakeAssessment(IRelationshipType):
+	pass
+
+class IContainer(interface.Interface):
+	pass
+
+class IContained(IRelationshipType):
+	pass
+
 # class IParentOf(IRelationshipType):
-# 	pass
-#
-# class ITakeAssessment(IRelationshipType):
 # 	pass
 #
 # class IReply(IRelationshipType):
@@ -215,9 +221,6 @@ class IView(IRelationshipType):
 # 	pass
 #
 # class ISearch(IRelationshipType):
-# 	pass
-#
-# class IContained(IRelationshipType):
 # 	pass
 #
 # class ISubmit(IRelationshipType):

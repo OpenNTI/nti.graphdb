@@ -117,6 +117,10 @@
 			 factory=".properties._CourseCatalogEntryPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 
+	<adapter for=".interfaces.IContainer"
+			 factory=".properties._ContainerPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.ILikeable .interfaces.ILike"
 			 factory=".properties._LikeRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

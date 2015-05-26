@@ -52,6 +52,7 @@ from .common import get_creator
 from .common import get_createdTime
 from .common import get_lastModified
 
+from .interfaces import IContainer
 from .interfaces import IPropertyAdapter
 
 def add_oid(obj, ext):
@@ -313,6 +314,14 @@ def _CourseCatalogEntryPropertyAdpater(obj):
 	result['createdTime'] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
 	add_intid(obj, result)
+	return result
+
+@component.adapter(IContainer)
+@interface.implementer(IPropertyAdapter)
+def _ContainerPropertyAdpater(container):
+	result = {'type':'Container'}
+	result['oid'] = container.id
+	result['lastModified'] = time.time()
 	return result
 
 @interface.implementer(IPropertyAdapter)

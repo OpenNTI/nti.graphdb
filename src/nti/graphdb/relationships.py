@@ -23,7 +23,9 @@ from .interfaces import IFriendOf
 from .interfaces import IMemberOf
 from .interfaces import ITaggedTo
 from .interfaces import ICommentOn
+from .interfaces import IContained
 from .interfaces import IIsSharedWith
+from .interfaces import ITakeAssessment
 
 class _Singleton(object):
 	_instances = {}
@@ -122,18 +124,25 @@ class View(_Singleton):
 		return "HAS_VIEWED"
 	__repr__ = __str__
 
+@interface.implementer(ITakeAssessment)
+class TakeAssessment(_Singleton):
+
+	def __str__(self):
+		return "HAS_TAKEN"
+	__repr__ = __str__
+
+@interface.implementer(IContained)
+class Contained(_Singleton):
+
+	def __str__(self):
+		return "IS_CONTAINED"
+	__repr__ = __str__
+
 # @interface.implementer(IParentOf)
 # class ParentOf(_Singleton):
 #
 # 	def __str__(self):
 # 		return "IS_PARENT_OF"
-# 	__repr__ = __str__
-#
-# @interface.implementer(ITakeAssessment)
-# class TakeAssessment(_Singleton):
-#
-# 	def __str__(self):
-# 		return "HAS_TAKEN"
 # 	__repr__ = __str__
 #
 # @interface.implementer(IReply)
@@ -171,13 +180,7 @@ class View(_Singleton):
 # 		return "HAS_SEARCHED"
 # 	__repr__ = __str__
 #
-# @interface.implementer(IContained)
-# class Contained(_Singleton):
-#
-# 	def __str__(self):
-# 		return "IS_CONTAINED"
-# 	__repr__ = __str__
-#
+
 # @interface.implementer(ISubmit)
 # class Submit(_Singleton):
 #

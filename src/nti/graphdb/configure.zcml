@@ -19,11 +19,10 @@
 	<!-- Database -->
 	<include package=".neo4j" file="configure.zcml" />
 	
-	<!-- Adapters	
+	<!-- Adapters -->	
 	<adapter factory=".containers._default_container_adapter"
 			 provides=".interfaces.IContainer"
 			 for="basestring" />
-	-->	
 
 	<include package="." file="configure_label.zcml" />
 	<include package="." file="configure_unique.zcml" />
@@ -71,6 +70,10 @@
 	<subscriber handler=".tagging._user_tagged_content_removed" />
 	<subscriber handler=".tagging._user_tagged_content_modified" />	
 	
+	<subscriber handler=".containers._contained_added" />
+	<subscriber handler=".containers._contained_removed" />
+	<subscriber handler=".containers._contained_modified" />
+	
 	<!-- Subscribers
 	<subscriber handler=".search._search_completed" />
 
@@ -90,10 +93,6 @@
 	
 	<subscriber handler=".assessments._feedback_added" />
 	<subscriber handler=".assessments._feedback_removed" />
-	
-	<subscriber handler=".containers._contained_added" />
-	<subscriber handler=".containers._contained_removed" />
-	<subscriber handler=".containers._contained_modified" />
 	-->
 	
 	<!-- Utilities -->
@@ -103,11 +102,11 @@
 	<utility component=".tagging" provides=".interfaces.IObjectProcessor" name="tagging"/>
 	<utility component=".entities" provides=".interfaces.IObjectProcessor" name="entities"/>
 	<utility component=".flagging" provides=".interfaces.IObjectProcessor" name="flagging"/>
+	<utility component=".containers" provides=".interfaces.IObjectProcessor" name="containers"/>
 	<utility component=".connections" provides=".interfaces.IObjectProcessor" name="connections"/>
 	<utility component=".discussions" provides=".interfaces.IObjectProcessor" name="discussions"/>
 	
 	<!-- 
-	<utility component=".containers" provides=".interfaces.IObjectProcessor" name="containers"/>
 	<utility component=".threadables" provides=".interfaces.IObjectProcessor" name="threadables"/>
 	<utility component=".assessments" provides=".interfaces.IObjectProcessor" name="assessments"/>
 	-->

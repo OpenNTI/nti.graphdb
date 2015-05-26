@@ -29,6 +29,7 @@ from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 from . common import get_oid
 from . common import get_ntiid
 
+from .interfaces import IContainer
 from .interfaces import IUniqueAttributeAdapter
 
 @WithRepr
@@ -117,3 +118,11 @@ class _NTIIDUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 	@Lazy
 	def value(self):
 		return get_ntiid(self.obj)
+
+@component.adapter(IContainer)
+@interface.implementer(IUniqueAttributeAdapter)
+class _ContainerUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
+
+	@property
+	def value(self):
+		return self.obj.id
