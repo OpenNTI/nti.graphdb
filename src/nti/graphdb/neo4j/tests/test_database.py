@@ -145,7 +145,8 @@ class TestNeo4jDB(GraphDBTestCase):
 		res = self.db.create_relationships(*rels)
 		assert_that(res, has_length(2))
 
-		rels = self.db.match(start=node1, end=node2, rel_type='BROTHER_OF')
+		rel_type='BROTHER_OF'
+		rels = self.db.match(start=node1, end=node2, rel_type=rel_type)
 		assert_that(rels, has_length(1))
 
 		res = self.db.update_relationship(rels[0], {'a':2})
@@ -164,3 +165,6 @@ class TestNeo4jDB(GraphDBTestCase):
 
 		res = self.db.get_indexed_relationships(key, value)
 		assert_that(res, has_length(0))
+		from IPython.core.debugger import Tracer; Tracer()()
+		res = self.db.find_relationships(rel_type, 'a', 2)
+		assert_that(res, has_length(1))

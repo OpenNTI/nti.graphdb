@@ -74,6 +74,12 @@ def _merge_rel_query(start_id, end_id, rel_type):
 	RETURN r""" % (start_id, end_id, rel_type)
 	return result.strip()
 
+def _match_rel_query(rel_type, key, value, start_id=None, end_id=None):
+	result = """
+	MATCH p=(a)-[:%s {%s:%s}]-(b)
+	RETURN p""" % (rel_type, key, value)
+	return result.strip()
+
 def _isolate(self, node):
 	query = "START a=node(%s) MATCH a-[r]-b DELETE r" % node._id
 	self.append(CypherJob(query))
@@ -417,6 +423,28 @@ class Neo4jDB(object):
 			return True
 		return False
 
+	def _find_relationships(self, rel_type, key, value, start=None, end=None):
+		n4j_type = str(rel_type)
+		n4j_end = self._get_node(end, False) if end is not None else None
+		n4j_start = self._get_node(start, False) if start is not None else None
+		
+		if isinstance(value, six.string_types):
+			value = value if value.endswith("'") else "%s'" % value
+			value = value if value.startswith("'") else "'%s" % value
+
+		# construct query
+		query = _match_rel_query(n4j_type, key, value,n4j_start, n4j_end)
+		rb = ReadBatch(self.db)
+		rb.append(CypherJob(query))
+		
+		result = rb.submit()
+		return result
+
+	def find_relationships(self, rel_type, key, value):
+		r = self._find_relationships(rel_type, key, value)
+		# res[0][0].p.relationships
+		return r
+	
 	# index
 
 	def _get_or_create_index(self, abstract=Relationship, name="PKIndex"):
