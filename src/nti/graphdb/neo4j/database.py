@@ -109,23 +109,23 @@ class Neo4jDB(object):
 	def _reinit(self):
 		self._v_db__ = None
 
-	def _create_node(self, obj, key=None, value=None, label=None, properties=None, 
+	def _create_node(self, obj, key=None, value=None, label=None, properties=None,
 					 props=False):
-		
-		## Get object properties
+
+		# Get object properties
 		properties = dict(properties or {})
 		properties.update(IPropertyAdapter(obj))
-		
-		## Get object labels
+
+		# Get object labels
 		label = label or ILabelAdapter(obj)
 		assert label, "must provide an object label"
-	
-		pk = get_node_pk(obj)	
+
+		pk = get_node_pk(obj)
 		if pk is not None:
 			result = self.db.merge_one(label, pk.key, pk.value)
 			result.properties.update(properties)
 			result.push()
-			if props: # refresh
+			if props:  # refresh
 				self.db.pull(result)
 		else:
 			node = Node(label, **properties)
@@ -134,7 +134,7 @@ class Neo4jDB(object):
 
 	def create_node(self, obj, label=None, properties=None, key=None,
 					value=None, raw=False, props=True):
-		result = self._create_node(	obj, label=label, properties=properties, 
+		result = self._create_node(obj, label=label, properties=properties,
 									key=key, value=value, props=props)
 		result = Neo4jNode.create(result) if not raw else result
 		return result
@@ -142,7 +142,7 @@ class Neo4jDB(object):
 	def create_nodes(self, *objs):
 		wb = WriteBatch(self.db)
 		for o in objs:
-			pk = get_node_pk(o)	
+			pk = get_node_pk(o)
 			properties = IPropertyAdapter(o)
 			if pk is not None:
 				query = _merge_node_query(pk.label, pk.key, pk.value)
@@ -174,10 +174,10 @@ class Neo4jDB(object):
 			elif IGraphNode.providedBy(obj):
 				result = self.db.node(obj.id)
 			elif obj is not None:
-				pk = get_node_pk(obj)	
+				pk = get_node_pk(obj)
 				if pk is not None:
 					result = self.db.find_one(pk.label, pk.key, pk.value)
-					props = False ## no need to refresh
+					props = False  # # no need to refresh
 			if result is not None and props:
 				self.db.pull(result)
 		except GraphError as e:
@@ -190,9 +190,9 @@ class Neo4jDB(object):
 		result = self._get_node(obj, props=props)
 		result = Neo4jNode.create(result) if result is not None and not raw else result
 		return result
-	
+
 	node = get_node
-	
+
 	def get_or_create_node(self, obj, raw=False, props=True):
 		result = self.get_node(obj, raw=raw, props=props) or \
  				 self.create_node(obj, raw=raw, props=props)
@@ -202,10 +202,10 @@ class Neo4jDB(object):
 		nodes = []
 		rb = ReadBatch(self.db)
 		for o in objs:
-			pk = get_node_pk(o)	
+			pk = get_node_pk(o)
 			query = _match_node_query(pk.label, pk.key, pk.value)
 			rb.append(CypherJob(query))
-			
+
 		for result in rb.submit():
 			if result is not None:
 				nodes.append(Neo4jNode.create(result))
@@ -220,7 +220,7 @@ class Neo4jDB(object):
 			result.pull()
 		result = Neo4jNode.create(result) if result is not None and not raw else result
 		return result
-	
+
 	def get_indexed_nodes(self, *tuples):
 		rb = ReadBatch(self.db)
 		for label, key, value in tuples:
@@ -257,11 +257,11 @@ class Neo4jDB(object):
 
 	def delete_nodes(self, *objs):
 		nodes = []
-		
-		## get all the nodes at once
+
+		# get all the nodes at once
 		rb = ReadBatch(self.db)
 		for o in objs:
-			pk = get_node_pk(o)	
+			pk = get_node_pk(o)
 			query = _match_node_query(pk.label, pk.key, pk.value)
 			rb.append(CypherJob(query))
 
@@ -269,12 +269,12 @@ class Neo4jDB(object):
 			if node is not None:
 				nodes.append(node)
 
-		## process all deletions at once
+		# process all deletions at once
 		wb = WriteBatch(self.db)
 		for node in nodes:
 			wb.isolate(node)
 			wb.delete(node)
-			
+
 		result = 0
 		responses = wb.submit()
 		for idx in range(1, len(responses), 2):
@@ -290,11 +290,11 @@ class Neo4jDB(object):
 		return result or {}
 
 	def _create_relationship(self, start, end, rel_type, properties=None, unique=True):
-		## neo4j nodes
+		# neo4j nodes
 		n4j_end = self.get_or_create_node(end, raw=True, props=False)
 		n4j_start = self.get_or_create_node(start, raw=True, props=False)
-		
-		## properties
+
+		# properties
 		properties = dict(properties or {})
 		properties.update(self._rel_properties(start, end, rel_type))
 		if unique:
@@ -335,9 +335,9 @@ class Neo4jDB(object):
 		result = Neo4jRelationship.create(result) \
 				 if result is not None and not raw else result
 		return result
-	
+
 	relationship = get_relationship
-	
+
 	def _match(self, start_node=None, end_node=None, rel_type=None,
 				  bidirectional=False, limit=None, loose=False):
 		n4j_type = str(rel_type) if rel_type is not None else None
@@ -354,8 +354,8 @@ class Neo4jDB(object):
 		result = self._match(start_node=start,
 							 end_node=end,
 							 rel_type=rel_type,
-							 bidirectional=bidirectional, 
-							 limit=limit, 
+							 bidirectional=bidirectional,
+							 limit=limit,
 							 loose=loose)
 		result = [Neo4jRelationship.create(x) for x in result or ()] \
 				 if not raw else result
@@ -366,39 +366,39 @@ class Neo4jDB(object):
 		for rel in rels:
 			assert isinstance(rel, (tuple, list)) and len(rel) >= 3, 'invalid tuple'
 
-			## get relationship type
+			# get relationship type
 			rel_type = rel[1]
 			assert rel_type, 'invalid relationship type'
-			
-			## get nodes
-			end = rel[2] # end node
+
+			# get nodes
+			end = rel[2]  # end node
 			start = rel[0]  # start node
 			for n in (start, end):
 				assert INeo4jNode.providedBy(n) or IGraphNodeNeo4j.providedBy(n)
 
 			end = end if INeo4jNode.providedBy(end) else end.neo
 			start = start if INeo4jNode.providedBy(start) else start.neo
-			
-			## get properties
+
+			# # get properties
 			properties = {} if len(rel) < 4 or rel[3] is None  else rel[3]
 			assert isinstance(properties, Mapping)
 
-			## get unique
+			# # get unique
 			unique = False if len(rel) < 5 or rel[4] is None else rel[4]
 			if not unique:
 				rel = Relationship(start, str(rel_type), end, **properties)
 				wb.create(rel)
 			else:
 				query = _merge_rel_query(start._id, end._id, rel_type)
-				wb.append(CypherJob(query)) ## XXX Parameter maps cannot be used in MERGE patterns 
+				wb.append(CypherJob(query))  # Parameter maps cannot be used in MERGE patterns
 
 		result = wb.submit()
 		return result
 
 	def delete_relationships(self, *objs):
-		## collect node4j rels
+		# collect node4j rels
 		rels = [self._get_relationship(x, False) for x in objs]
-		
+
 		wb = WriteBatch(self.db)
 		for rel in rels:
 			if rel is not None:
@@ -416,3 +416,33 @@ class Neo4jDB(object):
 			rel.set_properties(properties)
 			return True
 		return False
+
+	# index
+
+	def _get_or_create_index(self, abstract=Relationship, name="PKIndex"):
+		return self.db.legacy.get_or_create_index(abstract, name)
+
+	def _index_entity(self, key, value, entity, abstract=Relationship):
+		if entity is not None:
+			index = self._get_or_create_index(abstract=abstract)
+			index.add(key, value, entity)
+			return True
+		return False
+
+	def index_relationship(self, rel, key, value):
+		rel = self._get_relationship(rel, False)
+		result = self._index_entity(key, value, rel)
+		return result
+
+	def get_indexed_relationships(self, key, value, raw=False):
+		index = self._get_or_create_index()
+		result = index.get(key, value)
+		result = [Neo4jRelationship.create(x) for x in result or ()] \
+				  if not raw else result
+		return result
+
+	def unindex_relationship(self, key, value, rel=None):
+		rel = self._get_relationship(rel, False) if rel is not None else None
+		index = self._get_or_create_index()
+		result = index.remove(key, value, rel)
+		return result

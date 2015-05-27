@@ -73,7 +73,7 @@ class IGraphDB(interface.Interface):
 	def get_relationship(obj):
 		pass
 
-	def match(start=None, end=None, rel_type=None, bidirectional=False, 
+	def match(start=None, end=None, rel_type=None, bidirectional=False,
 			  limit=None, loose=False):
 		pass
 
@@ -81,6 +81,15 @@ class IGraphDB(interface.Interface):
 		pass
 
 	def update_relationship(obj, properties=None):
+		pass
+
+	def index_relationship(rel, key, value):
+		pass
+
+	def get_indexed_relationships(key, value):
+		pass
+
+	def unindex_relationship(key, value, rel=None):
 		pass
 
 class INode(interface.Interface):

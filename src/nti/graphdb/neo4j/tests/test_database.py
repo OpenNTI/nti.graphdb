@@ -17,6 +17,7 @@ from hamcrest import assert_that
 from hamcrest import has_property
 does_not = is_not
 
+import uuid
 import unittest
 
 from nti.dataserver.users import User
@@ -64,7 +65,7 @@ class TestNeo4jDB(GraphDBTestCase):
 		user2 = self._create_user(username)
 		res = self.db.get_node(user2)
 		assert_that(res, is_(none()))
-		
+
 		res = self.db.create_nodes(user2)
 		assert_that(res, is_not(none()))
 		assert_that(res, has_length(1))
@@ -73,19 +74,19 @@ class TestNeo4jDB(GraphDBTestCase):
 		assert_that(res, is_not(none()))
 		assert_that(res, has_length(2))
 		assert_that(res, does_not(contains(None)))
-		
+
 		node = self.db.get_indexed_node("User", 'username', username)
 		assert_that(node, is_not(none()))
-		
-		nodes = self.db.get_indexed_nodes( ("User", 'username', user.username),
-										   ("User", 'username', user2.username) )
+
+		nodes = self.db.get_indexed_nodes(("User", 'username', user.username),
+										   ("User", 'username', user2.username))
 		assert_that(nodes, has_length(2))
-		
+
 		props = dict(node.properties)
 		props['language'] = 'latin'
 		res = self.db.update_node(node, properties=props)
 		assert_that(res, is_(True))
-		
+
 		node = self.db.get_node(node)
 		assert_that(node, has_property('properties',
  									   has_entry('language', 'latin')))
@@ -104,7 +105,7 @@ class TestNeo4jDB(GraphDBTestCase):
 		user1 = random_username()
 		user1 = self._create_user(user1)
 		node1 = self.db.create_node(user1)
-		
+
 		user2 = random_username()
 		user2 = self._create_user(user2)
 		node2 = self.db.create_node(user2)
@@ -120,33 +121,46 @@ class TestNeo4jDB(GraphDBTestCase):
 
 		res = self.db.get_relationship(rel.id)
 		assert_that(res, is_not(none()))
-		
+
 		res = self.db.get_relationship(rel)
 		assert_that(res, is_not(none()))
-		
+
 		res = self.db.match(start=user1, end=user2, rel_type=FriendOf())
 		assert_that(res, has_length(1))
 
 		rel_type = str(FriendOf())
 		rels = self.db.match(start=node1, end=node2, rel_type=rel_type)
 		assert_that(rels, has_length(1))
-		
+
 		res = self.db.match(start=user1, end=user2, rel_type="unknown")
 		assert_that(res, has_length(0))
-		
-		
+
 		self.db.delete_relationship(rels[0])
-		
+
 		res = self.db.get_relationship(rels[0])
-		assert_that(res, is_(none()))	
-				
-		rels =[ (node1,'BROTHER_OF', node2, {}, True),
-				(node2,'FAMILY_OF', node1, {'a':1}, False) ]
+		assert_that(res, is_(none()))
+
+		rels = [ (node1, 'BROTHER_OF', node2, {}, True),
+				(node2, 'FAMILY_OF', node1, {'a':1}, False) ]
 		res = self.db.create_relationships(*rels)
 		assert_that(res, has_length(2))
-		
+
 		rels = self.db.match(start=node1, end=node2, rel_type='BROTHER_OF')
 		assert_that(rels, has_length(1))
-		
-		res = self.db.update_relationship(rels[0],  {'a':2})
+
+		res = self.db.update_relationship(rels[0], {'a':2})
 		assert_that(res, is_(True))
+
+		splits = unicode(uuid.uuid4()).split('-')
+		key, value = splits[-1], splits[0]
+	
+		res = self.db.index_relationship(rels[0], key, value)
+		assert_that(res, is_(True))
+		
+		res = self.db.get_indexed_relationships(key, value)
+		assert_that(res, has_length(1))
+		
+		self.db.unindex_relationship(key, value)
+
+		res = self.db.get_indexed_relationships(key, value)
+		assert_that(res, has_length(0))
