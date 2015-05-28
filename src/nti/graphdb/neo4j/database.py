@@ -64,20 +64,22 @@ def _match_node_query(label, key, value):
 	result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
 	return result.strip()
 
-def _merge_rel_query(start_id, end_id, rel_type):
+def _merge_rel_query(start_id, end_id, rel_type, bidirectional=False):
+	direction = '-' if bidirectional else '->'
 	result = """
 	MATCH (a)
 	WHERE id(a)=%s
 	MATCH (b)
 	WHERE id(b)=%s
-	MERGE r=(a)-[:%s]-(b)
-	RETURN r""" % (start_id, end_id, rel_type)
+	MERGE r=(a)-[:%s]%s(b)
+	RETURN r""" % (start_id, end_id, rel_type, direction)
 	return result.strip()
 
-def _match_rel_query(rel_type, key, value, start_id=None, end_id=None):
+def _match_rel_query(rel_type, key, value, start_id=None, end_id=None, bidirectional=False):
+	direction = '-' if bidirectional else '->'
 	result = """
-	MATCH p=(a)-[:%s {%s:%s}]-(b)
-	RETURN p""" % (rel_type, key, value)
+	MATCH p=(a)-[:%s {%s:%s}]%s(b)
+	RETURN p""" % (rel_type, key, value, direction)
 	return result.strip()
 
 def _isolate(self, node):
@@ -385,11 +387,11 @@ class Neo4jDB(object):
 			end = end if INeo4jNode.providedBy(end) else end.neo
 			start = start if INeo4jNode.providedBy(start) else start.neo
 
-			# # get properties
+			# get properties
 			properties = {} if len(rel) < 4 or rel[3] is None  else rel[3]
 			assert isinstance(properties, Mapping)
 
-			# # get unique
+			# get unique
 			unique = False if len(rel) < 5 or rel[4] is None else rel[4]
 			if not unique:
 				rel = Relationship(start, str(rel_type), end, **properties)
