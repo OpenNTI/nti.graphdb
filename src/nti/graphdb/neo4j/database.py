@@ -244,7 +244,7 @@ class Neo4jDB(object):
 	def update_node(self, obj, properties=_marker):
 		node = self._get_node(obj, props=False)
 		if node is not None and properties != _marker:
-			node.set_properties(properties)
+			node.properties.update(properties)
 			node.push()
 			return True
 		return False
@@ -421,11 +421,14 @@ class Neo4jDB(object):
 	def update_relationship(self, obj, properties=_marker):
 		rel = self._get_relationship(obj)
 		if rel is not None and properties != _marker:
-			rel.set_properties(properties)
+			rel.properties.update(properties)
+			rel.push()
 			return True
 		return False
 
-	def _find_relationships(self, rel_type, key, value, start=None, end=None):
+	def _find_relationships(self, rel_type, key, value, start=None, end=None,
+							bidirectional=False):
+		# get nodes
 		n4j_type = str(rel_type)
 		n4j_end = self._get_node(end, False) if end is not None else None
 		n4j_start = self._get_node(start, False) if start is not None else None
@@ -434,16 +437,18 @@ class Neo4jDB(object):
 			value = value if value.endswith("'") else "%s'" % value
 			value = value if value.startswith("'") else "'%s" % value
 
-		# construct query
-		query = _match_rel_query(n4j_type, key, value,n4j_start, n4j_end)
-		rb = ReadBatch(self.db)
-		rb.append(CypherJob(query))
+		n4j_end = getattr(n4j_end, '_id', None)
+		n4j_start = getattr(n4j_start, '_id', None)
 		
-		result = rb.submit()
-		return result
+		# construct query
+		query = _match_rel_query(n4j_type, key, value, n4j_start, n4j_end, bidirectional)
+		records = self.db.cypher.execute(query)
+		return records
 
-	def find_relationships(self, rel_type, key, value):
-		r = self._find_relationships(rel_type, key, value)
+	def find_relationships(self, rel_type, key, value, start=None, end=None,
+						   bidirectional=False):
+		r = self._find_relationships(rel_type, key, value, start=start, end=start,
+									 bidirectional=False)
 		# res[0][0].p.relationships
 		return r
 	
