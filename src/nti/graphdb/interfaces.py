@@ -83,6 +83,12 @@ class IGraphDB(interface.Interface):
 	def update_relationship(obj, properties=None):
 		pass
 
+	def find_relationships(key, value, rel_type=None, start=None, end=None, 
+						   bidirectional=False):
+		"""
+		Find relationships for the specified key and value property
+		"""
+			
 	def index_relationship(rel, key, value):
 		pass
 

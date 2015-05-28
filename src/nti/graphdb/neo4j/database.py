@@ -75,12 +75,19 @@ def _merge_rel_query(start_id, end_id, rel_type, bidirectional=False):
 	RETURN r""" % (start_id, end_id, rel_type, direction)
 	return result.strip()
 
-def _match_rel_query(rel_type, key, value, start_id=None, end_id=None, bidirectional=False):
+def _match_rel_query(key, value, rel_type=None, start_id=None, end_id=None,
+					 bidirectional=False):
+	result = ""
 	direction = '-' if bidirectional else '->'
-	result = """
-	MATCH p=(a)-[:%s {%s:%s}]%s(b)
-	RETURN p""" % (rel_type, key, value, direction)
-	return result.strip()
+	if start_id is not None:
+		result += "MATCH (a) WHERE id(a)=%s " % start_id
+	if end_id is not None:
+		result += "MATCH (b) WHERE id(b)=%s " % end_id
+	if rel_type:
+		result += "MATCH p=(a)-[:%s {%s:%s}]%s(b) RETURN p" % (rel_type, key, value, direction)
+	else:
+		result += "MATCH p=(a)-[ {%s:%s}]%s(b) RETURN p" % (key, value, direction)
+	return result
 
 def _isolate(self, node):
 	query = "START a=node(%s) MATCH a-[r]-b DELETE r" % node._id
@@ -426,10 +433,10 @@ class Neo4jDB(object):
 			return True
 		return False
 
-	def _find_relationships(self, rel_type, key, value, start=None, end=None,
+	def _find_relationships(self, key, value, rel_type=None, start=None, end=None,
 							bidirectional=False):
 		# get nodes
-		n4j_type = str(rel_type)
+		n4j_type = str(rel_type) if rel_type is not None else None
 		n4j_end = self._get_node(end, False) if end is not None else None
 		n4j_start = self._get_node(start, False) if start is not None else None
 		
@@ -441,16 +448,25 @@ class Neo4jDB(object):
 		n4j_start = getattr(n4j_start, '_id', None)
 		
 		# construct query
-		query = _match_rel_query(n4j_type, key, value, n4j_start, n4j_end, bidirectional)
+		result = []
+		query = _match_rel_query(key, value, 
+								 rel_type=n4j_type, 
+								 start_id=n4j_start, 
+								 end_id=n4j_end, 
+								 bidirectional=bidirectional)
 		records = self.db.cypher.execute(query)
-		return records
+		for record in records:
+			rel = record.p.relationships[0] # p is the path returned
+			result.append(rel)
+		return result
 
-	def find_relationships(self, rel_type, key, value, start=None, end=None,
-						   bidirectional=False):
-		r = self._find_relationships(rel_type, key, value, start=start, end=start,
-									 bidirectional=False)
-		# res[0][0].p.relationships
-		return r
+	def find_relationships(self, key, value, rel_type=None, start=None, end=None,
+						   bidirectional=False, raw=False):
+		result = self._find_relationships(key, value, rel_type=rel_type, start=start, 
+										  end=start, bidirectional=bidirectional)
+		result = [Neo4jRelationship.create(x) for x in result] \
+				 if not raw else result
+		return result
 	
 	# index
 
