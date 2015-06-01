@@ -83,12 +83,12 @@ class IGraphDB(interface.Interface):
 	def update_relationship(obj, properties=None):
 		pass
 
-	def find_relationships(key, value, rel_type=None, start=None, end=None, 
+	def find_relationships(key, value, rel_type=None, start=None, end=None,
 						   bidirectional=False):
 		"""
 		Find relationships for the specified key and value property
 		"""
-			
+
 	def index_relationship(rel, key, value):
 		pass
 
@@ -223,6 +223,9 @@ class IContained(IRelationshipType):
 class IFeedback(IRelationshipType):
 	pass
 
+class IAssignmentFeedback(IRelationshipType):
+	pass
+
 # class IParentOf(IRelationshipType):
 # 	pass
 #
@@ -230,9 +233,6 @@ class IFeedback(IRelationshipType):
 # 	pass
 #
 # class IIsReplyOf(IRelationshipType):
-# 	pass
-#
-# class IAssignmentFeedback(IRelationshipType):
 # 	pass
 #
 # class ISearch(IRelationshipType):

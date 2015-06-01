@@ -27,6 +27,7 @@ from .interfaces import ICommentOn
 from .interfaces import IContained
 from .interfaces import IIsSharedWith
 from .interfaces import ITakeAssessment
+from .interfaces import IAssignmentFeedback
 
 class _Singleton(object):
 	_instances = {}
@@ -144,6 +145,13 @@ class Feedback(_Singleton):
 
 	def __str__(self):
 		return "HAS_FEEDBACKED"
+	__repr__ = __str__
+
+@interface.implementer(IAssignmentFeedback)
+class AssigmentFeedback(_Singleton):
+
+	def __str__(self):
+		return "ASM_FEEDBACKED"
 	__repr__ = __str__
 
 # @interface.implementer(IParentOf)
