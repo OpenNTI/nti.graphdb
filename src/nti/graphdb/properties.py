@@ -143,6 +143,7 @@ def _ModeledContentPropertyAdpater(modeled):
 	if containerId:
 		result['containerId'] = containerId
 	return result
+ModeledContentPropertyAdpater = _ModeledContentPropertyAdpater
 
 @component.adapter(ITitledContent)
 @interface.implementer(IPropertyAdapter)
