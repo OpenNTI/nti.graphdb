@@ -220,6 +220,9 @@ class IContainer(interface.Interface):
 class IContained(IRelationshipType):
 	pass
 
+class IFeedback(IRelationshipType):
+	pass
+
 # class IParentOf(IRelationshipType):
 # 	pass
 #
@@ -227,9 +230,6 @@ class IContained(IRelationshipType):
 # 	pass
 #
 # class IIsReplyOf(IRelationshipType):
-# 	pass
-#
-# class IFeedback(IRelationshipType):
 # 	pass
 #
 # class IAssignmentFeedback(IRelationshipType):

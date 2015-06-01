@@ -19,6 +19,7 @@ from .interfaces import IFollow
 from .interfaces import IShared
 from .interfaces import ICreated
 from .interfaces import IFlagged
+from .interfaces import IFeedback
 from .interfaces import IFriendOf
 from .interfaces import IMemberOf
 from .interfaces import ITaggedTo
@@ -138,6 +139,13 @@ class Contained(_Singleton):
 		return "IS_CONTAINED"
 	__repr__ = __str__
 
+@interface.implementer(IFeedback)
+class Feedback(_Singleton):
+
+	def __str__(self):
+		return "HAS_FEEDBACKED"
+	__repr__ = __str__
+
 # @interface.implementer(IParentOf)
 # class ParentOf(_Singleton):
 #
@@ -159,13 +167,6 @@ class Contained(_Singleton):
 # 		return "IS_REPLY_OF"
 # 	__repr__ = __str__
 #
-# @interface.implementer(IFeedback)
-# class Feedback(_Singleton):
-#
-# 	def __str__(self):
-# 		return "HAS_FEEDBACKED"
-# 	__repr__ = __str__
-#
 # @interface.implementer(IAssignmentFeedback)
 # class AssigmentFeedback(_Singleton):
 #
@@ -180,7 +181,6 @@ class Contained(_Singleton):
 # 		return "HAS_SEARCHED"
 # 	__repr__ = __str__
 #
-
 # @interface.implementer(ISubmit)
 # class Submit(_Singleton):
 #
