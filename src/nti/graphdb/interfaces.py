@@ -226,20 +226,14 @@ class IFeedback(IRelationshipType):
 class IAssignmentFeedback(IRelationshipType):
 	pass
 
-# class IParentOf(IRelationshipType):
-# 	pass
-#
-# class IReply(IRelationshipType):
-# 	pass
-#
-# class IIsReplyOf(IRelationshipType):
-# 	pass
-#
-# class ISearch(IRelationshipType):
-# 	pass
-#
-# class ISubmit(IRelationshipType):
-# 	pass
-#
-# class IBelong(IRelationshipType):
-# 	pass
+class IIsReplyOf(IRelationshipType):
+	pass
+
+class IReply(IRelationshipType):
+	pass
+
+class IParentOf(IRelationshipType):
+	pass
+
+class IBelong(IRelationshipType):
+	pass

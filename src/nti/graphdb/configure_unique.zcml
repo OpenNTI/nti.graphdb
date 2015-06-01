@@ -33,6 +33,18 @@
 			 factory=".unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 		
+	<adapter for="nti.dataserver.interfaces.IThreadable"
+			 factory=".unique._OIDUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+
+	<adapter for="nti.dataserver.interfaces.INote"
+			 factory=".unique._OIDUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+
+	<adapter for="nti.dataserver.interfaces.IHighlight"
+			 factory=".unique._OIDUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+
 	<adapter for="nti.dataserver.contenttypes.forums.interfaces.IBoard"
 			 factory=".unique._OIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />

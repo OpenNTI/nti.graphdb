@@ -14,7 +14,9 @@ from zope import interface
 from .interfaces import ILike
 from .interfaces import IRate
 from .interfaces import IView
+from .interfaces import IReply
 from .interfaces import IAuthor
+from .interfaces import IBelong
 from .interfaces import IFollow
 from .interfaces import IShared
 from .interfaces import ICreated
@@ -22,9 +24,11 @@ from .interfaces import IFlagged
 from .interfaces import IFeedback
 from .interfaces import IFriendOf
 from .interfaces import IMemberOf
+from .interfaces import IParentOf
 from .interfaces import ITaggedTo
 from .interfaces import ICommentOn
 from .interfaces import IContained
+from .interfaces import IIsReplyOf
 from .interfaces import IIsSharedWith
 from .interfaces import ITakeAssessment
 from .interfaces import IAssignmentFeedback
@@ -154,51 +158,30 @@ class AssigmentFeedback(_Singleton):
 		return "ASM_FEEDBACKED"
 	__repr__ = __str__
 
-# @interface.implementer(IParentOf)
-# class ParentOf(_Singleton):
-#
-# 	def __str__(self):
-# 		return "IS_PARENT_OF"
-# 	__repr__ = __str__
-#
-# @interface.implementer(IReply)
-# class Reply(_Singleton):
-#
-# 	def __str__(self):
-# 		return "HAS_REPLIED_TO"
-# 	__repr__ = __str__
-#
-# @interface.implementer(IIsReplyOf)
-# class IsReplyOf(_Singleton):
-#
-# 	def __str__(self):
-# 		return "IS_REPLY_OF"
-# 	__repr__ = __str__
-#
-# @interface.implementer(IAssignmentFeedback)
-# class AssigmentFeedback(_Singleton):
-#
-# 	def __str__(self):
-# 		return "ASM_FEEDBACKED"
-# 	__repr__ = __str__
-#
-# @interface.implementer(ISearch)
-# class Search(_Singleton):
-#
-# 	def __str__(self):
-# 		return "HAS_SEARCHED"
-# 	__repr__ = __str__
-#
-# @interface.implementer(ISubmit)
-# class Submit(_Singleton):
-#
-# 	def __str__(self):
-# 		return "HAS_SUBMITTED"
-# 	__repr__ = __str__
-#
-# @interface.implementer(IBelong)
-# class Belong(_Singleton):
-#
-# 	def __str__(self):
-# 		return "BELONG_TO"
-# 	__repr__ = __str__
+@interface.implementer(IParentOf)
+class ParentOf(_Singleton):
+
+	def __str__(self):
+		return "IS_PARENT_OF"
+	__repr__ = __str__
+
+@interface.implementer(IIsReplyOf)
+class IsReplyOf(_Singleton):
+
+	def __str__(self):
+		return "IS_REPLY_OF"
+	__repr__ = __str__
+
+@interface.implementer(IReply)
+class Reply(_Singleton):
+
+	def __str__(self):
+		return "HAS_REPLIED_TO"
+	__repr__ = __str__
+
+@interface.implementer(IBelong)
+class Belong(_Singleton):
+
+	def __str__(self):
+		return "BELONG_TO"
+	__repr__ = __str__

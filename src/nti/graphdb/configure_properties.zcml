@@ -136,5 +136,9 @@
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.contenttypes.forums.interfaces.IGeneralForumComment .interfaces.ICommentOn"
 			 factory=".properties._CommentRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
+	
+	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.IThreadable .interfaces.IReply"
+			 factory=".properties._RepliedRelationshipPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
 
 </configure>

@@ -333,6 +333,15 @@ def _CurrentTimePropertyAdpater(source, target, _rel):
 _LikeRelationshipPropertyAdpater = _CurrentTimePropertyAdpater
 _RateRelationshipPropertyAdpater = _CurrentTimePropertyAdpater
 
+@interface.implementer(IPropertyAdapter)
+def _EntityObjectRelationshipPropertyAdpater(entity, obj, rel_type):
+	result = {'createdTime': get_createdTime(obj, time.time())}
+	result['creator'] = entity.username
+	add_oid(obj, result)
+	add_intid(obj, result)
+
+_RepliedRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
+
 # IPersonalBlogComment, IGeneralForumComment
 @interface.implementer(IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(entity, post, rel):
