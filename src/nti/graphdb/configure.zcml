@@ -74,27 +74,13 @@
 	<subscriber handler=".containers._contained_removed" />
 	<subscriber handler=".containers._contained_modified" />
 	
-	<!-- Subscribers
-	<subscriber handler=".search._search_completed" />
-
-	<subscriber handler=".threadables._threadable_added" />
-	<subscriber handler=".threadables._threadable_removed" />
-	<subscriber handler=".threadables._threadable_modified" />
-	
 	<subscriber handler=".sharing._shareable_added" />
 	<subscriber handler=".sharing._shareable_modified" />
 	
-	<subscriber handler=".assessments._grade_added" />
-	<subscriber handler=".assessments._grade_modified" />
-	
-	<subscriber handler=".assessments._question_assessed" />
-	<subscriber handler=".assessments._questionset_assessed" />
-	<subscriber handler=".assessments._assignment_history_item_added" />
-	
-	<subscriber handler=".assessments._feedback_added" />
-	<subscriber handler=".assessments._feedback_removed" />
-	-->
-	
+	<subscriber handler=".threadables._threadable_added" />
+	<subscriber handler=".threadables._threadable_removed" />
+	<subscriber handler=".threadables._threadable_modified" />
+
 	<!-- Utilities -->
 	<utility component=".ratings" provides=".interfaces.IObjectProcessor" name="ratings"/>
 	<utility component=".created" provides=".interfaces.IObjectProcessor" name="created"/>
@@ -105,11 +91,7 @@
 	<utility component=".containers" provides=".interfaces.IObjectProcessor" name="containers"/>
 	<utility component=".connections" provides=".interfaces.IObjectProcessor" name="connections"/>
 	<utility component=".discussions" provides=".interfaces.IObjectProcessor" name="discussions"/>
-	
-	<!-- 
 	<utility component=".threadables" provides=".interfaces.IObjectProcessor" name="threadables"/>
-	<utility component=".assessments" provides=".interfaces.IObjectProcessor" name="assessments"/>
-	-->
 
 	<!-- Graph store -->
 	<include package="." file="meta.zcml" />

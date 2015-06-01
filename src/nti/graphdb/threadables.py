@@ -75,7 +75,7 @@ def _threadable_modified(thread, event):
 
 def _add_in_reply_to_relationship(db, oid):
 	threadable = find_object_with_ntiid(oid)
-	in_replyTo = threadable.in_reply_to if threadable is not None else None
+	in_replyTo = threadable.inReplyTo if threadable is not None else None
 	if in_replyTo is not None and not db.match(threadable, in_replyTo, IsReplyOf()):
 		# create parent/child relationship
 		rel = db.create_relationship(threadable, in_replyTo, IsReplyOf())
@@ -85,7 +85,7 @@ def _add_in_reply_to_relationship(db, oid):
 		i_author = get_creator(in_replyTo)
 		if not i_author or not t_author:
 			return
-
+		# from IPython.core.debugger import Tracer; Tracer()()
 		# create a relationship between author and the author being replied to
 		properties = component.getMultiAdapter((t_author, threadable, Reply()),
 												IPropertyAdapter)
