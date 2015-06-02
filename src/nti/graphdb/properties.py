@@ -339,6 +339,7 @@ def _EntityObjectRelationshipPropertyAdpater(entity, obj, rel_type):
 	result['creator'] = entity.username
 	add_oid(obj, result)
 	add_intid(obj, result)
+	return result
 
 _RepliedRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
 

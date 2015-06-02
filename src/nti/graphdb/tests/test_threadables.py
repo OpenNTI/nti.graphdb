@@ -8,8 +8,6 @@ __docformat__ = "restructuredtext en"
 # pylint: disable=W0212,R0904
 
 from hamcrest import is_
-from hamcrest import none
-from hamcrest import is_not
 from hamcrest import has_length
 from hamcrest import assert_that
 
@@ -20,16 +18,15 @@ from nti.dataserver.users import User
 
 from nti.dataserver.contenttypes import Note
 
-from nti.graphdb.relationships import Shared
-from nti.graphdb.relationships import IsSharedWith
+from nti.graphdb.relationships import Reply
+from nti.graphdb.relationships import IsReplyOf
 
 from nti.graphdb.neo4j.database import Neo4jDB
 
 from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_node_pk
+from nti.graphdb.threadables import _remove_threadable
 from nti.graphdb.threadables import _add_in_reply_to_relationship
-from nti.graphdb.sharing import _create_shared_rel
-from nti.graphdb.sharing import _create_is_shared_with_rels
-from nti.graphdb.sharing import _delete_is_shared_with_rels
 
 from nti.ntiids.ntiids import make_ntiid
 
@@ -83,22 +80,24 @@ class TestThreadables(GraphDBTestCase):
 		oid = get_oid(child_note)
 		m = _add_in_reply_to_relationship(self.db, oid)
 		assert_that(m, is_(True))
-# 		sharedWith = _get_sharedWith(note)
-# 		m = _create_is_shared_with_rels(self.db, oid, sharedWith)
-# 		assert_that(m, has_length(2))
-# 
-# 		rels = self.db.match(note, user_2, IsSharedWith())
-# 		assert_that(rels, has_length(1))
-# 
-# 		rels = self.db.match(note, user_3, IsSharedWith())
-# 		assert_that(rels, has_length(1))
-# 
-# 		m = _create_shared_rel(self.db, oid)
-# 		assert_that(m, is_not(none()))
-# 
-# 		rels = self.db.match(user_1, note, Shared())
-# 		assert_that(rels, has_length(1))
-# 
-# 		usernames = [getattr(x, 'username', x) for x in sharedWith]
-# 		m = _delete_is_shared_with_rels(self.db, oid, usernames)
-# 		assert_that(m, is_(2))
+		
+		m = self.db.match(child_note, parent_note, IsReplyOf())
+		assert_that(m, has_length(1))
+		
+		m = self.db.match(user_2, user_1, rel_type=Reply())
+		assert_that(m, has_length(1))
+		
+		pk = get_node_pk(child_note)
+		m = self.db.get_indexed_relationships(pk.key, pk.value)
+		assert_that(m, has_length(1))
+
+		_remove_threadable(self.db, pk.label, pk.key, pk.value)
+		
+		m = self.db.get_indexed_relationships(pk.key, pk.value)
+		assert_that(m, has_length(0))
+		
+		m = self.db.match(user_2, user_1, rel_type=Reply())
+		assert_that(m, has_length(0))
+
+		m = self.db.match(child_note, parent_note, IsReplyOf())
+		assert_that(m, has_length(0))

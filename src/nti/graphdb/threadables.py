@@ -85,7 +85,7 @@ def _add_in_reply_to_relationship(db, oid):
 		i_author = get_creator(in_replyTo)
 		if not i_author or not t_author:
 			return
-		# from IPython.core.debugger import Tracer; Tracer()()
+
 		# create a relationship between author and the author being replied to
 		properties = component.getMultiAdapter((t_author, threadable, Reply()),
 												IPropertyAdapter)

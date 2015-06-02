@@ -18,13 +18,18 @@ from hamcrest import has_property
 
 from numbers import Number
 
+from zope import component
+
 from nti.contentfragments.interfaces import IPlainTextContentFragment
 
 from nti.dataserver.users import User
 from nti.dataserver.users import Community
+from nti.dataserver.contenttypes import Note
 from nti.dataserver.contenttypes.forums.topic import PersonalBlogEntry
 from nti.dataserver.contenttypes.forums.post import PersonalBlogComment
 from nti.dataserver.contenttypes.forums.interfaces import IPersonalBlog
+
+from nti.graphdb.relationships import Reply
 
 from nti.graphdb.interfaces import ILabelAdapter
 from nti.graphdb.interfaces import IPropertyAdapter
@@ -144,3 +149,18 @@ class TestAdapters(GraphDBTestCase):
 										'type', is_(u'Comment'),
 										'topic', is_not(none()),
 										'createdTime', is_(Number) ) )
+
+	@WithMockDSTrans
+	def test_property(self):
+		user = self._create_user("user1@bar")
+		note = Note()
+		note.body = [unicode('test')]
+		note.creator = user
+		note.containerId = 'foo'
+		mock_dataserver.current_transaction.add(note)
+		note = user.addContainedObject(note)
+		properties = component.queryMultiAdapter((user, note, Reply()),
+												 IPropertyAdapter)
+		assert_that(properties, is_not(none()))
+		assert_that(properties, has_entries('intid', is_(int),
+											'creator', is_(u'user1@bar')))
