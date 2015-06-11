@@ -121,6 +121,14 @@
 			 factory=".properties._ContainerPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 
+	<adapter for="nti.dataserver.interfaces.IEntity * *"
+			 factory=".properties._EntityObjectRelationshipPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+
+	<adapter for="nti.dataserver.interfaces.IUser nti.dataserver.contenttypes.forums.interfaces.ITopic .interfaces.ICommentOn"
+			 factory=".properties._TopicCommentRelationshipPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
 	<adapter for="nti.dataserver.interfaces.IEntity nti.dataserver.interfaces.ILikeable .interfaces.ILike"
 			 factory=".properties._LikeRelationshipPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

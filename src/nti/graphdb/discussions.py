@@ -30,6 +30,7 @@ from nti.ntiids.ntiids import find_object_with_ntiid
 from .common import get_oid
 from .common import get_creator
 from .common import get_node_pk
+from .common import get_createdTime
 
 from .relationships import Author
 from .relationships import MemberOf
@@ -189,6 +190,13 @@ def _get_comment_relationship(db, comment):
 			return rel
 	return None
 
+def _comment_properties(comment):
+	pk = get_node_pk(comment)
+	properties = { pk.key: pk.value,
+				  'creator': get_creator(comment).username,
+				  'createdTime': get_createdTime(comment)}
+	return properties
+
 def _add_comment_relationship(db, oid):
 	result = None
 	comment = find_object_with_ntiid(oid)
@@ -197,10 +205,9 @@ def _add_comment_relationship(db, oid):
 		# commenting user and the topic. We identify the relationship with
 		# the primary key of the comment
 		# Note we don't create a comment node.
-		pk = get_node_pk(comment)
 		topic = comment.__parent__
 		author = get_creator(comment)
-		properties = {pk.key: pk.value}
+		properties = _comment_properties(comment)
 		result = db.create_relationship(author, topic, CommentOn(),
 										properties=properties,
 										unique=False)

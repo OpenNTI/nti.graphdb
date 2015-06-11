@@ -52,6 +52,7 @@ from .common import get_creator
 from .common import get_createdTime
 from .common import get_lastModified
 
+from .interfaces import ICommentOn
 from .interfaces import IContainer
 from .interfaces import IPropertyAdapter
 
@@ -349,3 +350,8 @@ def _CommentRelationshipPropertyAdpater(entity, post, rel):
 	result = {	'oid': get_oid(post),
 				'createdTime': get_createdTime(post)  }
 	return result
+
+@interface.implementer(IPropertyAdapter)
+@component.adapter(IUser, ITopic, ICommentOn)
+def _TopicCommentRelationshipPropertyAdpater(entity, topic, rel_type):
+	return {}
