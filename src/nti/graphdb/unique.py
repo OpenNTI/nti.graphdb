@@ -32,6 +32,9 @@ from . common import get_ntiid
 from .interfaces import IContainer
 from .interfaces import IUniqueAttributeAdapter
 
+from . import OID
+from . import INTID
+
 @WithRepr
 @component.adapter(interface.Interface)
 @interface.implementer(IUniqueAttributeAdapter)
@@ -45,7 +48,7 @@ class _GenericUniqueAttributeAdpater(object):
 @interface.implementer(IUniqueAttributeAdapter)
 class _IntIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
-	key = "intid"
+	key = INTID
 
 	@Lazy
 	def value(self):
@@ -56,7 +59,7 @@ class _IntIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 @interface.implementer(IUniqueAttributeAdapter)
 class _OIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
-	key = "oid"
+	key = OID
 
 	@Lazy
 	def value(self):
@@ -90,7 +93,7 @@ class _DFLUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 @interface.implementer(IUniqueAttributeAdapter)
 class _TopicUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
-	key = "oid"
+	key = OID
 
 	@Lazy
 	def value(self):
@@ -114,7 +117,7 @@ class _ContentUnitAttributeAdpater(_OIDUniqueAttributeAdpater):
 @interface.implementer(IUniqueAttributeAdapter)
 class _NTIIDUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 
-	key = "oid"
+	key = OID
 
 	@Lazy
 	def value(self):

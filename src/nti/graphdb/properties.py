@@ -58,10 +58,13 @@ from .interfaces import ICommentOn
 from .interfaces import IContainer
 from .interfaces import IPropertyAdapter
 
+from . import OID
+from . import INTID
+
 def add_oid(obj, ext):
 	oid = get_oid(obj)
 	if oid is not None:
-		ext['oid'] = get_oid(obj)
+		ext[OID] = get_oid(obj)
 	return ext
 
 def add_type(obj, ext):
@@ -73,7 +76,7 @@ def add_intid(obj, ext):
 	intids = component.getUtility(zope.intid.IIntIds)
 	uid = intids.queryId(obj)
 	if uid is not None:
-		ext['intid'] = uid
+		ext[INTID] = uid
 	return ext
 
 @interface.implementer(IPropertyAdapter)
@@ -336,7 +339,7 @@ def _EnrollmentRecordPropertyAdpater(obj):
 @interface.implementer(IPropertyAdapter)
 def _ContainerPropertyAdpater(container):
 	result = {'type':'Container'}
-	result['oid'] = container.id
+	result[OID] = container.id
 	result['lastModified'] = time.time()
 	return result
 

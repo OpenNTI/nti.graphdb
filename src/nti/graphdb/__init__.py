@@ -17,6 +17,8 @@ from nti.async import get_job_queue as async_queue
 from .interfaces import IGraphDB
 from .interfaces import IGraphDBQueueFactory
 
+OID = 'oid'
+INTID = 'intid'
 QUEUE_NAME = "++etc++graphdb++queue"
 
 def get_graph_db():
