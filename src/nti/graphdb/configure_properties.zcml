@@ -116,7 +116,11 @@
 	<adapter for="nti.contenttypes.courses.interfaces.ICourseCatalogEntry"
 			 factory=".properties._CourseCatalogEntryPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
-
+	
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseInstanceEnrollmentRecord"
+			 factory=".properties._EnrollmentRecordPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+			 
 	<adapter for=".interfaces.IContainer"
 			 factory=".properties._ContainerPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

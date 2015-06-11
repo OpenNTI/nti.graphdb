@@ -9,6 +9,7 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import six
 from collections import namedtuple
 
 from zope.security.interfaces import IPrincipal
@@ -52,6 +53,20 @@ def get_creator(obj):
 		return creator
 	except (TypeError, POSKeyError):
 		return None
+	
+def get_principal_id(obj):
+	try:
+		if IPrincipal.providedBy(obj):
+			result = obj.id
+		elif IEntity.providedBy(obj):
+			result = obj.username
+		elif isinstance(obj, six.string_types):
+			result = obj
+		else:
+			result = None
+	except (TypeError, POSKeyError):
+		result = None
+	return result
 
 def get_createdTime(obj, default=0):
 	result = getattr(obj, 'createdTime', None) or default

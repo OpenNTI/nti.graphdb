@@ -25,6 +25,7 @@ from nti.contentlibrary.interfaces import IContentUnit
 
 from nti.contenttypes.courses.interfaces import ICourseInstance
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
+from nti.contenttypes.courses.interfaces import ICourseInstanceEnrollmentRecord
 
 from nti.dataserver.interfaces import INote
 from nti.dataserver.interfaces import IUser
@@ -142,6 +143,11 @@ def _CourseInstanceLabelAdpater(message):
 @component.adapter(ICourseCatalogEntry)
 def _CourseCatalogEntryLabelAdpater(message):
 	return u'CatalogEntry'
+
+@interface.implementer(ILabelAdapter)
+@component.adapter(ICourseInstanceEnrollmentRecord)
+def _EnrollmentRecordLabelAdpater(message):
+	return u'EnrollmentRecord'
 
 @component.adapter(IContainer)
 @interface.implementer(ILabelAdapter)

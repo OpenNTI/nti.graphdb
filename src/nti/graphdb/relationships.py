@@ -17,6 +17,7 @@ from .interfaces import IView
 from .interfaces import IReply
 from .interfaces import IAuthor
 from .interfaces import IBelong
+from .interfaces import IEnroll
 from .interfaces import IFollow
 from .interfaces import IShared
 from .interfaces import ICreated
@@ -26,6 +27,7 @@ from .interfaces import IFriendOf
 from .interfaces import IMemberOf
 from .interfaces import IParentOf
 from .interfaces import ITaggedTo
+from .interfaces import IUnenroll
 from .interfaces import ICommentOn
 from .interfaces import IContained
 from .interfaces import IIsReplyOf
@@ -179,6 +181,20 @@ class Reply(_Singleton):
 		return "HAS_REPLIED_TO"
 	__repr__ = __str__
 
+@interface.implementer(IEnroll)
+class Enroll(_Singleton):
+
+	def __str__(self):
+		return "HAS_ENROLLED"
+	__repr__ = __str__
+	
+@interface.implementer(IUnenroll)
+class Unenroll(_Singleton):
+
+	def __str__(self):
+		return "HAS_UNENROLLED"
+	__repr__ = __str__
+	
 @interface.implementer(IBelong)
 class Belong(_Singleton):
 

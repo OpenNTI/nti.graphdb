@@ -92,7 +92,11 @@
 	<adapter for="nti.contenttypes.courses.interfaces.ICourseCatalogEntry"
 			 factory=".label._CourseCatalogEntryLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
-			 
+		
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseInstanceEnrollmentRecord"
+			 factory=".label._EnrollmentRecordLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />	 
+
 	<adapter for=".interfaces.IContainer"
 			 factory=".label._ContainerLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />

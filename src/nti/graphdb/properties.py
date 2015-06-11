@@ -29,6 +29,7 @@ from nti.contentlibrary.interfaces import IContentUnit
 
 from nti.contenttypes.courses.interfaces import ICourseInstance
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
+from nti.contenttypes.courses.interfaces import ICourseInstanceEnrollmentRecord
 
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IEntity
@@ -51,13 +52,16 @@ from .common import get_ntiid
 from .common import get_creator
 from .common import get_createdTime
 from .common import get_lastModified
+from .common import get_principal_id
 
 from .interfaces import ICommentOn
 from .interfaces import IContainer
 from .interfaces import IPropertyAdapter
 
 def add_oid(obj, ext):
-	ext['oid'] = get_oid(obj)
+	oid = get_oid(obj)
+	if oid is not None:
+		ext['oid'] = get_oid(obj)
 	return ext
 
 def add_type(obj, ext):
@@ -315,6 +319,16 @@ def _CourseCatalogEntryPropertyAdpater(obj):
 	result['provider'] = obj.ProviderUniqueID
 	result['createdTime'] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
+	add_intid(obj, result)
+	return result
+
+@interface.implementer(IPropertyAdapter)
+@component.adapter(ICourseInstanceEnrollmentRecord)
+def _EnrollmentRecordPropertyAdpater(obj):
+	result = {'type':'EnrollmentRecord'}
+	result['scope'] = obj.Scope
+	result['username'] = get_principal_id(obj.Principal)
+	add_oid(obj, result)
 	add_intid(obj, result)
 	return result
 

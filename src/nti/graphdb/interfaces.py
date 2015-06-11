@@ -237,3 +237,9 @@ class IParentOf(IRelationshipType):
 
 class IBelong(IRelationshipType):
 	pass
+
+class IEnroll(IRelationshipType):
+	pass
+
+class IUnenroll(IRelationshipType):
+	pass
