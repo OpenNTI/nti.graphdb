@@ -30,7 +30,6 @@ from nti.ntiids.ntiids import find_object_with_ntiid
 from .common import get_oid
 from .common import get_creator
 from .common import get_node_pk
-from .common import get_createdTime
 
 from .relationships import Author
 from .relationships import MemberOf
@@ -180,7 +179,7 @@ def _topic_removed(topic, event):
 # comments
 
 def _get_comment_relationship(db, comment):
-	pk = get_node_pk(comment)
+	pk = get_node_pk(comment) # see user, comment, CommentOn adapter
 	topic = comment.__parent__
 	author = get_creator(comment)
 	rels = db.match(author, topic, CommentOn())
@@ -191,11 +190,9 @@ def _get_comment_relationship(db, comment):
 	return None
 
 def _comment_properties(comment):
-	pk = get_node_pk(comment)
-	properties = { pk.key: pk.value,
-				  'creator': get_creator(comment).username,
-				  'createdTime': get_createdTime(comment)}
-	return properties
+	creator = get_creator(comment)
+	result = component.queryMultiAdapter((creator, comment, CommentOn()), IPropertyAdapter)
+	return result
 
 def _add_comment_relationship(db, oid):
 	result = None
