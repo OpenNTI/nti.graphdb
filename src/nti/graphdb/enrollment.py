@@ -27,7 +27,7 @@ from .common import get_oid
 from .common import get_principal_id
 
 from .relationships import Enroll
-#from .relationships import Unenroll
+from .relationships import Unenroll
 
 from .interfaces import IPropertyAdapter
 from .interfaces import IObjectProcessor
@@ -37,22 +37,26 @@ from . import create_job
 from . import get_graph_db
 from . import get_job_queue
 
-def _process_add_enrollment_event(db, oid):
+def _get_user(record):
+	pid = get_principal_id(record)
+	result = User.get_user(pid or u'')
+	return result
+
+def _get_entry(record):
+	entry = ICourseCatalogEntry(record.CourseInstance, None)
+	return entry
+
+def _process_enrollment_event(db, oid):
 	record = find_object_with_ntiid(oid)
-	if record is not None:
+	if record is None:
 		return None
 
-	user = User.get_user(get_principal_id(record) or u'')
-	entry = ICourseCatalogEntry(record.CourseInstance, None)
+	user = _get_user(record)
+	entry = _get_entry(record)
 	if entry is not None and user is not None:
-		db.get_or_create_node(user)
-		db.get_or_create_node(entry)
-		
-		# create relationship
 		properies = IPropertyAdapter(record)
 		rel = db.create_relationship(user, entry, Enroll(), properies=properies)
 		logger.debug("Enrollment relationship %s created", rel)
-		
 		# index to find later
 		db.index_relationship(rel, OID, oid)
 		return rel
@@ -61,7 +65,7 @@ def _process_add_enrollment_event(db, oid):
 def _process_user_enrollment(db, record):
 	oid = get_oid(record)
 	queue = get_job_queue()
-	job = create_job(_process_add_enrollment_event, 
+	job = create_job(_process_enrollment_event, 
 					 db=db,
 					 oid=oid)
 	queue.put(job)
@@ -72,18 +76,68 @@ def _enrollement_added(record, event):
 	if db is not None:
 		_process_user_enrollment(db, record)
 
+def _process_enrollment_modified_event(db, oid):
+	record = find_object_with_ntiid(oid)
+	if record is None:
+		return None
+	
+	found_rel = None
+	rel_type = str(Enroll())
+	rels = db.get_indexed_relationships(OID, oid)
+	for rel in rels:
+		if str(rel.type) == rel_type:
+			found_rel = rel
+			break
+
+	if found_rel is None:
+		properies = IPropertyAdapter(record)
+		db.update_relationship(rel, properies)
+		logger.debug("Enrollment relationship %s updated", found_rel)
+	else:
+		found_rel = _process_enrollment_event(db, oid)
+	return found_rel
+
+def _process_enrollment_modified(db, record):
+	oid = get_oid(record)
+	queue = get_job_queue()
+	job = create_job(_process_enrollment_modified_event, 
+					 db=db,
+					 oid=oid)
+	queue.put(job)
+	
 @component.adapter(ICourseInstanceEnrollmentRecord, IObjectModifiedEvent)
-def _enrollment_modified(topic, event):
+def _enrollment_modified(record, event):
 	db = get_graph_db()
 	if db is not None:
-		pass #_process_topic_event(db, topic, MODIFY_EVENT)
+		_process_enrollment_modified(db, record)
+
+def _process_unenrollment_event(db, username, entry):
+	user = User.get_user(username)
+	entry = find_object_with_ntiid(entry)
+	if user is None or entry is None:
+		return None
+		
+	rel = db.create_relationship(user, entry, Unenroll())
+	logger.debug("Enrollment relationship %s created", rel)		
+	return rel
+
+def _process_user_unenrollment(db, record):
+	username = get_principal_id(record)
+	entry = ICourseCatalogEntry(record.CourseInstance, None)
+	entry = entry.ntiid if entry is not None else None
+	if username and entry:
+		queue = get_job_queue()
+		job = create_job(_process_unenrollment_event, 
+						 db=db,
+						 entry=entry,
+						 username=username)
+		queue.put(job)
 
 @component.adapter(ICourseInstanceEnrollmentRecord, IIntIdRemovedEvent)
-def _enrollment_removed(topic, event):
+def _enrollment_removed(record, event):
 	db = get_graph_db()
 	if db is not None:
-		#_process_topic_event(db, topic, MODIFY_EVENT)
-		pass
+		_process_user_unenrollment(db, record)
 
 component.moduleProvides(IObjectProcessor)
 
