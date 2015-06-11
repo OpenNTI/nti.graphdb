@@ -348,6 +348,7 @@ _RepliedRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
 @interface.implementer(IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(entity, post, rel):
 	result = {	'oid': get_oid(post),
+				'creator': entity.username,
 				'createdTime': get_createdTime(post)  }
 	return result
 
