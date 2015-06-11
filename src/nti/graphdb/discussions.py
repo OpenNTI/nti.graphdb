@@ -79,7 +79,7 @@ def _delete_nodes(db, pks=()):
 # forums
 
 def _add_forum_node(db, oid, label, key, value):
-	node, forum, _ = _add_node(db, oid, key, value)
+	node, forum, _ = _add_node(db, oid, label, key, value)
 	return node, forum
 
 def _update_forum_node(db, oid, label, key, value):
