@@ -37,30 +37,30 @@ from . import create_job
 from . import get_graph_db
 from . import get_job_queue
 
-def _get_user(record):
-	pid = get_principal_id(record)
-	result = User.get_user(pid or u'')
+def _get_record_user(record):
+	pid = get_principal_id(record.Principal) if record is not None else None
+	result = User.get_user(pid) if pid else None
 	return result
 
-def _get_entry(record):
-	entry = ICourseCatalogEntry(record.CourseInstance, None)
+def _get_record_entry(record):
+	course = record.CourseInstance
+	entry = ICourseCatalogEntry(course, None) if record is not None else None
 	return entry
 
 def _process_enrollment_event(db, oid):
 	record = find_object_with_ntiid(oid)
-	if record is None:
+	user = _get_record_user(record)
+	entry = _get_record_entry(record)
+	if record is None or user is None or entry is None:
 		return None
 
-	user = _get_user(record)
-	entry = _get_entry(record)
-	if entry is not None and user is not None:
-		properies = IPropertyAdapter(record)
-		rel = db.create_relationship(user, entry, Enroll(), properies=properies)
-		logger.debug("Enrollment relationship %s created", rel)
-		# index to find later
-		db.index_relationship(rel, OID, oid)
-		return rel
-	return None
+	properties = IPropertyAdapter(record)
+	rel = db.create_relationship(user, entry, Enroll(), unique=False,
+								 properties=properties)
+	logger.debug("Enrollment relationship %s created", rel)
+	# index to find later
+	db.index_relationship(rel, OID, oid)
+	return rel
 
 def _process_user_enrollment(db, record):
 	oid = get_oid(record)
@@ -111,13 +111,16 @@ def _enrollment_modified(record, event):
 	if db is not None:
 		_process_enrollment_modified(db, record)
 
+def _get_catalog_entry(ntiid):
+	return find_object_with_ntiid(ntiid)
+
 def _process_unenrollment_event(db, username, entry):
 	user = User.get_user(username)
-	entry = find_object_with_ntiid(entry)
+	entry = _get_catalog_entry(entry)
 	if user is None or entry is None:
 		return None
 		
-	rel = db.create_relationship(user, entry, Unenroll())
+	rel = db.create_relationship(user, entry, Unenroll(), unique=False)
 	logger.debug("Enrollment relationship %s created", rel)		
 	return rel
 
