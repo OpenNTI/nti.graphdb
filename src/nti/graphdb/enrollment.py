@@ -9,6 +9,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import time
+
 from zope import component
 
 from zope.intid.interfaces import IIntIdRemovedEvent
@@ -33,6 +35,8 @@ from .interfaces import IPropertyAdapter
 from .interfaces import IObjectProcessor
 
 from . import OID
+from . import CREATED_TIME
+
 from . import create_job
 from . import get_graph_db
 from . import get_job_queue
@@ -91,6 +95,7 @@ def _process_enrollment_modified_event(db, oid):
 
 	if found_rel is None:
 		properies = IPropertyAdapter(record)
+		properies[CREATED_TIME] = time.time()
 		db.update_relationship(rel, properies)
 		logger.debug("Enrollment relationship %s updated", found_rel)
 	else:

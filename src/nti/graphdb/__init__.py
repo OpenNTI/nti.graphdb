@@ -19,6 +19,7 @@ from .interfaces import IGraphDBQueueFactory
 
 OID = 'oid'
 INTID = 'intid'
+CREATED_TIME = 'createdTime'
 QUEUE_NAME = "++etc++graphdb++queue"
 
 def get_graph_db():

@@ -60,6 +60,7 @@ from .interfaces import IPropertyAdapter
 
 from . import OID
 from . import INTID
+from . import CREATED_TIME
 
 def add_oid(obj, ext):
 	oid = get_oid(obj)
@@ -82,7 +83,7 @@ def add_intid(obj, ext):
 @interface.implementer(IPropertyAdapter)
 @component.adapter(interface.Interface)
 def _GenericPropertyAdpater(obj):
-	result = {'createdTime': get_createdTime(obj),
+	result = {CREATED_TIME: get_createdTime(obj),
 			  'lastModified': get_lastModified(obj) }
 	add_intid(obj, result)
 	return result
@@ -92,7 +93,7 @@ def _GenericPropertyAdpater(obj):
 def _EntityPropertyAdpater(entity):
 	result = {"username": entity.username, 
 			  "creator" : entity.username,
-			  'createdTime': get_createdTime(entity) }
+			  CREATED_TIME: get_createdTime(entity) }
 	## check alias and realname
 	names = IFriendlyNamed(entity, None)
 	alias = getattr(names, 'alias', None)
@@ -132,7 +133,7 @@ def _DFLPropertyAdpater(dfl):
 @component.adapter(ICreated)
 @interface.implementer(IPropertyAdapter)
 def _CreatedPropertyAdpater(created):
-	result = { 'createdTime': get_createdTime(created),
+	result = { CREATED_TIME: get_createdTime(created),
 			   'lastModified': get_lastModified(created) }
 	add_oid(created, result)
 	add_type(created, result)
@@ -169,7 +170,7 @@ _RedactionPropertyAdpater = _ModeledContentPropertyAdpater
 def _BoardPropertyAdpater(board):
 	result = {'type':'Board'}
 	result['title'] = unicode(board.title)
-	result['createdTime'] = get_createdTime(board)
+	result[CREATED_TIME] = get_createdTime(board)
 	result['lastModified'] = get_lastModified(board)
 	add_oid(board, result)
 	add_intid(board, result)
@@ -180,7 +181,7 @@ def _BoardPropertyAdpater(board):
 def _ForumPropertyAdpater(forum):
 	result = {'type':'Forum'}
 	result['title'] = unicode(forum.title)
-	result['createdTime'] = get_createdTime(forum)
+	result[CREATED_TIME] = get_createdTime(forum)
 	result['lastModified'] = get_lastModified(forum)
 	add_oid(forum, result)
 	add_intid(forum, result)
@@ -195,7 +196,7 @@ def _TopicPropertyAdpater(topic):
 		result['creator'] = creator.username
 	result['title'] = unicode(topic.title)
 	result['ntiid'] = topic.NTIID
-	result['createdTime'] = get_createdTime(topic)
+	result[CREATED_TIME] = get_createdTime(topic)
 	result['lastModified'] = get_lastModified(topic)
 	result['forum'] = get_oid(topic.__parent__)
 	add_oid(topic, result)
@@ -216,7 +217,7 @@ def _MeetingPropertyAdpater(meeting):
 		result['creator'] = creator.username
 	result['roomId'] = meeting.RoomId
 	result['moderated'] = meeting.Moderated
-	result['createdTime'] = get_createdTime(meeting)
+	result[CREATED_TIME] = get_createdTime(meeting)
 	result['lastModified'] = get_lastModified(meeting)
 	add_oid(meeting, result)
 	add_intid(meeting, result)
@@ -237,7 +238,7 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 	if creator is not None:
 		result['creator'] = creator.username
 	result['topic'] = post.__parent__.NTIID
-	result['createdTime'] = get_createdTime(post)
+	result[CREATED_TIME] = get_createdTime(post)
 	result['lastModified'] = get_lastModified(post)
 	add_oid(post, result)
 	add_intid(post, result)
@@ -248,7 +249,7 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 def _ContentUnitPropertyAdpater(unit):
 	result = {'type':'ContentUnit'}
 	result['title'] = unit.title
-	result['createdTime'] = time.time()
+	result[CREATED_TIME] = time.time()
 	result['lastModified'] = time.time()
 	result['oid'] = result['ntiid'] = unit.ntiid
 	add_intid(unit, result)
@@ -258,7 +259,7 @@ def _ContentUnitPropertyAdpater(unit):
 @interface.implementer(IPropertyAdapter)
 def _QuestionSetPropertyAdpater(obj):
 	result = {'type':'QuestionSet'}
-	result['createdTime'] = get_createdTime(obj)
+	result[CREATED_TIME] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
 	add_intid(obj, result)
@@ -268,7 +269,7 @@ def _QuestionSetPropertyAdpater(obj):
 @interface.implementer(IPropertyAdapter)
 def _QuestionPropertyAdpater(obj):
 	result = {'type':'Question'}
-	result['createdTime'] = get_createdTime(obj)
+	result[CREATED_TIME] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
 	add_intid(obj, result)
@@ -279,7 +280,7 @@ def _QuestionPropertyAdpater(obj):
 def _AssignmentPropertyAdpater(obj):
 	result = {'type':'Assignment'}
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
-	result['createdTime'] = get_createdTime(obj)
+	result[CREATED_TIME] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
 	return result
 
@@ -287,7 +288,7 @@ def _AssignmentPropertyAdpater(obj):
 @interface.implementer(IPropertyAdapter)
 def _SurveyPropertyAdpater(obj):
 	result = {'type':'Survey'}
-	result['createdTime'] = get_createdTime(obj)
+	result[CREATED_TIME] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
 	add_intid(obj, result)
@@ -297,7 +298,7 @@ def _SurveyPropertyAdpater(obj):
 @interface.implementer(IPropertyAdapter)
 def _PollPropertyAdpater(obj):
 	result = {'type':'Poll'}
-	result['createdTime'] = get_createdTime(obj)
+	result[CREATED_TIME] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
 	add_intid(obj, result)
@@ -308,7 +309,7 @@ def _PollPropertyAdpater(obj):
 def _CourseInstancePropertyAdpater(obj):
 	result = {'type':'CourseInstance'}
 	result['ntiid'] = get_ntiid(obj)
-	result['createdTime'] = get_createdTime(obj)
+	result[CREATED_TIME] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
 	add_oid(obj, result)
 	add_intid(obj, result)
@@ -320,7 +321,7 @@ def _CourseCatalogEntryPropertyAdpater(obj):
 	result = {'type':'CatalogEntry'}
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
 	result['provider'] = obj.ProviderUniqueID
-	result['createdTime'] = get_createdTime(obj)
+	result[CREATED_TIME] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
 	add_intid(obj, result)
 	return result
@@ -345,7 +346,7 @@ def _ContainerPropertyAdpater(container):
 
 @interface.implementer(IPropertyAdapter)
 def _CurrentTimePropertyAdpater(source, target, _rel):
-	result = {'createdTime':time.time()}
+	result = {CREATED_TIME:time.time()}
 	return result
 
 _LikeRelationshipPropertyAdpater = _CurrentTimePropertyAdpater
@@ -353,7 +354,7 @@ _RateRelationshipPropertyAdpater = _CurrentTimePropertyAdpater
 
 @interface.implementer(IPropertyAdapter)
 def _EntityObjectRelationshipPropertyAdpater(entity, obj, rel_type):
-	result = {'createdTime': get_createdTime(obj, time.time())}
+	result = {CREATED_TIME: get_createdTime(obj, time.time())}
 	result['creator'] = entity.username
 	add_oid(obj, result)
 	add_intid(obj, result)
@@ -364,9 +365,9 @@ _RepliedRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
 # IPersonalBlogComment, IGeneralForumComment
 @interface.implementer(IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(entity, post, rel):
-	result = {	'oid': get_oid(post),
-				'creator': entity.username,
-				'createdTime': get_createdTime(post)  }
+	result = {OID: get_oid(post),
+			  'creator': entity.username,
+			  CREATED_TIME: get_createdTime(post)  }
 	return result
 
 @interface.implementer(IPropertyAdapter)
