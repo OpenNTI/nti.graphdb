@@ -11,8 +11,8 @@ logger = __import__('logging').getLogger(__name__)
 
 import time
 
-from zope import interface
 from zope import component
+from zope import interface
 
 from zope.intid.interfaces import IIntIdRemovedEvent
 
