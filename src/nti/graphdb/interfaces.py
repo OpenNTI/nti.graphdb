@@ -12,6 +12,8 @@ from zope import interface
 from dolmen.builtins import IDict
 from dolmen.builtins import IString
 
+from nti.dataserver_core.interfaces import IExternalService
+
 from nti.schema.field import Bool
 from nti.schema.field import Dict
 from nti.schema.field import List
@@ -32,7 +34,7 @@ class IGraphDBQueueFactory(interface.Interface):
 	A factory for graphdb processing queues.
 	"""
 
-class IGraphDB(interface.Interface):
+class IGraphDB(IExternalService):
 
 	def create_node(obj, label=None, properties=None, key=None, value=None):
 		pass
