@@ -110,14 +110,14 @@ def _process_threadable_in_reply_to(db, threadable):
 @component.adapter(IThreadable, IObjectAddedEvent)
 def _threadable_added(threadable, event):
 	db = get_graph_db()
-	if db is not None and threadable.in_reply_to:
+	if db is not None and threadable.inReplyTo:
 		_process_threadable_in_reply_to(db, threadable)
 
 component.moduleProvides(IObjectProcessor)
 
 def init(db, obj):
 	result = False
-	if IThreadable.providedBy(obj) and obj.in_reply_to:
+	if IThreadable.providedBy(obj) and obj.inReplyTo:
 		_process_threadable_in_reply_to(db, obj)
 		result = True
 	return result
