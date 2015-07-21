@@ -31,6 +31,8 @@ from nti.contenttypes.courses.interfaces import ICourseInstance
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
 from nti.contenttypes.courses.interfaces import ICourseInstanceEnrollmentRecord
 
+from nti.contenttypes.presentation.interfaces import IPresentationAsset
+
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IEntity
 from nti.dataserver.interfaces import ICreated
@@ -46,6 +48,8 @@ from nti.dataserver.contenttypes.forums.interfaces import ITopic
 from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 
 from nti.dataserver.users.interfaces import IFriendlyNamed
+
+from nti.schema.interfaces import find_most_derived_interface
 
 from .common import get_oid
 from .common import get_ntiid
@@ -332,6 +336,20 @@ def _EnrollmentRecordPropertyAdpater(obj):
 	result = {'type':'EnrollmentRecord'}
 	result['scope'] = obj.Scope
 	result['username'] = get_principal_id(obj.Principal)
+	entry = ICourseCatalogEntry(obj.CourseInstance, None)
+	if entry is not None:
+		result['course'] = entry.ntiid
+	add_oid(obj, result)
+	add_intid(obj, result)
+	return result
+
+@interface.implementer(IPropertyAdapter)
+@component.adapter(IPresentationAsset)
+def _PresentationAssetPropertyAdpater(obj):
+	iface = find_most_derived_interface(obj, IPresentationAsset,
+										possibilities=interface.providedBy(obj))
+	result = {'type':iface.__name__[1:]}
+	result['ntiid'] = get_ntiid(obj)
 	add_oid(obj, result)
 	add_intid(obj, result)
 	return result

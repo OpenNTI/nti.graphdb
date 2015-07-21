@@ -121,6 +121,10 @@
 			 factory=".properties._EnrollmentRecordPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
+	<adapter for="nti.contenttypes.presentation.interfaces.IPresentationAsset"
+			 factory=".properties._PresentationAssetPropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />	
+
 	<adapter for=".interfaces.IContainer"
 			 factory=".properties._ContainerPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

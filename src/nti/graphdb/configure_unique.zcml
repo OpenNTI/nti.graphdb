@@ -121,6 +121,10 @@
 			 factory=".unique._NTIIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 
+	<adapter for="nti.contenttypes.presentation.interfaces.IPresentationAsset"
+			 factory=".unique._PresentationAssetUniqueAttributeAdpater"
+			 provides=".interfaces.IUniqueAttributeAdapter" />
+
 	<adapter for=".interfaces.IContainer"
 			 factory=".unique._ContainerUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />

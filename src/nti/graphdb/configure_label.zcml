@@ -97,6 +97,10 @@
 			 factory=".label._EnrollmentRecordLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />	 
 
+	<adapter for="nti.contenttypes.presentation.interfaces.IPresentationAsset"
+			 factory=".label._PresentationAssetLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />	
+			 
 	<adapter for=".interfaces.IContainer"
 			 factory=".label._ContainerLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />

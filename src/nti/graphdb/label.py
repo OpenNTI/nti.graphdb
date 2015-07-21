@@ -27,6 +27,8 @@ from nti.contenttypes.courses.interfaces import ICourseInstance
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
 from nti.contenttypes.courses.interfaces import ICourseInstanceEnrollmentRecord
 
+from nti.contenttypes.presentation.interfaces import IPresentationAsset
+
 from nti.dataserver.interfaces import INote
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IEntity
@@ -37,6 +39,8 @@ from nti.dataserver.contenttypes.forums.interfaces import IBoard
 from nti.dataserver.contenttypes.forums.interfaces import ITopic
 from nti.dataserver.contenttypes.forums.interfaces import IForum
 from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
+
+from nti.schema.interfaces import find_most_derived_interface
 
 from .interfaces import IContainer
 from .interfaces import ILabelAdapter
@@ -153,4 +157,12 @@ def _EnrollmentRecordLabelAdpater(message):
 @interface.implementer(ILabelAdapter)
 def _ContainerLabelAdpater(container):
 	result = 'Container'
+	return result
+
+@component.adapter(IPresentationAsset)
+@interface.implementer(ILabelAdapter)
+def _PresentationAssetLabelAdpater(asset):
+	iface = find_most_derived_interface(asset, IPresentationAsset,
+										possibilities=interface.providedBy(asset))
+	result = iface.__name__[1:]
 	return result

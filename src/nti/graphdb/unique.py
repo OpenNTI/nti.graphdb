@@ -19,6 +19,8 @@ from nti.common.representation import WithRepr
 
 from nti.contentlibrary.interfaces import IContentUnit
 
+from nti.contenttypes.presentation.interfaces import IPresentationAsset
+
 from nti.dataserver.interfaces import IEntity
 from nti.dataserver.interfaces import IUseNTIIDAsExternalUsername
 from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
@@ -130,3 +132,12 @@ class _ContainerUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 	@property
 	def value(self):
 		return self.obj.id
+
+@interface.implementer(IPresentationAsset)
+class _PresentationAssetUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
+
+	key = OID
+
+	@Lazy
+	def value(self):
+		return get_ntiid(self.obj)
