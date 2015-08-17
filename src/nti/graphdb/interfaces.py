@@ -216,6 +216,9 @@ class IView(IRelationshipType):
 class ITakeAssessment(IRelationshipType):
 	pass
 
+class ITakePoll(IRelationshipType):
+	pass
+
 class IContainer(interface.Interface):
 	pass
 

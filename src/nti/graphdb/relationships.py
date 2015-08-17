@@ -27,6 +27,7 @@ from .interfaces import IFriendOf
 from .interfaces import IMemberOf
 from .interfaces import IParentOf
 from .interfaces import ITaggedTo
+from .interfaces import ITakePoll
 from .interfaces import IUnenroll
 from .interfaces import ICommentOn
 from .interfaces import IContained
@@ -136,7 +137,14 @@ class View(_Singleton):
 class TakeAssessment(_Singleton):
 
 	def __str__(self):
-		return "HAS_TAKEN"
+		return "HAS_TAKEN_ASSESMENT"
+	__repr__ = __str__
+
+@interface.implementer(ITakePoll)
+class TakePoll(_Singleton):
+
+	def __str__(self):
+		return "HAS_TAKEN_POLL"
 	__repr__ = __str__
 
 @interface.implementer(IContained)
