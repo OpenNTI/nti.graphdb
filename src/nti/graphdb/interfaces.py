@@ -213,10 +213,10 @@ class ITaggedTo(IRelationshipType):
 class IView(IRelationshipType):
 	pass
 
-class ITakeAssessment(IRelationshipType):
+class ITakenAssessment(IRelationshipType):
 	pass
 
-class ITakePoll(IRelationshipType):
+class ITakenInquiry(IRelationshipType):
 	pass
 
 class IContainer(interface.Interface):

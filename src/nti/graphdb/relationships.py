@@ -27,13 +27,13 @@ from .interfaces import IFriendOf
 from .interfaces import IMemberOf
 from .interfaces import IParentOf
 from .interfaces import ITaggedTo
-from .interfaces import ITakePoll
 from .interfaces import IUnenroll
 from .interfaces import ICommentOn
 from .interfaces import IContained
 from .interfaces import IIsReplyOf
 from .interfaces import IIsSharedWith
-from .interfaces import ITakeAssessment
+from .interfaces import ITakenInquiry
+from .interfaces import ITakenAssessment
 from .interfaces import IAssignmentFeedback
 
 class _Singleton(object):
@@ -133,18 +133,18 @@ class View(_Singleton):
 		return "HAS_VIEWED"
 	__repr__ = __str__
 
-@interface.implementer(ITakeAssessment)
-class TakeAssessment(_Singleton):
+@interface.implementer(ITakenAssessment)
+class TakenAssessment(_Singleton):
 
 	def __str__(self):
 		return "HAS_TAKEN_ASSESMENT"
 	__repr__ = __str__
 
-@interface.implementer(ITakePoll)
-class TakePoll(_Singleton):
+@interface.implementer(ITakenInquiry)
+class TakenInquiry(_Singleton):
 
 	def __str__(self):
-		return "HAS_TAKEN_POLL"
+		return "HAS_TAKEN_INQUIRY"
 	__repr__ = __str__
 
 @interface.implementer(IContained)
