@@ -67,7 +67,7 @@ class _OIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 	def value(self):
 		result = get_oid(self.obj)
 		return result
-OIDUniqueAttributeAdpater = _OIDUniqueAttributeAdpater # BWC
+OIDUniqueAttributeAdpater = _OIDUniqueAttributeAdpater  # BWC
 
 @component.adapter(IEntity)
 @interface.implementer(IUniqueAttributeAdapter)

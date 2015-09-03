@@ -73,7 +73,7 @@ def _entity_added(entity, event):
 	db = get_graph_db()
 	queue = get_job_queue()
 	if 	db is not None and queue is not None and \
-		not _is_regular_dfl(entity): # check queue b/c of Everyone comm
+		not _is_regular_dfl(entity):  # check queue b/c of Everyone comm
 		_process_entity_added(db, entity)
 
 @component.adapter(IEntity, IIntIdRemovedEvent)

@@ -43,7 +43,7 @@ def _underlying(oid):
 def _delete_is_shared_with_rels(db, oid, sharedWith=()):
 	result = 0
 	obj = _underlying(oid)
-	if obj and sharedWith:
+	if obj is not None and sharedWith:
 		for entity in sharedWith:
 			entity = get_entity(entity)
 			if entity is None:
@@ -58,7 +58,7 @@ def _delete_is_shared_with_rels(db, oid, sharedWith=()):
 def _create_is_shared_with_rels(db, oid, sharedWith=()):
 	result = []
 	obj = _underlying(oid)
-	if obj and sharedWith:
+	if obj is not None and sharedWith:
 		for entity in sharedWith:
 			entity = get_entity(entity)
 			if entity is not None and not db.match(obj, entity, IsSharedWith()):

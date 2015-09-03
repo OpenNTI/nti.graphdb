@@ -93,7 +93,7 @@ def _add_in_reply_to_relationship(db, oid):
 		rel = db.create_relationship(t_author, i_author, Reply(),
 									properties=properties)
 		logger.debug("ReplyTo relationship %s retreived/created", rel)
-		
+
 		pk = get_node_pk(threadable)
 		if pk is not None:
 			db.index_relationship(rel, pk.key, pk.value)

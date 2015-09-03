@@ -177,7 +177,7 @@ def update_memberships(db, entity):
 def process_start_membership(db, source, target):
 	source = get_entity(source)
 	target = find_object_with_ntiid(target)
-	if source and target:
+	if source is not None and target is not None:
 		rel = db.create_relationship(source, target, MemberOf())
 		logger.debug("Entity membership relationship %s created", rel)
 		return rel
@@ -186,7 +186,7 @@ def process_start_membership(db, source, target):
 def process_stop_membership(db, source, target):
 	source = get_entity(source)
 	target = find_object_with_ntiid(target)
-	if source and target:
+	if source is not None and target is not None:
 		rels = db.match(start=source, end=target, rel_type=MemberOf())
 		if rels:
 			db.delete_relationships(*rels)
@@ -252,7 +252,7 @@ def _dfl_deleted(obj, event):
 def process_follow(db, source, followed):
 	source = get_entity(source)
 	followed = get_entity(followed)
-	if source and followed:
+	if source is not None and followed is not None:
 		rel = db.create_relationship(source, followed, Follow())
 		logger.debug("Follow relationship %s created", rel)
 		return rel
@@ -261,7 +261,7 @@ def process_follow(db, source, followed):
 def process_unfollow(db, source, followed):
 	source = get_entity(source)
 	followed = get_entity(followed)
-	if source and followed:
+	if source is not None and followed is not None:
 		rels = db.match(start=source, end=followed, rel_type=Follow())
 		if rels:
 			db.delete_relationships(*rels)

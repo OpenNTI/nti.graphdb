@@ -92,7 +92,7 @@ def _update_forum_node(db, oid, label, key, value):
 
 def _add_topic_node(db, oid, label, key, value):
 	node, topic, created = _add_node(db, oid, label, key, value)
-	if created:
+	if created is not None:
 		creator = get_creator(topic)
 		rel = db.create_relationship(creator, topic, Author())
 		logger.debug("Authorship relationship %s created", rel)
@@ -119,7 +119,7 @@ def _process_add_topic_event(db, oid, label, key, value, parent):
 					key=key,
 					value=value)
 	# membership
-	_add_membership_relationship(db=db, 
+	_add_membership_relationship(db=db,
 								 child=oid,
 								 parent=parent)
 
@@ -130,7 +130,7 @@ def _process_topic_event(db, topic, event):
 	if pk is not None:
 		if event == ADD_EVENT:
 			parent = get_oid(topic.__parent__)
-			job = create_job(_process_add_topic_event, 
+			job = create_job(_process_add_topic_event,
 							 db=db,
 							 oid=oid,
 							 label=pk.label,
@@ -179,7 +179,7 @@ def _topic_removed(topic, event):
 # comments
 
 def _get_comment_relationship(db, comment):
-	pk = get_node_pk(comment) # see user, comment, CommentOn adapter
+	pk = get_node_pk(comment)  # see user, comment, CommentOn adapter
 	topic = comment.__parent__
 	author = get_creator(comment)
 	rels = db.match(author, topic, CommentOn())

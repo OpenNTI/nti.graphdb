@@ -88,7 +88,7 @@ def _process_enrollment_modified_event(db, oid):
 	found_rel = None
 	rel_type = str(Enroll())
 	rels = db.get_indexed_relationships(OID, oid)
-	for rel in rels:
+	for rel in rels or ():
 		if str(rel.type) == rel_type:
 			found_rel = rel
 			break
@@ -133,7 +133,7 @@ def _process_user_unenrollment(db, record):
 	username = get_principal_id(record)
 	entry = ICourseCatalogEntry(record.CourseInstance, None)
 	entry = entry.ntiid if entry is not None else None
-	if username and entry:
+	if username and entry is not None:
 		queue = get_job_queue()
 		job = create_job(_process_unenrollment_event, 
 						 db=db,

@@ -49,7 +49,7 @@ def _add_created_relationship(db, creator, oid):
 
 def _process_created_event(db, created):
 	creator = get_creator(created)
-	if creator:
+	if creator is not None:
 		oid = get_oid(created)
 		queue = get_job_queue()
 		job = create_job(_add_created_relationship, db=db, oid=oid,

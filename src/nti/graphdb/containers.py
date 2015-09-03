@@ -47,7 +47,7 @@ from . import get_job_queue
 class Container(object):
 
 	containerId = alias('id')
-	
+
 	def __init__(self, containerId):
 		self.id = containerId
 
@@ -141,7 +141,7 @@ def _process_contained_removed(db, contained):
 		job = create_job(_remove_node, db=db, label=pk.label, key=pk.key, value=pk.value)
 		queue.put(job)
 		# update parent container
-		_process_contained_modified(db, contained) 
+		_process_contained_modified(db, contained)
 
 @component.adapter(IContained, IIntIdRemovedEvent)
 def _contained_removed(contained, event):

@@ -125,8 +125,8 @@ def _process_removed_event(db, obj):
 	pk = get_node_pk(obj)
 	if pk is not None:
 		queue = get_job_queue()
-		job = create_job(_remove_node, 
-						 db=db, label=pk.label, 
+		job = create_job(_remove_node,
+						 db=db, label=pk.label,
 						 key=pk.key, value=pk.value)
 		queue.put(job)
 

@@ -195,14 +195,14 @@ class Enroll(_Singleton):
 	def __str__(self):
 		return "HAS_ENROLLED"
 	__repr__ = __str__
-	
+
 @interface.implementer(IUnenroll)
 class Unenroll(_Singleton):
 
 	def __str__(self):
 		return "HAS_UNENROLLED"
 	__repr__ = __str__
-	
+
 @interface.implementer(IBelong)
 class Belong(_Singleton):
 
