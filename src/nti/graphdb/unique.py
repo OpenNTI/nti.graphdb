@@ -9,10 +9,10 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-import zope.intid
-
 from zope import component
 from zope import interface
+
+from zope.intid import IIntIds
 
 from nti.common.property import Lazy
 from nti.common.representation import WithRepr
@@ -54,7 +54,7 @@ class _IntIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
 	@Lazy
 	def value(self):
-		intids = component.queryUtility(zope.intid.IIntIds)
+		intids = component.queryUtility(IIntIds)
 		result = intids.queryId(self.obj) if intids is not None else None
 		return result
 
@@ -101,8 +101,8 @@ class _TopicUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 	def value(self):
 		return get_oid(self.obj)
 
-@interface.implementer(IUniqueAttributeAdapter)
 @component.adapter(IHeadlinePost)
+@interface.implementer(IUniqueAttributeAdapter)
 class _HeadlinePostUniqueAttributeAdpater(_TopicUniqueAttributeAdpater):
 
 	def __init__(self, obj):
