@@ -91,7 +91,8 @@ def _add_contained_membership(db, oid, containerId):
 	pk = get_node_pk(obj) if obj is not None else None
 	if obj is not None and pk is not None:
 		container = _get_container(container, containerId)
-		if container is not None and not db.match(obj, container, Contained()):
+		if 	container is not None and container is not obj and \
+			not db.match(obj, container, Contained()):
 			result = db.create_relationship(obj, container, Contained())
 			logger.debug("Containment relationship %s created", result)
 			_update_container(db, container=container)
