@@ -23,6 +23,7 @@ from nti.common.property import alias
 from nti.common.representation import WithRepr
 
 from nti.dataserver.interfaces import IContained
+from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 
 from nti.ntiids.ntiids import find_object_with_ntiid
 
@@ -91,8 +92,7 @@ def _add_contained_membership(db, oid, containerId):
 	pk = get_node_pk(obj) if obj is not None else None
 	if obj is not None and pk is not None:
 		container = _get_container(container, containerId)
-		if 	container is not None and container is not obj and \
-			not db.match(obj, container, Contained()):
+		if container is not None and not db.match(obj, container, Contained()):
 			result = db.create_relationship(obj, container, Contained())
 			logger.debug("Containment relationship %s created", result)
 			_update_container(db, container=container)
@@ -100,6 +100,8 @@ def _add_contained_membership(db, oid, containerId):
 	return False
 
 def _process_contained_added(db, contained):
+	if IHeadlinePost.providedBy(contained): # ignore
+		continue
 	containerId = _get_containerId(contained)
 	if containerId:
 		oid = get_oid(contained)
