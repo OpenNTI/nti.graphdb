@@ -101,7 +101,7 @@ def _add_contained_membership(db, oid, containerId):
 
 def _process_contained_added(db, contained):
 	if IHeadlinePost.providedBy(contained): # ignore
-		continue
+		return
 	containerId = _get_containerId(contained)
 	if containerId:
 		oid = get_oid(contained)
