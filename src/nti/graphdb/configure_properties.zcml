@@ -89,6 +89,10 @@
 			 factory=".properties._ContentUnitPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
  
+	<adapter for="nti.contentlibrary.interfaces.IContentPackage"
+			 factory=".properties._ContentPackagePropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+
 	<adapter for="nti.assessment.interfaces.IQuestionSet"
 			 factory=".properties._QuestionSetPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />

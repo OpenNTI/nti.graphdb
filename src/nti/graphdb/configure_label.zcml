@@ -64,7 +64,11 @@
 	<adapter for="nti.contentlibrary.interfaces.IContentUnit"
 			 factory=".label._ContentUnitLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
-		 
+	
+	<adapter for="nti.contentlibrary.interfaces.IContentPackage"
+			 factory=".label._ContentPackageLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+	 
 	<adapter for="nti.assessment.interfaces.IQuestion"
 			 factory=".label._QuestionLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />

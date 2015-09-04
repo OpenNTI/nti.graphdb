@@ -17,6 +17,7 @@ from .interfaces import IView
 from .interfaces import IReply
 from .interfaces import IAuthor
 from .interfaces import IBelong
+from .interfaces import IBought
 from .interfaces import IEnroll
 from .interfaces import IFollow
 from .interfaces import IShared
@@ -208,4 +209,11 @@ class Belong(_Singleton):
 
 	def __str__(self):
 		return "BELONG_TO"
+	__repr__ = __str__
+
+@interface.implementer(IBought)
+class Bought(_Singleton):
+
+	def __str__(self):
+		return "HAS_BOUGHT"
 	__repr__ = __str__

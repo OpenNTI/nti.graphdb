@@ -22,6 +22,7 @@ from nti.chatserver.interfaces import IMeeting
 from nti.chatserver.interfaces import IMessageInfo
 
 from nti.contentlibrary.interfaces import IContentUnit
+from nti.contentlibrary.interfaces import IContentPackage 
 
 from nti.contenttypes.courses.interfaces import ICourseInstance
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
@@ -97,6 +98,11 @@ def _BoardLabelAdpater(context):
 @interface.implementer(ILabelAdapter)
 def _HeadlinePostLabelAdpater(post):
 	return ILabelAdapter(post.__parent__)
+
+@component.adapter(IContentPackage)
+@interface.implementer(ILabelAdapter)
+def _ContentPackageLabelAdpater(context):
+	return u"ContentPackage"
 
 @component.adapter(IContentUnit)
 @interface.implementer(ILabelAdapter)

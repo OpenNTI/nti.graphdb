@@ -26,6 +26,7 @@ from nti.chatserver.interfaces import IMeeting
 from nti.chatserver.interfaces import IMessageInfo
 
 from nti.contentlibrary.interfaces import IContentUnit
+from nti.contentlibrary.interfaces import IContentPackage
 
 from nti.contenttypes.courses.interfaces import ICourseInstance
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
@@ -257,6 +258,17 @@ def _ContentUnitPropertyAdpater(unit):
 	result['lastModified'] = time.time()
 	result['oid'] = result['ntiid'] = unit.ntiid
 	add_intid(unit, result)
+	return result
+
+@component.adapter(IContentPackage)
+@interface.implementer(IPropertyAdapter)
+def _ContentPackagePropertyAdpater(pkg):
+	result = {'type':'ContentPackage'}
+	result['title'] = pkg.title
+	result[CREATED_TIME] = pkg.createdTime
+	result['lastModified'] = pkg.lastModified
+	result['oid'] = result['ntiid'] = pkg.ntiid
+	add_intid(pkg, result)
 	return result
 
 @component.adapter(IQuestionSet)

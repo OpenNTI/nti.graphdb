@@ -248,3 +248,6 @@ class IEnroll(IRelationshipType):
 
 class IUnenroll(IRelationshipType):
 	pass
+
+class IBought(IRelationshipType):
+	pass
