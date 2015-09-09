@@ -210,7 +210,7 @@ class ICommentOn(IRelationshipType):
 class ITaggedTo(IRelationshipType):
 	pass
 
-class IView(IRelationshipType):
+class IViewed(IRelationshipType):
 	pass
 
 class ITakenAssessment(IRelationshipType):

@@ -13,7 +13,6 @@ from zope import interface
 
 from .interfaces import ILike
 from .interfaces import IRate
-from .interfaces import IView
 from .interfaces import IReply
 from .interfaces import IAuthor
 from .interfaces import IBelong
@@ -21,6 +20,7 @@ from .interfaces import IBought
 from .interfaces import IEnroll
 from .interfaces import IFollow
 from .interfaces import IShared
+from .interfaces import IViewed
 from .interfaces import ICreated
 from .interfaces import IFlagged
 from .interfaces import IFeedback
@@ -127,8 +127,8 @@ class TaggedTo(_Singleton):
 		return "IS_TAGGED_TO"
 	__repr__ = __str__
 
-@interface.implementer(IView)
-class View(_Singleton):
+@interface.implementer(IViewed)
+class Viewed(_Singleton):
 
 	def __str__(self):
 		return "HAS_VIEWED"
