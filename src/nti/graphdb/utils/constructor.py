@@ -28,6 +28,7 @@ class PluginPoint(Contained):
 		self.__name__ = name
 
 PP_GRAPHDB = PluginPoint('nti.graphdb')
+PP_ANALYTICS_GRAPHDB = PluginPoint('nti.analytics_graphdb')
 
 class Constructor(Processor):
 
@@ -51,6 +52,7 @@ class Constructor(Processor):
 
 	def extend_context(self, context):
 		includePluginsDirective(context, PP_GRAPHDB)
+		includePluginsDirective(context, PP_ANALYTICS_GRAPHDB)
 
 	def process_args(self, args):
 		setattr(args, 'redis', True)  # use redis
