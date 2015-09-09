@@ -18,6 +18,7 @@ from .interfaces import IGraphDB
 from .interfaces import IGraphDBQueueFactory
 
 OID = 'oid'
+NTIID = 'ntiid'
 INTID = 'intid'
 CREATED_TIME = 'createdTime'
 QUEUE_NAME = "++etc++graphdb++queue"
