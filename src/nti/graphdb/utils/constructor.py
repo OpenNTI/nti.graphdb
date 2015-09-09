@@ -13,10 +13,21 @@ import logging
 
 from zope import component
 
+from zope.container.contained import Contained
+
+from z3c.autoinclude.zcml import includePluginsDirective
+
 from nti.async.utils.processor import Processor
 
 from nti.graphdb import QUEUE_NAME
 from nti.graphdb.interfaces import IObjectProcessor
+
+class PluginPoint(Contained):
+
+	def __init__(self, name):
+		self.__name__ = name
+
+PP_GRAPHDB = PluginPoint('nti.graphdb')
 
 class Constructor(Processor):
 
@@ -37,6 +48,9 @@ class Constructor(Processor):
 			for _, module in component.getUtilitiesFor(IObjectProcessor):
 				module.logger.setLevel(logging.DEBUG)
 		self.tone_down_logging()
+
+	def extend_context(self, context):
+		includePluginsDirective(context, PP_GRAPHDB)
 
 	def process_args(self, args):
 		setattr(args, 'redis', True)  # use redis
