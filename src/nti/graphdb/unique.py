@@ -35,6 +35,7 @@ from .interfaces import IContainer
 from .interfaces import IUniqueAttributeAdapter
 
 from . import OID
+from . import NTIID
 from . import INTID
 
 @WithRepr
@@ -58,17 +59,6 @@ class _IntIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 		result = intids.queryId(self.obj) if intids is not None else None
 		return result
 
-@interface.implementer(IUniqueAttributeAdapter)
-class _OIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
-
-	key = OID
-
-	@Lazy
-	def value(self):
-		result = get_oid(self.obj)
-		return result
-OIDUniqueAttributeAdpater = _OIDUniqueAttributeAdpater  # BWC
-
 @component.adapter(IEntity)
 @interface.implementer(IUniqueAttributeAdapter)
 class _EntityUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
@@ -91,11 +81,20 @@ class _DFLUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 	def value(self):
 		return get_ntiid(self.obj) or get_oid(self.obj)
 
-@component.adapter(ITopic)
 @interface.implementer(IUniqueAttributeAdapter)
-class _TopicUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
+class _OIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
 	key = OID
+
+	@Lazy
+	def value(self):
+		result = get_oid(self.obj)
+		return result
+OIDUniqueAttributeAdpater = _OIDUniqueAttributeAdpater  # BWC
+
+@component.adapter(ITopic)
+@interface.implementer(IUniqueAttributeAdapter)
+class _TopicUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 
 	@Lazy
 	def value(self):
@@ -108,23 +107,6 @@ class _HeadlinePostUniqueAttributeAdpater(_TopicUniqueAttributeAdpater):
 	def __init__(self, obj):
 		super(_HeadlinePostUniqueAttributeAdpater, self).__init__(obj.__parent__)
 
-@component.adapter(IContentUnit)
-@interface.implementer(IUniqueAttributeAdapter)
-class _ContentUnitAttributeAdpater(_OIDUniqueAttributeAdpater):
-
-	@Lazy
-	def value(self):
-		return self.obj.ntiid
-
-@interface.implementer(IUniqueAttributeAdapter)
-class _NTIIDUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
-
-	key = OID
-
-	@Lazy
-	def value(self):
-		return get_ntiid(self.obj)
-
 @component.adapter(IContainer)
 @interface.implementer(IUniqueAttributeAdapter)
 class _ContainerUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
@@ -133,10 +115,25 @@ class _ContainerUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
 	def value(self):
 		return self.obj.id
 
-@interface.implementer(IPresentationAsset)
-class _PresentationAssetUniqueAttributeAdpater(_OIDUniqueAttributeAdpater):
+@interface.implementer(IUniqueAttributeAdapter)
+class _NTIIDUniqueAttributeAdpater(_GenericUniqueAttributeAdpater):
 
-	key = OID
+	key = NTIID
+
+	@Lazy
+	def value(self):
+		return get_ntiid(self.obj)
+
+@component.adapter(IContentUnit)
+@interface.implementer(IUniqueAttributeAdapter)
+class _ContentUnitAttributeAdpater(_NTIIDUniqueAttributeAdpater):
+
+	@Lazy
+	def value(self):
+		return self.obj.ntiid
+
+@interface.implementer(IPresentationAsset)
+class _PresentationAssetUniqueAttributeAdpater(_NTIIDUniqueAttributeAdpater):
 
 	@Lazy
 	def value(self):
