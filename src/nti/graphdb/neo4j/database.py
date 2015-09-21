@@ -9,13 +9,12 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import os
 import six
 import numbers
 import urlparse
+import ConfigParser
 from collections import Mapping
-
-from zope import component
-from zope import interface
 
 from py2neo.neo4j import Node
 from py2neo.neo4j import Graph
@@ -28,12 +27,12 @@ from py2neo.neo4j import Relationship
 from py2neo import node as node4j
 from py2neo.error import GraphError
 
+from zope import component
+from zope import interface
+
 from nti.common.representation import WithRepr
 
 from nti.schema.schema import EqHash
-
-from .node import Neo4jNode
-from .relationship import Neo4jRelationship
 
 from ..common import get_node_pk
 
@@ -42,6 +41,10 @@ from ..interfaces import IGraphNode
 from ..interfaces import ILabelAdapter
 from ..interfaces import IPropertyAdapter
 from ..interfaces import IGraphRelationship
+
+from .node import Neo4jNode
+
+from .relationship import Neo4jRelationship
 
 from .interfaces import INeo4jNode
 from .interfaces import IGraphNodeNeo4j
@@ -103,10 +106,20 @@ class Neo4jDB(object):
 
 	_v_db__ = None
 
-	def __init__(self, url, username=None, password=None):
+	def __init__(self, url=None, username=None, password=None, config=None):
 		self.url = url
 		self.username = username
 		self.password = password
+		if config:
+			config_name = os.path.expandvars(config)
+			parser = ConfigParser.ConfigParser()
+			parser.read([config_name])
+			if parser.has_option('graphdb', 'url'):
+				self.url = parser.get('graphdb', 'url')
+			if parser.has_option('graphdb', 'username'):
+				self.username = parser.getboolean('graphdb', 'username')
+			if parser.has_option('graphdb', 'password'):
+				self.password = parser.getboolean('graphdb', 'password')
 
 	@classmethod
 	def authenticate(cls, url, username, password):

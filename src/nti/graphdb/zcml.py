@@ -46,11 +46,14 @@ class IRegisterGraphDB(interface.Interface):
 	username = fields.TextLine(title="db username", required=False)
 	password = schema.Password(title="db password", required=False)
 	
-def registerGraphDB(_context, url, username=None, password=None, name=u""):
+	config = fields.TextLine(title="path to config file", required=False)
+	
+def registerGraphDB(_context, url, username=None, password=None, config=None, name=u""):
 	"""
 	Register an db
 	"""
-	factory = functools.partial(Neo4jDB, url=url, username=username, password=password)
+	factory = functools.partial(Neo4jDB, url=url, username=username, password=password, 
+								config=config)
 	utility(_context, provides=IGraphDB, factory=factory, name=name)
 
 from .interfaces import IGraphDBQueueFactory
