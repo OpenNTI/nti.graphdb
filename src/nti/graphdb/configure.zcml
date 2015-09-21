@@ -99,7 +99,6 @@
 	<configure zcml:condition="have devmode">
 		<configure zcml:condition="not-have testmode">
 			<gdb:registerRedisProcessingQueue />
-			<gdb:registerGraphDB url="http://localhost:7474/db/data/" />
 		</configure>
 		<configure zcml:condition="have testmode">
 			<gdb:registerImmediateProcessingQueue />
