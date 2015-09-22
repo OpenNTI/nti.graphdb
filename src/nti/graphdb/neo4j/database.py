@@ -323,8 +323,9 @@ class Neo4jDB(object):
 		n4j_start = self.get_or_create_node(start, raw=True, props=False)
 
 		# properties
-		properties = dict(properties or {})
-		properties.update(self._rel_properties(start, end, rel_type))
+		props = dict(self._rel_properties(start, end, rel_type))
+		props.update(properties or {})
+		properties = props
 		if unique:
 			result = Relationship(n4j_start, str(rel_type), n4j_end, **properties)
 			result = self.db.create_unique(result)[0]
