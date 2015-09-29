@@ -15,7 +15,7 @@ from collections import namedtuple
 from zope.security.interfaces import IPrincipal
 from zope.security.management import queryInteraction
 
-from ZODB.POSException import POSKeyError
+from ZODB.POSException import POSError
 
 from nti.dataserver.users import Entity
 from nti.dataserver.interfaces import IEntity
@@ -51,9 +51,9 @@ def get_creator(obj):
 		creator = getattr(obj, 'creator', None)
 		creator = get_entity(creator) if creator else None
 		return creator
-	except (TypeError, POSKeyError):
+	except (TypeError, POSError):
 		return None
-	
+
 def get_principal_id(obj):
 	try:
 		if IPrincipal.providedBy(obj):
@@ -64,7 +64,7 @@ def get_principal_id(obj):
 			result = obj
 		else:
 			result = None
-	except (TypeError, POSKeyError):
+	except (TypeError, POSError):
 		result = None
 	return result
 
