@@ -11,10 +11,10 @@ logger = __import__('logging').getLogger(__name__)
 
 import time
 
-import zope.intid
-
 from zope import component
 from zope import interface
+
+from zope.intid import IIntIds
 
 from nti.assessment.interfaces import IQPoll
 from nti.assessment.interfaces import IQSurvey
@@ -79,7 +79,7 @@ def add_type(obj, ext):
 	return ext
 
 def add_intid(obj, ext):
-	intids = component.getUtility(zope.intid.IIntIds)
+	intids = component.getUtility(IIntIds)
 	uid = intids.queryId(obj)
 	if uid is not None:
 		ext[INTID] = uid
@@ -96,10 +96,10 @@ def _GenericPropertyAdpater(obj):
 @component.adapter(IEntity)
 @interface.implementer(IPropertyAdapter)
 def _EntityPropertyAdpater(entity):
-	result = {"username": entity.username, 
+	result = {"username": entity.username,
 			  "creator" : entity.username,
 			  CREATED_TIME: get_createdTime(entity) }
-	## check alias and realname
+	# check alias and realname
 	names = IFriendlyNamed(entity, None)
 	alias = getattr(names, 'alias', None)
 	name = getattr(names, 'realname', None)
@@ -108,7 +108,7 @@ def _EntityPropertyAdpater(entity):
 			result[key] = unicode(value)
 	add_oid(entity, result)
 	add_intid(entity, result)
-	## check for external username
+	# check for external username
 	if IUseNTIIDAsExternalUsername.providedBy(entity):
 		result['name'] = result['username']
 		result['username'] = get_ntiid(entity) or get_oid(entity)
@@ -280,7 +280,7 @@ def _QuestionSetPropertyAdpater(obj):
 	result['ntiid'] = result['oid'] = get_ntiid(obj)
 	add_intid(obj, result)
 	return result
-	
+
 @component.adapter(IQuestion)
 @interface.implementer(IPropertyAdapter)
 def _QuestionPropertyAdpater(obj):
@@ -395,8 +395,7 @@ _RepliedRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
 # IPersonalBlogComment, IGeneralForumComment
 @interface.implementer(IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(entity, post, rel):
-	result = {OID: get_oid(post),
-			  'creator': entity.username,
+	result = {OID: get_oid(post), 'creator': entity.username,
 			  CREATED_TIME: get_createdTime(post)  }
 	return result
 
