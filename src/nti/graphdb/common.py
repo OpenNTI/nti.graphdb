@@ -13,7 +13,8 @@ import six
 from collections import namedtuple
 
 from zope.security.interfaces import IPrincipal
-from zope.security.management import queryInteraction
+from zope.security.management import NoInteraction
+from zope.security.management import getInteraction
 
 from ZODB.POSException import POSError
 
@@ -26,12 +27,10 @@ from .interfaces import ILabelAdapter
 from .interfaces import IUniqueAttributeAdapter
 
 def get_current_principal():
-	interaction = queryInteraction()
-	participations = list(getattr(interaction, 'participations', None) or ())
-	participation = participations[0] if participations else None
-	principal = getattr(participation, 'principal', None)
-	result = principal.id if principal is not None else None
-	return result
+	try:
+		return getInteraction().participations[0].principal.id
+	except (NoInteraction, IndexError, AttributeError):
+		return None
 
 def get_entity(entity):
 	if entity is not None and not IEntity.providedBy(entity):
