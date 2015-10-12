@@ -13,7 +13,7 @@ import six
 from collections import namedtuple
 
 from zope.security.interfaces import IPrincipal
-from zope.security.management import NoInteraction
+from zope.security.interfaces import NoInteraction
 from zope.security.management import getInteraction
 
 from ZODB.POSException import POSError
