@@ -20,7 +20,7 @@ from nti.ntiids.ntiids import find_object_with_ntiid
 
 from .common import get_oid
 from .common import get_entity
-from .common import get_current_principal
+from .common import get_current_principal_id
 
 from .relationships import Flagged
 
@@ -53,7 +53,7 @@ def _remove_flagged_relationship(db, username, oid):
 	return result
 
 def _process_flagging_event(db, flaggable, username=None, is_flagged=True):
-	username = username or get_current_principal()
+	username = username or get_current_principal_id()
 	if username:
 		oid = get_oid(flaggable)
 		queue = get_job_queue()

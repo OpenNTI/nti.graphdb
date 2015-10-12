@@ -25,7 +25,7 @@ from nti.ntiids.ntiids import find_object_with_ntiid
 
 from .common import get_oid
 from .common import get_entity
-from .common import get_current_principal
+from .common import get_current_principal_id
 
 from .relationships import Like
 from .relationships import Rate
@@ -112,7 +112,7 @@ def _process_rate_event(db, username, oid, rating=None, is_rate=True):
 def _object_rated(event):
 	db = get_graph_db()
 	modeled = event.object
-	username = get_current_principal()
+	username = get_current_principal_id()
 	if username and db is not None:
 		oid = get_oid(modeled)
 		if event.category == LIKE_CAT_NAME:

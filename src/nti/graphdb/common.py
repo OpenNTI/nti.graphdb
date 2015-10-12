@@ -26,20 +26,24 @@ from nti.externalization.externalization import to_external_ntiid_oid
 from .interfaces import ILabelAdapter
 from .interfaces import IUniqueAttributeAdapter
 
-def get_current_principal():
-	try:
-		return getInteraction().participations[0].principal.id
-	except (NoInteraction, IndexError, AttributeError):
-		return None
-
 def get_entity(entity):
 	if entity is not None and not IEntity.providedBy(entity):
 		entity = Entity.get_entity(str(entity))
 	return entity
 
+def get_current_principal():
+	try:
+		return getInteraction().participations[0].principal
+	except (NoInteraction, IndexError, AttributeError):
+		return None
+
+def get_current_principal_id():
+	result = get_current_principal()
+	return result.id if result is not None else None
+	
 def get_current_user(user=None):
 	if user is None:
-		user = get_current_principal()
+		user = get_current_principal_id()
 	elif IPrincipal.providedBy(user):
 		user = user.id
 	result = get_entity(user)
