@@ -74,7 +74,7 @@ def _delete_node(db, label, key, value):
 def _delete_nodes(db, pks=()):
 	nodes = db.get_indexed_nodes(*pks)
 	result = db.delete_nodes(*nodes)
-	logger.debug("%s node(s) deleted", len(result))
+	logger.debug("%s node(s) deleted", result)
 
 # forums
 
