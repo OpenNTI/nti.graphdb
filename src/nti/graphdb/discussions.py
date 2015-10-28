@@ -161,7 +161,7 @@ def _topic_modified(topic, event):
 def _process_discussion_remove_events(db, primary_keys=()):
 	if primary_keys:
 		queue = get_job_queue()
-		job = create_job(_delete_nodes, db=db, nodes=primary_keys)
+		job = create_job(_delete_nodes, db=db, pks=primary_keys)
 		queue.put(job)
 
 def _remove_topic(db, topic):
