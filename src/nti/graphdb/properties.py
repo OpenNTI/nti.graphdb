@@ -29,7 +29,10 @@ from nti.contentlibrary.interfaces import IContentUnit
 from nti.contentlibrary.interfaces import IContentPackage
 
 from nti.contenttypes.courses.interfaces import ICourseInstance
+from nti.contenttypes.courses.interfaces import ICourseOutlineNode
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
+from nti.contenttypes.courses.interfaces import ICourseOutlineContentNode
+from nti.contenttypes.courses.interfaces import ICourseOutlineCalendarNode
 from nti.contenttypes.courses.interfaces import ICourseInstanceEnrollmentRecord
 
 from nti.contenttypes.presentation.interfaces import IPresentationAsset
@@ -356,6 +359,31 @@ def _EnrollmentRecordPropertyAdpater(obj):
 	return result
 
 @interface.implementer(IPropertyAdapter)
+@component.adapter(ICourseOutlineNode)
+def _CourseOutlineNodePropertyAdpater(obj):
+	result = {'type':'CourseOutlineNode'}
+	result['ntiid'] =  get_ntiid(obj)
+	result[CREATED_TIME] = get_createdTime(obj)
+	result['lastModified'] = get_lastModified(obj)
+	add_intid(obj, result)
+	return result
+
+@interface.implementer(IPropertyAdapter)
+@component.adapter(ICourseOutlineContentNode)
+def _CourseOutlineContentNodePropertyAdpater(obj):
+	result = _CourseOutlineNodePropertyAdpater(obj)
+	result['type'] = 'CourseOutlineContentNode'
+	result['content_ntiid'] = obj.ContentNTIID
+	return result
+
+@interface.implementer(IPropertyAdapter)
+@component.adapter(ICourseOutlineCalendarNode)
+def _CourseOutlineCalendarNodePropertyAdpater(obj):
+	result = _CourseOutlineContentNodePropertyAdpater(obj)
+	result['type'] = 'CourseOutlineCalendarNode'
+	return result
+
+@interface.implementer(IPropertyAdapter)
 @component.adapter(IPresentationAsset)
 def _PresentationAssetPropertyAdpater(obj):
 	iface = find_most_derived_interface(obj, IPresentationAsset,
@@ -395,8 +423,11 @@ _RepliedRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
 # IPersonalBlogComment, IGeneralForumComment
 @interface.implementer(IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(entity, post, rel):
-	result = {OID: get_oid(post), 'creator': entity.username,
-			  CREATED_TIME: get_createdTime(post)  }
+	result = {
+		OID: get_oid(post), 
+		'creator': entity.username,
+		CREATED_TIME: get_createdTime(post)  
+	}
 	return result
 
 @interface.implementer(IPropertyAdapter)

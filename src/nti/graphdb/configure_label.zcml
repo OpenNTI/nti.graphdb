@@ -101,6 +101,18 @@
 			 factory=".label._EnrollmentRecordLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />	 
 
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseOutlineNode"
+			 factory=".label._CourseOutlineNodeLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseOutlineContentNode"
+			 factory=".label._CourseOutlineContentNodeLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseOutlineContentNode"
+			 factory=".label._CourseOutlineContentNodeLabelAdpater"
+			 provides=".interfaces.ILabelAdapter" />
+
 	<adapter for="nti.contenttypes.presentation.interfaces.IPresentationAsset"
 			 factory=".label._PresentationAssetLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />	

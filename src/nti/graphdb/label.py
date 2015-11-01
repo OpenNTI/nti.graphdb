@@ -25,7 +25,10 @@ from nti.contentlibrary.interfaces import IContentUnit
 from nti.contentlibrary.interfaces import IContentPackage 
 
 from nti.contenttypes.courses.interfaces import ICourseInstance
+from nti.contenttypes.courses.interfaces import ICourseOutlineNode
 from nti.contenttypes.courses.interfaces import ICourseCatalogEntry
+from nti.contenttypes.courses.interfaces import ICourseOutlineContentNode
+from nti.contenttypes.courses.interfaces import ICourseOutlineCalendarNode
 from nti.contenttypes.courses.interfaces import ICourseInstanceEnrollmentRecord
 
 from nti.contenttypes.presentation.interfaces import IPresentationAsset
@@ -121,42 +124,57 @@ def _MessageInfoLabelAdpater(message):
 
 @component.adapter(IQuestion)
 @interface.implementer(ILabelAdapter)
-def _QuestionLabelAdpater(context):
+def _QuestionLabelAdpater(obj):
 	return u"Question"
 
 @component.adapter(IQuestionSet)
 @interface.implementer(ILabelAdapter)
-def _QuestionSetLabelAdpater(meeting):
+def _QuestionSetLabelAdpater(obj):
 	return u'QuestionSet'
 
 @component.adapter(IQAssignment)
 @interface.implementer(ILabelAdapter)
-def _AssignmentLabelAdpater(message):
+def _AssignmentLabelAdpater(obj):
 	return u'Assignment'
 
 @component.adapter(IQSurvey)
 @interface.implementer(ILabelAdapter)
-def _SurveyLabelAdpater(meeting):
+def _SurveyLabelAdpater(obj):
 	return u'Survey'
 
 @component.adapter(IQPoll)
 @interface.implementer(ILabelAdapter)
-def _PollLabelAdpater(message):
+def _PollLabelAdpater(onj):
 	return u'Poll'
 
 @component.adapter(ICourseInstance)
 @interface.implementer(ILabelAdapter)
-def _CourseInstanceLabelAdpater(message):
+def _CourseInstanceLabelAdpater(obj):
 	return u'CourseInstance'
 
 @interface.implementer(ILabelAdapter)
 @component.adapter(ICourseCatalogEntry)
-def _CourseCatalogEntryLabelAdpater(message):
+def _CourseCatalogEntryLabelAdpater(obj):
 	return u'CatalogEntry'
 
 @interface.implementer(ILabelAdapter)
+@component.adapter(ICourseOutlineNode)
+def _CourseOutlineNodeLabelAdpater(node):
+	return u'CourseOutlineNode'
+
+@interface.implementer(ILabelAdapter)
+@component.adapter(ICourseOutlineContentNode)
+def _CourseOutlineContentNodeLabelAdpater(node):
+	return u'CourseOutlineContentNode'
+
+@interface.implementer(ILabelAdapter)
+@component.adapter(ICourseOutlineCalendarNode)
+def _CourseOutlineCalendarNodeLabelAdpater(node):
+	return u'CourseOutlineCalendarNode'
+
+@interface.implementer(ILabelAdapter)
 @component.adapter(ICourseInstanceEnrollmentRecord)
-def _EnrollmentRecordLabelAdpater(message):
+def _EnrollmentRecordLabelAdpater(obj):
 	return u'EnrollmentRecord'
 
 @component.adapter(IContainer)

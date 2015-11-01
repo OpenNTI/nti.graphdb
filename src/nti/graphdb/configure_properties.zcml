@@ -124,6 +124,18 @@
 	<adapter for="nti.contenttypes.courses.interfaces.ICourseInstanceEnrollmentRecord"
 			 factory=".properties._EnrollmentRecordPropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
+
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseOutlineNode"
+			 factory=".properties._CourseOutlineNodePropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseOutlineContentNode"
+			 factory=".properties._CourseOutlineContentNodePropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
+
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseOutlineContentNode"
+			 factory=".properties._CourseOutlineContentNodePropertyAdpater"
+			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.contenttypes.presentation.interfaces.IPresentationAsset"
 			 factory=".properties._PresentationAssetPropertyAdpater"
