@@ -109,8 +109,8 @@
 			 factory=".label._CourseOutlineContentNodeLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 
-	<adapter for="nti.contenttypes.courses.interfaces.ICourseOutlineContentNode"
-			 factory=".label._CourseOutlineContentNodeLabelAdpater"
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseOutlineCalendarNode"
+			 factory=".label._CourseOutlineCalendarNodeLabelAdpater"
 			 provides=".interfaces.ILabelAdapter" />
 
 	<adapter for="nti.contenttypes.presentation.interfaces.IPresentationAsset"

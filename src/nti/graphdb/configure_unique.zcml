@@ -121,7 +121,7 @@
 			 factory=".unique._NTIIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 
-	<adapter for="nti.contenttypes.presentation.interfaces.ICourseOutlineNode"
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseOutlineNode"
 			 factory=".unique._NTIIDUniqueAttributeAdpater"
 			 provides=".interfaces.IUniqueAttributeAdapter" />
 

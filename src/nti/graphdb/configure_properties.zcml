@@ -133,8 +133,8 @@
 			 factory=".properties._CourseOutlineContentNodePropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 
-	<adapter for="nti.contenttypes.courses.interfaces.ICourseOutlineContentNode"
-			 factory=".properties._CourseOutlineContentNodePropertyAdpater"
+	<adapter for="nti.contenttypes.courses.interfaces.ICourseOutlineCalendarNode"
+			 factory=".properties._CourseOutlineCalendarNodePropertyAdpater"
 			 provides=".interfaces.IPropertyAdapter" />
 			 
 	<adapter for="nti.contenttypes.presentation.interfaces.IPresentationAsset"
