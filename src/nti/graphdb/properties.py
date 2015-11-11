@@ -245,7 +245,10 @@ def _CommentPropertyAdpater(post):  # IPersonalBlogComment, IGeneralForumComment
 	creator = get_creator(post)
 	if creator is not None:
 		result['creator'] = creator.username
-	result['topic'] = post.__parent__.NTIID
+	try:
+		result['topic'] = post.__parent__.NTIID
+	except AttributeError:
+		pass
 	result[CREATED_TIME] = get_createdTime(post)
 	result['lastModified'] = get_lastModified(post)
 	add_oid(post, result)
@@ -362,7 +365,7 @@ def _EnrollmentRecordPropertyAdpater(obj):
 @component.adapter(ICourseOutlineNode)
 def _CourseOutlineNodePropertyAdpater(obj):
 	result = {'type':'CourseOutlineNode'}
-	result['ntiid'] =  get_ntiid(obj)
+	result['ntiid'] = get_ntiid(obj)
 	result[CREATED_TIME] = get_createdTime(obj)
 	result['lastModified'] = get_lastModified(obj)
 	add_intid(obj, result)
@@ -424,9 +427,9 @@ _RepliedRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
 @interface.implementer(IPropertyAdapter)
 def _CommentRelationshipPropertyAdpater(entity, post, rel):
 	result = {
-		OID: get_oid(post), 
+		OID: get_oid(post),
 		'creator': entity.username,
-		CREATED_TIME: get_createdTime(post)  
+		CREATED_TIME: get_createdTime(post)
 	}
 	return result
 
