@@ -113,6 +113,8 @@ def _process_created_removed(db, created):
 
 @component.adapter(ICreated, IIntIdRemovedEvent)
 def _object_removed(created, event):
+	# Ignore presentation assets for the time being
+	# because they are created/remove anytime there is a sync event
 	if not IPresentationAsset.providedBy(created):
 		db = get_graph_db()
 		if db is not None:

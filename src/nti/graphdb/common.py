@@ -18,13 +18,14 @@ from zope.security.management import getInteraction
 
 from ZODB.POSException import POSError
 
-from nti.dataserver.users import Entity
 from nti.dataserver.interfaces import IEntity
+
+from nti.dataserver.users import Entity
 
 from nti.externalization.externalization import to_external_ntiid_oid
 
-from .interfaces import ILabelAdapter
-from .interfaces import IUniqueAttributeAdapter
+from nti.graphdb.interfaces import ILabelAdapter
+from nti.graphdb.interfaces import IUniqueAttributeAdapter
 
 def get_entity(entity):
 	if entity is not None and not IEntity.providedBy(entity):
@@ -40,7 +41,7 @@ def get_current_principal():
 def get_current_principal_id():
 	result = get_current_principal()
 	return result.id if result is not None else None
-	
+
 def get_current_user(user=None):
 	if user is None:
 		user = get_current_principal_id()

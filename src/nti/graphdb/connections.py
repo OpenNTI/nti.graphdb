@@ -24,23 +24,23 @@ from nti.dataserver.interfaces import IStopDynamicMembershipEvent
 from nti.dataserver.interfaces import IStartDynamicMembershipEvent
 from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
 
+from nti.graphdb import create_job
+from nti.graphdb import get_graph_db
+from nti.graphdb import get_job_queue
+
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_entity
+from nti.graphdb.common import get_node_pk
+
+from nti.graphdb.interfaces import IObjectProcessor
+
+from nti.graphdb.relationships import Follow
+from nti.graphdb.relationships import FriendOf
+from nti.graphdb.relationships import MemberOf
+
 from nti.ntiids.ntiids import find_object_with_ntiid
 
 from nti.schema.schema import EqHash
-
-from .relationships import Follow
-from .relationships import FriendOf
-from .relationships import MemberOf
-
-from .common import get_oid
-from .common import get_entity
-from .common import get_node_pk
-
-from .interfaces import IObjectProcessor
-
-from . import create_job
-from . import get_graph_db
-from . import get_job_queue
 
 @EqHash('_from', '_to')
 class _Relationship(object):
