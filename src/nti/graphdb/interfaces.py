@@ -22,11 +22,19 @@ from nti.schema.field import Object
 from nti.schema.field import Variant
 from nti.schema.field import ValidTextLine
 
+#: Neo4J database name
 NEO4J = u"neo4j"
+
+#: Database types
 DATABASE_TYPES = (NEO4J,)
 
+#: Add event code
 ADD_EVENT = 0
+
+#: Modify event code
 MODIFY_EVENT = 1
+
+#: Remove event code
 REMOVE_EVENT = 2
 
 class IGraphDBQueueFactory(interface.Interface):

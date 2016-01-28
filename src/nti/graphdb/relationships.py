@@ -11,31 +11,31 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
-from .interfaces import ILike
-from .interfaces import IRate
-from .interfaces import IReply
-from .interfaces import IAuthor
-from .interfaces import IBelong
-from .interfaces import IBought
-from .interfaces import IEnroll
-from .interfaces import IFollow
-from .interfaces import IShared
-from .interfaces import IViewed
-from .interfaces import ICreated
-from .interfaces import IFlagged
-from .interfaces import IFeedback
-from .interfaces import IFriendOf
-from .interfaces import IMemberOf
-from .interfaces import IParentOf
-from .interfaces import ITaggedTo
-from .interfaces import IUnenroll
-from .interfaces import ICommentOn
-from .interfaces import IContained
-from .interfaces import IIsReplyOf
-from .interfaces import IIsSharedWith
-from .interfaces import ITakenInquiry
-from .interfaces import ITakenAssessment
-from .interfaces import IAssignmentFeedback
+from nti.graphdb.interfaces import ILike
+from nti.graphdb.interfaces import IRate
+from nti.graphdb.interfaces import IReply
+from nti.graphdb.interfaces import IAuthor
+from nti.graphdb.interfaces import IBelong
+from nti.graphdb.interfaces import IBought
+from nti.graphdb.interfaces import IEnroll
+from nti.graphdb.interfaces import IFollow
+from nti.graphdb.interfaces import IShared
+from nti.graphdb.interfaces import IViewed
+from nti.graphdb.interfaces import ICreated
+from nti.graphdb.interfaces import IFlagged
+from nti.graphdb.interfaces import IFeedback
+from nti.graphdb.interfaces import IFriendOf
+from nti.graphdb.interfaces import IMemberOf
+from nti.graphdb.interfaces import IParentOf
+from nti.graphdb.interfaces import ITaggedTo
+from nti.graphdb.interfaces import IUnenroll
+from nti.graphdb.interfaces import ICommentOn
+from nti.graphdb.interfaces import IContained
+from nti.graphdb.interfaces import IIsReplyOf
+from nti.graphdb.interfaces import IIsSharedWith
+from nti.graphdb.interfaces import ITakenInquiry
+from nti.graphdb.interfaces import ITakenAssessment
+from nti.graphdb.interfaces import IAssignmentFeedback
 
 class _Singleton(object):
 	_instances = {}

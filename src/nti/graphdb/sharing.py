@@ -13,26 +13,27 @@ from zope import component
 
 from zope.lifecycleevent.interfaces import IObjectAddedEvent
 
+from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
+
 from nti.dataserver.interfaces import IContained
 from nti.dataserver.interfaces import IReadableShared
 from nti.dataserver.interfaces import IShareableModeledContent
 from nti.dataserver.interfaces import IObjectSharingModifiedEvent
-from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
+
+from nti.graphdb import create_job
+from nti.graphdb import get_graph_db
+from nti.graphdb import get_job_queue
+
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_entity
+from nti.graphdb.common import get_creator
+
+from nti.graphdb.interfaces import IObjectProcessor
+
+from nti.graphdb.relationships import Shared
+from nti.graphdb.relationships import IsSharedWith
 
 from nti.ntiids.ntiids import find_object_with_ntiid
-
-from .common import get_oid
-from .common import get_entity
-from .common import get_creator
-
-from .relationships import Shared
-from .relationships import IsSharedWith
-
-from .interfaces import IObjectProcessor
-
-from . import create_job
-from . import get_graph_db
-from . import get_job_queue
 
 def _underlying(oid):
 	obj = find_object_with_ntiid(oid)

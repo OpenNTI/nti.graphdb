@@ -23,19 +23,23 @@ from nti.dataserver.rating import IObjectUnratedEvent
 
 from nti.ntiids.ntiids import find_object_with_ntiid
 
-from .common import get_oid
-from .common import get_entity
-from .common import get_current_principal_id
+from nti.graphdb import create_job
+from nti.graphdb import get_graph_db
+from nti.graphdb import get_job_queue
 
-from .relationships import Like
-from .relationships import Rate
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_entity
+from nti.graphdb.common import get_current_principal_id
 
-from . import create_job
-from . import get_graph_db
-from . import get_job_queue
-from . import interfaces as graph_interfaces
+from nti.graphdb.interfaces import IObjectProcessor
 
+from nti.graphdb.relationships import Like
+from nti.graphdb.relationships import Rate
+
+#: Like category name
 LIKE_CAT_NAME = 'likes'
+
+#: Rating category name
 RATING_CAT_NAME = 'rating'
 
 def _get_relationship(db, username, oid, rel_type):
@@ -160,7 +164,7 @@ def _record_ratings(db, obj):
 			result += 1
 	return result
 
-component.moduleProvides(graph_interfaces.IObjectProcessor)
+component.moduleProvides(IObjectProcessor)
 
 def init(db, obj):
 	result = 0

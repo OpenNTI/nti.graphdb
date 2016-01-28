@@ -22,25 +22,26 @@ from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 from nti.common.property import alias
 from nti.common.representation import WithRepr
 
-from nti.dataserver.interfaces import IContained
 from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
+
+from nti.dataserver.interfaces import IContained
+
+from nti.graphdb import create_job
+from nti.graphdb import get_graph_db
+from nti.graphdb import get_job_queue
+
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_node_pk
+
+from nti.graphdb.interfaces import IContainer
+from nti.graphdb.interfaces import IObjectProcessor
+from nti.graphdb.interfaces import IPropertyAdapter
+
+from nti.graphdb.relationships import Contained
 
 from nti.ntiids.ntiids import find_object_with_ntiid
 
 from nti.schema.schema import EqHash
-
-from .common import get_oid
-from .common import get_node_pk
-
-from .interfaces import IContainer
-from .interfaces import IObjectProcessor
-from .interfaces import IPropertyAdapter
-
-from .relationships import Contained
-
-from . import create_job
-from . import get_graph_db
-from . import get_job_queue
 
 @WithRepr
 @EqHash('id')
@@ -100,7 +101,7 @@ def _add_contained_membership(db, oid, containerId):
 	return False
 
 def _process_contained_added(db, contained):
-	if IHeadlinePost.providedBy(contained): # ignore
+	if IHeadlinePost.providedBy(contained):  # ignore
 		return
 	containerId = _get_containerId(contained)
 	if containerId:
@@ -141,7 +142,11 @@ def _process_contained_removed(db, contained):
 	pk = get_node_pk(contained)
 	if pk is not None:
 		queue = get_job_queue()
-		job = create_job(_remove_node, db=db, label=pk.label, key=pk.key, value=pk.value)
+		job = create_job(_remove_node, 
+						 db=db, 
+						 label=pk.label, 
+						 key=pk.key, 
+						 value=pk.value)
 		queue.put(job)
 		# update parent container
 		_process_contained_modified(db, contained)

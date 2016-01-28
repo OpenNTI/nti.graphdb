@@ -22,7 +22,7 @@ from nti.chatserver.interfaces import IMeeting
 from nti.chatserver.interfaces import IMessageInfo
 
 from nti.contentlibrary.interfaces import IContentUnit
-from nti.contentlibrary.interfaces import IContentPackage 
+from nti.contentlibrary.interfaces import IContentPackage
 
 from nti.contenttypes.courses.interfaces import ICourseInstance
 from nti.contenttypes.courses.interfaces import ICourseOutlineNode
@@ -44,10 +44,10 @@ from nti.dataserver.contenttypes.forums.interfaces import ITopic
 from nti.dataserver.contenttypes.forums.interfaces import IForum
 from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 
-from nti.schema.interfaces import find_most_derived_interface
+from nti.graphdb.interfaces import IContainer
+from nti.graphdb.interfaces import ILabelAdapter
 
-from .interfaces import IContainer
-from .interfaces import ILabelAdapter
+from nti.schema.interfaces import find_most_derived_interface
 
 @interface.implementer(ILabelAdapter)
 @component.adapter(interface.Interface)

@@ -14,7 +14,7 @@ import time
 from zope import component
 from zope import interface
 
-from zope.intid import IIntIds
+from zope.intid.interfaces import IIntIds
 
 from nti.assessment.interfaces import IQPoll
 from nti.assessment.interfaces import IQSurvey
@@ -37,6 +37,11 @@ from nti.contenttypes.courses.interfaces import ICourseInstanceEnrollmentRecord
 
 from nti.contenttypes.presentation.interfaces import IPresentationAsset
 
+from nti.dataserver.contenttypes.forums.interfaces import IBoard
+from nti.dataserver.contenttypes.forums.interfaces import IForum
+from nti.dataserver.contenttypes.forums.interfaces import ITopic
+from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
+
 from nti.dataserver.interfaces import IUser
 from nti.dataserver.interfaces import IEntity
 from nti.dataserver.interfaces import ICreated
@@ -46,29 +51,24 @@ from nti.dataserver.interfaces import IModeledContent
 from nti.dataserver.interfaces import IUseNTIIDAsExternalUsername
 from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
 
-from nti.dataserver.contenttypes.forums.interfaces import IBoard
-from nti.dataserver.contenttypes.forums.interfaces import IForum
-from nti.dataserver.contenttypes.forums.interfaces import ITopic
-from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
-
 from nti.dataserver.users.interfaces import IFriendlyNamed
 
+from nti.graphdb import OID
+from nti.graphdb import INTID
+from nti.graphdb import CREATED_TIME
+
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_ntiid
+from nti.graphdb.common import get_creator
+from nti.graphdb.common import get_createdTime
+from nti.graphdb.common import get_lastModified
+from nti.graphdb.common import get_principal_id
+
+from nti.graphdb.interfaces import ICommentOn
+from nti.graphdb.interfaces import IContainer
+from nti.graphdb.interfaces import IPropertyAdapter
+
 from nti.schema.interfaces import find_most_derived_interface
-
-from .common import get_oid
-from .common import get_ntiid
-from .common import get_creator
-from .common import get_createdTime
-from .common import get_lastModified
-from .common import get_principal_id
-
-from .interfaces import ICommentOn
-from .interfaces import IContainer
-from .interfaces import IPropertyAdapter
-
-from . import OID
-from . import INTID
-from . import CREATED_TIME
 
 def add_oid(obj, ext):
 	oid = get_oid(obj)
@@ -428,7 +428,7 @@ _RepliedRelationshipPropertyAdpater = _EntityObjectRelationshipPropertyAdpater
 def _CommentRelationshipPropertyAdpater(entity, post, rel):
 	result = {
 		OID: get_oid(post),
-		'creator': entity.username,
+		u'creator': entity.username,
 		CREATED_TIME: get_createdTime(post)
 	}
 	return result

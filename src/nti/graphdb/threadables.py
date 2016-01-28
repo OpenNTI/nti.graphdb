@@ -19,21 +19,21 @@ from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 from nti.dataserver.interfaces import IThreadable
 from nti.dataserver.interfaces import IDeletedObjectPlaceholder
 
+from nti.graphdb import create_job
+from nti.graphdb import get_graph_db
+from nti.graphdb import get_job_queue
+
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_creator
+from nti.graphdb.common import get_node_pk
+
+from nti.graphdb.interfaces import IObjectProcessor
+from nti.graphdb.interfaces import IPropertyAdapter
+
+from nti.graphdb.relationships import Reply
+from nti.graphdb.relationships import IsReplyOf
+
 from nti.ntiids.ntiids import find_object_with_ntiid
-
-from .common import get_oid
-from .common import get_creator
-from .common import get_node_pk
-
-from . import create_job
-from . import get_graph_db
-from . import get_job_queue
-
-from .relationships import Reply
-from .relationships import IsReplyOf
-
-from .interfaces import IObjectProcessor
-from .interfaces import IPropertyAdapter
 
 def _remove_node(db, label, key, value):
 	node = db.get_indexed_node(label, key, value)

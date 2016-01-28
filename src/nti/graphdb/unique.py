@@ -21,22 +21,22 @@ from nti.contentlibrary.interfaces import IContentUnit
 
 from nti.contenttypes.presentation.interfaces import IPresentationAsset
 
+from nti.dataserver.contenttypes.forums.interfaces import ITopic
+from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
+
 from nti.dataserver.interfaces import IEntity
 from nti.dataserver.interfaces import IUseNTIIDAsExternalUsername
 from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
 
-from nti.dataserver.contenttypes.forums.interfaces import ITopic
-from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
+from nti.graphdb import OID
+from nti.graphdb import NTIID
+from nti.graphdb import INTID
 
-from . common import get_oid
-from . common import get_ntiid
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_ntiid
 
-from .interfaces import IContainer
-from .interfaces import IUniqueAttributeAdapter
-
-from . import OID
-from . import NTIID
-from . import INTID
+from nti.graphdb.interfaces import IContainer
+from nti.graphdb.interfaces import IUniqueAttributeAdapter
 
 @WithRepr
 @component.adapter(interface.Interface)

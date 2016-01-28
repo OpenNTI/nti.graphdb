@@ -26,14 +26,14 @@ from nti.async import get_job_queue as async_queue
 
 from nti.dataserver.interfaces import IRedisClient
 
-from .neo4j import Neo4jDB
+from nti.graphdb import QUEUE_NAME
 
-from .interfaces import NEO4J
-from .interfaces import DATABASE_TYPES
+from nti.graphdb.interfaces import NEO4J
+from nti.graphdb.interfaces import DATABASE_TYPES
 
-from .interfaces import IGraphDB
+from nti.graphdb.interfaces import IGraphDB
 
-from . import QUEUE_NAME
+from nti.graphdb.neo4j import Neo4jDB
 
 class IRegisterGraphDB(interface.Interface):
 	"""
@@ -45,14 +45,14 @@ class IRegisterGraphDB(interface.Interface):
 						   required=False)
 	username = fields.TextLine(title="db username", required=False)
 	password = schema.Password(title="db password", required=False)
-	
+
 	config = fields.TextLine(title="path to config file", required=False)
-	
+
 def registerGraphDB(_context, url, username=None, password=None, config=None, name=u""):
 	"""
 	Register an db
 	"""
-	factory = functools.partial(Neo4jDB, url=url, username=username, password=password, 
+	factory = functools.partial(Neo4jDB, url=url, username=username, password=password,
 								config=config)
 	utility(_context, provides=IGraphDB, factory=factory, name=name)
 
@@ -69,7 +69,7 @@ class ImmediateQueueRunner(object):
 @interface.implementer(IGraphDBQueueFactory)
 class _ImmediateQueueFactory(object):
 
-	def get_queue( self, name ):
+	def get_queue(self, name):
 		return ImmediateQueueRunner()
 
 @interface.implementer(IGraphDBQueueFactory)
@@ -77,18 +77,18 @@ class _AbstractProcessingQueueFactory(object):
 
 	queue_interface = None
 
-	def get_queue( self, name ):
+	def get_queue(self, name):
 		queue = async_queue(name, self.queue_interface)
 		if queue is None:
 			raise ValueError("No queue exists for graphdb processing queue (%s). "
-							 "Evolve error?" % name )
+							 "Evolve error?" % name)
 		return queue
 
 class _GraphDBProcessingQueueFactory(_AbstractProcessingQueueFactory):
 	queue_interface = IQueue
 
 class _GraphDBRedisProcessingQueueFactory(_AbstractProcessingQueueFactory):
-	
+
 	queue_interface = IRedisQueue
 
 	def __init__(self, _context):
@@ -100,16 +100,16 @@ class _GraphDBRedisProcessingQueueFactory(_AbstractProcessingQueueFactory):
 		return component.getUtility(IRedisClient)
 
 def registerImmediateProcessingQueue(_context):
-	logger.info( "Registering immediate graphdb processing queue" )
+	logger.info("Registering immediate graphdb processing queue")
 	factory = _ImmediateQueueFactory()
-	utility( _context, provides=IGraphDBQueueFactory, component=factory)
+	utility(_context, provides=IGraphDBQueueFactory, component=factory)
 
 def registerProcessingQueue(_context):
-	logger.info( "Registering graphdb processing queue" )
+	logger.info("Registering graphdb processing queue")
 	factory = _GraphDBProcessingQueueFactory()
-	utility( _context, provides=IGraphDBQueueFactory, component=factory)
+	utility(_context, provides=IGraphDBQueueFactory, component=factory)
 
 def registerRedisProcessingQueue(_context):
-	logger.info( "Registering graphdb redis processing queue" )
+	logger.info("Registering graphdb redis processing queue")
 	factory = _GraphDBRedisProcessingQueueFactory(_context)
 	utility(_context, provides=IGraphDBQueueFactory, component=factory)

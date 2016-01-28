@@ -19,21 +19,21 @@ from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 from nti.dataserver.interfaces import IUserTaggedContent
 from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 
+from nti.graphdb import create_job
+from nti.graphdb import get_graph_db
+from nti.graphdb import get_job_queue
+
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_entity
+from nti.graphdb.common import get_node_pk
+
+from nti.graphdb.interfaces import IObjectProcessor
+
+from nti.graphdb.relationships import TaggedTo
+
 from nti.ntiids.ntiids import TYPE_NAMED_ENTITY
 from nti.ntiids.ntiids import is_ntiid_of_types
 from nti.ntiids.ntiids import find_object_with_ntiid
-
-from .common import get_oid
-from .common import get_entity
-from .common import get_node_pk
-
-from .relationships import TaggedTo
-
-from .interfaces import IObjectProcessor
-
-from . import create_job
-from . import get_graph_db
-from . import get_job_queue
 
 _ENTITY_TYPES = {TYPE_NAMED_ENTITY, TYPE_NAMED_ENTITY.lower()}
 

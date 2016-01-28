@@ -18,24 +18,25 @@ from nti.dataserver.interfaces import IObjectUnflaggedEvent
 
 from nti.ntiids.ntiids import find_object_with_ntiid
 
-from .common import get_oid
-from .common import get_entity
-from .common import get_current_principal_id
+from nti.graphdb import create_job
+from nti.graphdb import get_graph_db
+from nti.graphdb import get_job_queue
 
-from .relationships import Flagged
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_entity
+from nti.graphdb.common import get_current_principal_id
 
-from .interfaces import IObjectProcessor
+from nti.graphdb.interfaces import IObjectProcessor
 
-from . import create_job
-from . import get_graph_db
-from . import get_job_queue
+from nti.graphdb.relationships import Flagged
 
 def _add_flagged_relationship(db, username, oid):
 	result = None
 	author = get_entity(username)
 	obj = find_object_with_ntiid(oid)
-	if 	obj is not None and author is not None and \
-		not db.match(author, obj, Flagged()):
+	if 	(	 obj is not None 
+		 and author is not None 
+		 and not db.match(author, obj, Flagged())):
 		result = db.create_relationship(author, obj, Flagged())
 		logger.debug("Flagged relationship %s created", result)
 	return result
