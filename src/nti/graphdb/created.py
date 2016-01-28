@@ -19,23 +19,25 @@ from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 from nti.chatserver.interfaces import IMessageInfo
 from nti.chatserver.interfaces import IMessageInfoPostedToRoomEvent
 
+from nti.contenttypes.presentation.interfaces import IPresentationAsset
+
 from nti.dataserver.interfaces import ICreated
 
+from nti.graphdb import create_job
+from nti.graphdb import get_graph_db
+from nti.graphdb import get_job_queue
+
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_entity
+from nti.graphdb.common import get_creator
+from nti.graphdb.common import get_node_pk
+
+from nti.graphdb.interfaces import IObjectProcessor
+from nti.graphdb.interfaces import IPropertyAdapter
+
+from nti.graphdb.relationships import Created
+
 from nti.ntiids.ntiids import find_object_with_ntiid
-
-from .common import get_oid
-from .common import get_entity
-from .common import get_creator
-from .common import get_node_pk
-
-from .relationships import Created
-
-from .interfaces import IObjectProcessor
-from .interfaces import IPropertyAdapter
-
-from . import create_job
-from . import get_graph_db
-from . import get_job_queue
 
 def _add_created_relationship(db, creator, oid):
 	creator = get_entity(creator)
@@ -111,9 +113,10 @@ def _process_created_removed(db, created):
 
 @component.adapter(ICreated, IIntIdRemovedEvent)
 def _object_removed(created, event):
-	db = get_graph_db()
-	if db is not None:
-		_process_created_removed(db, created)
+	if not IPresentationAsset.providedBy(created):
+		db = get_graph_db()
+		if db is not None:
+			_process_created_removed(db, created)
 
 component.moduleProvides(IObjectProcessor)
 
