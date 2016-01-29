@@ -14,16 +14,16 @@ from zope import interface
 from nti.common.property import alias
 from nti.common.representation import WithRepr
 
+from nti.graphdb.interfaces import IGraphRelationship
+
+from nti.graphdb.neo4j.interfaces import INeo4jRelationship
+from nti.graphdb.neo4j.interfaces import IGraphRelationshipNeo4j
+
+from nti.graphdb.neo4j.node import Neo4jNode
+
 from nti.schema.schema import EqHash
 from nti.schema.field import SchemaConfigured
 from nti.schema.fieldproperty import createDirectFieldProperties
-
-from .node import Neo4jNode
-
-from ..interfaces import IGraphRelationship
-
-from .interfaces import INeo4jRelationship
-from .interfaces import IGraphRelationshipNeo4j
 
 @WithRepr
 @EqHash('id')

@@ -25,25 +25,25 @@ from nti.dataserver.contenttypes.forums.interfaces import ITopic
 from nti.dataserver.contenttypes.forums.interfaces import IGeneralForumComment
 from nti.dataserver.contenttypes.forums.interfaces import IPersonalBlogComment
 
+from nti.graphdb import create_job
+from nti.graphdb import get_graph_db
+from nti.graphdb import get_job_queue
+
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_creator
+from nti.graphdb.common import get_node_pk
+
+from nti.graphdb.interfaces import ADD_EVENT
+from nti.graphdb.interfaces import MODIFY_EVENT
+from nti.graphdb.interfaces import REMOVE_EVENT
+from nti.graphdb.interfaces import IPropertyAdapter
+from nti.graphdb.interfaces import IObjectProcessor
+
+from nti.graphdb.relationships import Author
+from nti.graphdb.relationships import MemberOf
+from nti.graphdb.relationships import CommentOn
+
 from nti.ntiids.ntiids import find_object_with_ntiid
-
-from .common import get_oid
-from .common import get_creator
-from .common import get_node_pk
-
-from .relationships import Author
-from .relationships import MemberOf
-from .relationships import CommentOn
-
-from .interfaces import ADD_EVENT
-from .interfaces import MODIFY_EVENT
-from .interfaces import REMOVE_EVENT
-from .interfaces import IPropertyAdapter
-from .interfaces import IObjectProcessor
-
-from . import create_job
-from . import get_graph_db
-from . import get_job_queue
 
 # utils
 

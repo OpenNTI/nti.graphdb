@@ -9,10 +9,10 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from ..interfaces import INode
-from ..interfaces import IGraphNode
-from ..interfaces import IRelationship
-from ..interfaces import IGraphRelationship
+from nti.graphdb.interfaces import INode
+from nti.graphdb.interfaces import IGraphNode
+from nti.graphdb.interfaces import IRelationship
+from nti.graphdb.interfaces import IGraphRelationship
 
 class INeo4jNode(INode):
 	pass

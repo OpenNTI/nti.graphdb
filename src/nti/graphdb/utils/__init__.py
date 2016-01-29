@@ -13,9 +13,9 @@ from zope import interface
 
 from nti.common.representation import WithRepr
 
-from nti.schema.schema import EqHash
+from nti.graphdb.interfaces import IUniqueAttributeAdapter
 
-from ..interfaces import IUniqueAttributeAdapter
+from nti.schema.schema import EqHash
 
 @WithRepr
 @EqHash('key', 'value')

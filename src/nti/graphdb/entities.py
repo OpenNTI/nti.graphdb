@@ -19,17 +19,17 @@ from nti.dataserver.interfaces import IEntity
 from nti.dataserver.interfaces import IFriendsList
 from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
 
+from nti.graphdb import create_job
+from nti.graphdb import get_graph_db
+from nti.graphdb import get_job_queue
+
+from nti.graphdb.common import get_oid
+
+from nti.graphdb.interfaces import ILabelAdapter
+from nti.graphdb.interfaces import IObjectProcessor
+from nti.graphdb.interfaces import IUniqueAttributeAdapter
+
 from nti.ntiids.ntiids import find_object_with_ntiid
-
-from .common import get_oid
-
-from .interfaces import ILabelAdapter
-from .interfaces import IObjectProcessor
-from .interfaces import IUniqueAttributeAdapter
-
-from . import create_job
-from . import get_graph_db
-from . import get_job_queue
 
 def _is_regular_dfl(obj):
 	return 	IFriendsList.providedBy(obj) and \

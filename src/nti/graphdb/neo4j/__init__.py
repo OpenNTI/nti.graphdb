@@ -9,8 +9,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from .node import Neo4jNode
+from nti.graphdb.neo4j.database import Neo4jDB
 
-from .database import Neo4jDB
+from nti.graphdb.neo4j.node import Neo4jNode
 
-from .relationship import Neo4jRelationship
+from nti.graphdb.neo4j.relationship import Neo4jRelationship

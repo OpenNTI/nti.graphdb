@@ -23,23 +23,23 @@ from nti.contenttypes.courses.interfaces import ICourseInstanceEnrollmentRecord
 
 from nti.dataserver.users import User
 
+from nti.graphdb import OID
+from nti.graphdb import CREATED_TIME
+
+from nti.graphdb import create_job
+from nti.graphdb import get_graph_db
+from nti.graphdb import get_job_queue
+
+from nti.graphdb.common import get_oid
+from nti.graphdb.common import get_principal_id
+
+from nti.graphdb.interfaces import IPropertyAdapter
+from nti.graphdb.interfaces import IObjectProcessor
+
+from nti.graphdb.relationships import Enroll
+from nti.graphdb.relationships import Unenroll
+
 from nti.ntiids.ntiids import find_object_with_ntiid
-
-from .common import get_oid
-from .common import get_principal_id
-
-from .relationships import Enroll
-from .relationships import Unenroll
-
-from .interfaces import IPropertyAdapter
-from .interfaces import IObjectProcessor
-
-from . import OID
-from . import CREATED_TIME
-
-from . import create_job
-from . import get_graph_db
-from . import get_job_queue
 
 def _get_record_user(record):
 	pid = get_principal_id(record.Principal) if record is not None else None
@@ -69,7 +69,7 @@ def _process_enrollment_event(db, oid):
 def _process_user_enrollment(db, record):
 	oid = get_oid(record)
 	queue = get_job_queue()
-	job = create_job(_process_enrollment_event, 
+	job = create_job(_process_enrollment_event,
 					 db=db,
 					 oid=oid)
 	queue.put(job)
@@ -84,7 +84,7 @@ def _process_enrollment_modified_event(db, oid):
 	record = find_object_with_ntiid(oid)
 	if record is None:
 		return None
-	
+
 	found_rel = None
 	rel_type = str(Enroll())
 	rels = db.get_indexed_relationships(OID, oid)
@@ -105,11 +105,11 @@ def _process_enrollment_modified_event(db, oid):
 def _process_enrollment_modified(db, record):
 	oid = get_oid(record)
 	queue = get_job_queue()
-	job = create_job(_process_enrollment_modified_event, 
+	job = create_job(_process_enrollment_modified_event,
 					 db=db,
 					 oid=oid)
 	queue.put(job)
-	
+
 @component.adapter(ICourseInstanceEnrollmentRecord, IObjectModifiedEvent)
 def _enrollment_modified(record, event):
 	db = get_graph_db()
@@ -124,9 +124,9 @@ def _process_unenrollment_event(db, username, entry):
 	entry = _get_catalog_entry(entry)
 	if user is None or entry is None:
 		return None
-		
+
 	rel = db.create_relationship(user, entry, Unenroll(), unique=False)
-	logger.debug("Enrollment relationship %s created", rel)		
+	logger.debug("Enrollment relationship %s created", rel)
 	return rel
 
 def _process_user_unenrollment(db, record):
@@ -135,7 +135,7 @@ def _process_user_unenrollment(db, record):
 	entry = entry.ntiid if entry is not None else None
 	if username and entry is not None:
 		queue = get_job_queue()
-		job = create_job(_process_unenrollment_event, 
+		job = create_job(_process_unenrollment_event,
 						 db=db,
 						 entry=entry,
 						 username=username)

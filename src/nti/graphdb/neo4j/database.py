@@ -16,6 +16,9 @@ import urlparse
 import ConfigParser
 from collections import Mapping
 
+from zope import component
+from zope import interface
+
 from py2neo.neo4j import Node
 from py2neo.neo4j import Graph
 from py2neo.neo4j import ReadBatch
@@ -27,27 +30,24 @@ from py2neo.neo4j import Relationship
 from py2neo import node as node4j
 from py2neo.error import GraphError
 
-from zope import component
-from zope import interface
-
 from nti.common.representation import WithRepr
 
+from nti.graphdb.common import get_node_pk
+
+from nti.graphdb.interfaces import IGraphDB
+from nti.graphdb.interfaces import IGraphNode
+from nti.graphdb.interfaces import ILabelAdapter
+from nti.graphdb.interfaces import IPropertyAdapter
+from nti.graphdb.interfaces import IGraphRelationship
+
+from nti.graphdb.neo4j.node import Neo4jNode
+
+from nti.graphdb.neo4j.interfaces import INeo4jNode
+from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
+
+from nti.graphdb.neo4j.relationship import Neo4jRelationship
+
 from nti.schema.schema import EqHash
-
-from ..common import get_node_pk
-
-from ..interfaces import IGraphDB
-from ..interfaces import IGraphNode
-from ..interfaces import ILabelAdapter
-from ..interfaces import IPropertyAdapter
-from ..interfaces import IGraphRelationship
-
-from .node import Neo4jNode
-
-from .relationship import Neo4jRelationship
-
-from .interfaces import INeo4jNode
-from .interfaces import IGraphNodeNeo4j
 
 def _is_404(ex):
 	response = getattr(ex, 'response', None)
@@ -453,35 +453,35 @@ class Neo4jDB(object):
 		n4j_type = str(rel_type) if rel_type is not None else None
 		n4j_end = self._get_node(end, False) if end is not None else None
 		n4j_start = self._get_node(start, False) if start is not None else None
-		
+
 		if isinstance(value, six.string_types):
 			value = value if value.endswith("'") else "%s'" % value
 			value = value if value.startswith("'") else "'%s" % value
 
 		n4j_end = getattr(n4j_end, '_id', None)
 		n4j_start = getattr(n4j_start, '_id', None)
-		
+
 		# construct query
 		result = []
-		query = _match_rel_query(key, value, 
-								 rel_type=n4j_type, 
-								 start_id=n4j_start, 
-								 end_id=n4j_end, 
+		query = _match_rel_query(key, value,
+								 rel_type=n4j_type,
+								 start_id=n4j_start,
+								 end_id=n4j_end,
 								 bidirectional=bidirectional)
 		records = self.db.cypher.execute(query)
 		for record in records:
-			rel = record.p.relationships[0] # p is the path returned
+			rel = record.p.relationships[0]  # p is the path returned
 			result.append(rel)
 		return result
 
 	def find_relationships(self, key, value, rel_type=None, start=None, end=None,
 						   bidirectional=False, raw=False):
-		result = self._find_relationships(key, value, rel_type=rel_type, start=start, 
+		result = self._find_relationships(key, value, rel_type=rel_type, start=start,
 										  end=start, bidirectional=bidirectional)
 		result = [Neo4jRelationship.create(x) for x in result] \
 				 if not raw else result
 		return result
-	
+
 	# index
 
 	def _get_or_create_index(self, abstract=Relationship, name="PKIndex"):
