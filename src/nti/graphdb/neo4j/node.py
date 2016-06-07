@@ -32,6 +32,7 @@ class Neo4jNode(SchemaConfigured):
 	createDirectFieldProperties(IGraphNodeNeo4j)
 
 	_v_neo = None
+
 	neo = alias('_v_neo')
 
 	@classmethod

@@ -11,6 +11,8 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
+from py2neo.types import remote
+
 from nti.common.property import alias
 from nti.common.representation import WithRepr
 
@@ -44,12 +46,13 @@ class Neo4jRelationship(SchemaConfigured):
 									   start=rel.start, end=rel.end,
 									   properties=dict(rel.properties))
 		elif INeo4jRelationship.providedBy(rel):
-			result = Neo4jRelationship(id=unicode(rel._id),
-									   uri=unicode(rel.uri.string),
-									   type=rel.type,
-									   start=Neo4jNode.create(rel.start_node),
-									   end=Neo4jNode.create(rel.end_node),
-									   properties=dict(rel.properties))
+			remote_rel = remote(rel) or rel
+			result = Neo4jRelationship(type=rel.type,
+									   id=unicode(remote_rel._id),
+									   uri=unicode(remote_rel.uri.string),
+									   end=Neo4jNode.create(rel.end_node()),
+									   start=Neo4jNode.create(rel.start_node()),
+									   properties=dict(rel))
 			result.neo = rel
 		else:
 			result = None
