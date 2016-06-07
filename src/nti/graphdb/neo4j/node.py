@@ -10,6 +10,8 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
+from py2neo.types import remote
+
 from nti.common.property import alias
 from nti.common.representation import WithRepr
 
@@ -41,12 +43,13 @@ class Neo4jNode(SchemaConfigured):
 							   label=node.label,
 							   properties=dict(node.properties))
 		elif INeo4jNode.providedBy(node):
+			remote_node = remote(node) or node
 			labels = list(node.labels or ())
-			result = Neo4jNode(id=unicode(node._id),
-							   uri=unicode(node.uri.string),
+			result = Neo4jNode(id=unicode(remote_node._id),
+							   uri=unicode(remote_node.uri.string),
 							   label=labels[0] if labels else None)
 			result.label = labels[0] if labels else None
-			result.properties = dict(node.properties)
+			result.properties = dict(node) # node.properties is deprecated
 			result.neo = node
 		else:
 			result = None
