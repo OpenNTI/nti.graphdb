@@ -9,118 +9,121 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-# import os
+import os
 # import six
 # import numbers
 # import urlparse
-# import ConfigParser
+import ConfigParser
 # from collections import Mapping
 # 
 # from zope import component
-# from zope import interface
+from zope import interface
 # 
-# from py2neo.neo4j import Node
+from py2neo import Node
+# from py2neo import Relationship
 # from py2neo.neo4j import Graph
 # from py2neo.neo4j import ReadBatch
 # from py2neo.neo4j import CypherJob
-# from py2neo.neo4j import WriteBatch
+
+from py2neo.ext.batman import WriteBatch
+from py2neo.ext.batman.jobs import CypherJob
+
 # from py2neo.neo4j import authenticate
-# from py2neo.neo4j import Relationship
 # 
 # from py2neo import node as node4j
 # from py2neo.error import GraphError
 # 
-# from nti.common.representation import WithRepr
+from nti.common.representation import WithRepr
+#
+from nti.graphdb.common import get_node_pk
 # 
-# from nti.graphdb.common import get_node_pk
-# 
-# from nti.graphdb.interfaces import IGraphDB
+from nti.graphdb.interfaces import IGraphDB
 # from nti.graphdb.interfaces import IGraphNode
-# from nti.graphdb.interfaces import ILabelAdapter
-# from nti.graphdb.interfaces import IPropertyAdapter
+from nti.graphdb.interfaces import ILabelAdapter
+from nti.graphdb.interfaces import IPropertyAdapter
 # from nti.graphdb.interfaces import IGraphRelationship
 # 
-# from nti.graphdb.neo4j.node import Neo4jNode
+from nti.graphdb.neo4j.node import Neo4jNode
 # 
 # from nti.graphdb.neo4j.interfaces import INeo4jNode
 # from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
 # 
 # from nti.graphdb.neo4j.relationship import Neo4jRelationship
 # 
-# from nti.schema.schema import EqHash
-# 
-# def _is_404(ex):
-# 	response = getattr(ex, 'response', None)
-# 	return getattr(response, 'status_code', None) == 404
-# 
-# def _merge_node_query(label, key, value):
-# 	result = "MERGE (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
-# 	return result
-# 
-# def _set_properties_query(label, key, value):
-# 	result = """
-# 	MATCH (n:%s { %s:'%s' }) SET n += { props }
-# 	""" % (label, key, value)
-# 	return result.strip()
-# 
-# def _match_node_query(label, key, value):
-# 	result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
-# 	return result.strip()
-# 
-# def _merge_rel_query(start_id, end_id, rel_type, bidirectional=False):
-# 	direction = '-' if bidirectional else '->'
-# 	result = """
-# 	MATCH (a)
-# 	WHERE id(a)=%s
-# 	MATCH (b)
-# 	WHERE id(b)=%s
-# 	MERGE r=(a)-[:%s]%s(b)
-# 	RETURN r""" % (start_id, end_id, rel_type, direction)
-# 	return result.strip()
-# 
-# def _match_rel_query(key, value, rel_type=None, start_id=None, end_id=None,
-# 					 bidirectional=False):
-# 	result = ""
-# 	direction = '-' if bidirectional else '->'
-# 	if start_id is not None:
-# 		result += "MATCH (a) WHERE id(a)=%s " % start_id
-# 	if end_id is not None:
-# 		result += "MATCH (b) WHERE id(b)=%s " % end_id
-# 	if rel_type:
-# 		result += "MATCH p=(a)-[:%s {%s:%s}]%s(b) RETURN p" % (rel_type, key, value, direction)
-# 	else:
-# 		result += "MATCH p=(a)-[ {%s:%s}]%s(b) RETURN p" % (key, value, direction)
-# 	return result
-# 
+from nti.schema.schema import EqHash
+
+def _is_404(ex):
+	response = getattr(ex, 'response', None)
+	return getattr(response, 'status_code', None) == 404
+
+def _merge_node_query(label, key, value):
+	result = "MERGE (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
+	return result
+
+def _set_properties_query(label, key, value):
+	result = """
+	MATCH (n:%s { %s:'%s' }) SET n += { props }
+	""" % (label, key, value)
+	return result.strip()
+
+def _match_node_query(label, key, value):
+	result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
+	return result.strip()
+
+def _merge_rel_query(start_id, end_id, rel_type, bidirectional=False):
+	direction = '-' if bidirectional else '->'
+	result = """
+	MATCH (a)
+	WHERE id(a)=%s
+	MATCH (b)
+	WHERE id(b)=%s
+	MERGE r=(a)-[:%s]%s(b)
+	RETURN r""" % (start_id, end_id, rel_type, direction)
+	return result.strip()
+
+def _match_rel_query(key, value, rel_type=None, start_id=None, end_id=None,
+					 bidirectional=False):
+	result = ""
+	direction = '-' if bidirectional else '->'
+	if start_id is not None:
+		result += "MATCH (a) WHERE id(a)=%s " % start_id
+	if end_id is not None:
+		result += "MATCH (b) WHERE id(b)=%s " % end_id
+	if rel_type:
+		result += "MATCH p=(a)-[:%s {%s:%s}]%s(b) RETURN p" % (rel_type, key, value, direction)
+	else:
+		result += "MATCH p=(a)-[ {%s:%s}]%s(b) RETURN p" % (key, value, direction)
+	return result
+
 # def _isolate(self, node):
 # 	query = "START a=node(%s) MATCH a-[r]-b DELETE r" % node._id
 # 	self.append(CypherJob(query))
 # WriteBatch.isolate = _isolate
-# 
-# _marker = object()
-# 
-# @WithRepr
-# @EqHash('url')
-# @interface.implementer(IGraphDB)
+
+_marker = object()
+
+@WithRepr
+@EqHash('url')
+@interface.implementer(IGraphDB)
 class Neo4jDB(object):
 
 	_v_db__ = None
 
-# 	def __init__(self, url=None, username=None, password=None, config=None):
-# 		self.url = url
-# 		self.username = username
-# 		self.password = password
-# 		if config:
-# 			config_name = os.path.expandvars(config)
-# 			parser = ConfigParser.ConfigParser()
-# 			parser.read([config_name])
-# 			if parser.has_option('graphdb', 'url'):
-# 				self.url = parser.get('graphdb', 'url')
-# 			if parser.has_option('graphdb', 'username'):
-# 				self.username = parser.getboolean('graphdb', 'username')
-# 			if parser.has_option('graphdb', 'password'):
-# 				self.password = parser.getboolean('graphdb', 'password')
-# 
+	def __init__(self, url=None, username=None, password=None, config=None):
+		self.url = url
+		self.username = username
+		self.password = password
+		if config:
+			config_name = os.path.expandvars(config)
+			parser = ConfigParser.ConfigParser()
+			parser.read([config_name])
+			if parser.has_option('graphdb', 'url'):
+				self.url = parser.get('graphdb', 'url')
+			if parser.has_option('graphdb', 'username'):
+				self.username = parser.getboolean('graphdb', 'username')
+			if parser.has_option('graphdb', 'password'):
+				self.password = parser.getboolean('graphdb', 'password')
+
 # 	@classmethod
 # 	def authenticate(cls, url, username, password):
 # 		o = urlparse.urlparse(url)
@@ -137,58 +140,57 @@ class Neo4jDB(object):
 # 	def _reinit(self):
 # 		self._v_db__ = None
 # 
-# 	def _create_node(self, obj, key=None, value=None, label=None, properties=None,
-# 					 props=False):
-# 
-# 		# Get object properties
-# 		properties = dict(properties or {})
-# 		properties.update(IPropertyAdapter(obj))
-# 
-# 		# Get object labels
-# 		label = label or ILabelAdapter(obj)
-# 		assert label, "must provide an object label"
-# 
-# 		pk = get_node_pk(obj)
-# 		if pk is not None:
-# 			result = self.db.merge_one(label, pk.key, pk.value)
-# 			result.properties.update(properties)
-# 			result.push()
-# 			if props:  # refresh
-# 				self.db.pull(result)
-# 		else:
-# 			node = Node(label, **properties)
-# 			result = self.db.create(node)[0]
-# 		return result
-# 
-# 	def create_node(self, obj, label=None, properties=None, key=None,
-# 					value=None, raw=False, props=True):
-# 		result = self._create_node(obj, label=label, properties=properties,
-# 									key=key, value=value, props=props)
-# 		result = Neo4jNode.create(result) if not raw else result
-# 		return result
-# 
-# 	def create_nodes(self, *objs):
-# 		wb = WriteBatch(self.db)
-# 		for o in objs:
-# 			pk = get_node_pk(o)
-# 			properties = IPropertyAdapter(o)
-# 			if pk is not None:
-# 				query = _merge_node_query(pk.label, pk.key, pk.value)
-# 				wb.append(CypherJob(query))
-# 				if properties:
-# 					query = _set_properties_query(pk.label, pk.key, pk.value)
-# 					wb.append(CypherJob(query, parameters={"props":properties}))
-# 			else:
-# 				label = ILabelAdapter(o)
-# 				abstract = node4j(label, **properties)
-# 				wb.create(abstract)
-# 		result = []
-# 		created = wb.submit()
-# 		for n in created:
-# 			if n is not None and isinstance(n, Node):
-# 				result.append(Neo4jNode.create(n))
-# 		return result
-# 
+	def _create_node(self, obj, key=None, value=None, label=None, 
+					 properties=None, props=False):
+		# Get object properties
+		properties = dict(properties or {})
+		properties.update(IPropertyAdapter(obj))
+
+		# Get object labels
+		label = label or ILabelAdapter(obj)
+		assert label, "must provide an object label"
+
+		pk = get_node_pk(obj)
+		if pk is not None:
+			result = self.db.merge_one(label, pk.key, pk.value)
+			result.properties.update(properties)
+			result.push()
+			if props:  # refresh
+				self.db.pull(result)
+		else:
+			node = Node(label, **properties)
+			result = self.db.create(node)[0]
+		return result
+
+	def create_node(self, obj, label=None, properties=None, key=None,
+					value=None, raw=False, props=True):
+		result = self._create_node(obj, label=label, properties=properties,
+									key=key, value=value, props=props)
+		result = Neo4jNode.create(result) if not raw else result
+		return result
+
+	def create_nodes(self, *objs):
+		wb = WriteBatch(self.db)
+		for o in objs:
+			pk = get_node_pk(o)
+			properties = IPropertyAdapter(o)
+			if pk is not None:
+				query = _merge_node_query(pk.label, pk.key, pk.value)
+				wb.append(CypherJob(query))
+				if properties:
+					query = _set_properties_query(pk.label, pk.key, pk.value)
+					wb.append(CypherJob(query, parameters={"props":properties}))
+			else:
+				label = ILabelAdapter(o)
+				abstract = Node(label, **properties)
+				wb.create(abstract)
+		result = []
+		created = wb.submit()
+		for n in created:
+			if n is not None and isinstance(n, Node):
+				result.append(Neo4jNode.create(n))
+		return result
+
 # 	def _get_node(self, obj, props=True):
 # 		result = None
 # 		__traceback_info__ = obj, props
