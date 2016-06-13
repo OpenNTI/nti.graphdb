@@ -120,9 +120,9 @@ class Neo4jDB(object):
 			if parser.has_option('graphdb', 'url'):
 				self.url = parser.get('graphdb', 'url')
 			if parser.has_option('graphdb', 'username'):
-				self.username = parser.getboolean('graphdb', 'username')
+				self.username = parser.get('graphdb', 'username')
 			if parser.has_option('graphdb', 'password'):
-				self.password = parser.getboolean('graphdb', 'password')
+				self.password = parser.get('graphdb', 'password')
 
 	@property
 	def graph(self):
@@ -240,74 +240,74 @@ class Neo4jDB(object):
 				nodes.append(None)
 		return nodes
 
-# 	def get_indexed_node(self, label, key, value, raw=False, props=True):
-# 		__traceback_info__ = label, key, value
-# 		result = self.graph.find_one(label, key, value)
-# 		if props and result is not None:
-# 			result.pull()
-# 		result = Neo4jNode.create(result) if result is not None and not raw else result
-# 		return result
-#
-# 	def get_indexed_nodes(self, *tuples):
-# 		rb = ReadBatch(self.graph)
-# 		for label, key, value in tuples:
-# 			query = _match_node_query(label, key, value)
-# 			rb.append(CypherJob(query))
-#
-# 		nodes = []
-# 		for node in rb.submit():
-# 			if node is not None:
-# 				nodes.append(node)
-# 		return nodes
-#
-# 	def update_node(self, obj, properties=_marker):
-# 		node = self._get_node(obj, props=False)
-# 		if node is not None and properties != _marker:
-# 			node.properties.update(properties)
-# 			node.push()
-# 			return True
-# 		return False
-#
-# 	def _delete_node(self, obj):
-# 		node = self._get_node(obj, props=False)
-# 		if node is not None:
-# 			wb = WriteBatch(self.graph)
-# 			wb.isolate(node)
-# 			wb.delete(node)
-# 			responses = wb.submit()
-# 			return responses[1] is None
-# 		return False
-#
-# 	def delete_node(self, obj):
-# 		result = self._delete_node(obj)
-# 		return result
-#
-# 	def delete_nodes(self, *objs):
-# 		nodes = []
-#
-# 		# get all the nodes at once
-# 		rb = ReadBatch(self.graph)
-# 		for o in objs:
-# 			pk = get_node_pk(o)
-# 			query = _match_node_query(pk.label, pk.key, pk.value)
-# 			rb.append(CypherJob(query))
-#
-# 		for node in rb.submit():
-# 			if node is not None:
-# 				nodes.append(node)
-#
-# 		# process all deletions at once
-# 		wb = WriteBatch(self.graph)
-# 		for node in nodes:
-# 			wb.isolate(node)
-# 			wb.delete(node)
-#
-# 		result = 0
-# 		responses = wb.submit()
-# 		for idx in range(1, len(responses), 2):
-# 			if responses[idx] is None:
-# 				result += 1
-# 		return result
+	def get_indexed_node(self, label, key, value, raw=False, props=True):
+		__traceback_info__ = label, key, value
+		result = self.graph.find_one(label, key, value)
+		if props and result is not None:
+			self.graph.pull(result)
+		result = Neo4jNode.create(result) if result is not None and not raw else result
+		return result
+
+	def get_indexed_nodes(self, *tuples):
+		rb = ReadBatch(self.graph)
+		for label, key, value in tuples:
+			query = _match_node_query(label, key, value)
+			rb.append(CypherJob(query))
+
+		nodes = []
+		for node in rb.submit():
+			if node is not None:
+				nodes.append(node)
+		return nodes
+
+	def update_node(self, obj, properties=_marker):
+		node = self._get_node(obj, raw=True, props=False)
+		if node is not None and properties != _marker:
+			node.update(properties)
+			self.graph.push(node)
+			return True
+		return False
+
+	def _delete_node(self, obj):
+		node = self._get_node(obj, props=False)
+		if node is not None:
+			wb = WriteBatch(self.graph)
+			wb.isolate(node)
+			wb.delete(node)
+			responses = wb.submit()
+			return responses[1] is None
+		return False
+
+	def delete_node(self, obj):
+		result = self._delete_node(obj)
+		return result
+
+	def delete_nodes(self, *objs):
+		nodes = []
+
+		# get all the nodes at once
+		rb = ReadBatch(self.graph)
+		for o in objs:
+			pk = get_node_pk(o)
+			query = _match_node_query(pk.label, pk.key, pk.value)
+			rb.append(CypherJob(query))
+
+		for node in rb.submit():
+			if node is not None:
+				nodes.append(node)
+
+		# process all deletions at once
+		wb = WriteBatch(self.graph)
+		for node in nodes:
+			wb.isolate(node)
+			wb.delete(node)
+
+		result = 0
+		responses = wb.submit()
+		for idx in range(1, len(responses), 2):
+			if responses[idx] is None:
+				result += 1
+		return result
 #
 # 	# relationships
 #
