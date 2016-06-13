@@ -47,7 +47,6 @@ class TestNeo4jDB(GraphDBTestCase):
 
 	@WithMockDSTrans
 	def test_node_funcs(self):
-		# from IPython.core.debugger import Tracer; Tracer()()
 		username = random_username()
 		user = self._create_user(username)
 		node = self.db.create_node(user)
@@ -97,7 +96,6 @@ class TestNeo4jDB(GraphDBTestCase):
 
 		node = self.db.get_node(user)
 		assert_that(node, is_(none()))
-
 		res = self.db.delete_nodes(user2)
 		assert_that(res, is_(1))
 
@@ -110,7 +108,7 @@ class TestNeo4jDB(GraphDBTestCase):
 		user2 = random_username()
 		user2 = self._create_user(user2)
 		node2 = self.db.create_node(user2)
-
+		# from IPython.core.debugger import Tracer; Tracer()()
 		rel = self.db.create_relationship(user1, user2, "IS_FRIEND_OF")
 
 		assert_that(rel, is_not(none()))

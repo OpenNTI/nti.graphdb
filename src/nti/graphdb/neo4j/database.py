@@ -22,23 +22,18 @@ from py2neo import Node
 from py2neo import Graph
 from py2neo import Relationship
 
-# from py2neo.neo4j import CypherJob
+from py2neo.database import GraphError
 
 from py2neo.ext.batman import ReadBatch
 from py2neo.ext.batman import WriteBatch
 from py2neo.ext.batman.jobs import CypherJob
 
-# from py2neo.neo4j import authenticate
-#
-# from py2neo import node as node4j
-from py2neo.database import GraphError
-
 from py2neo.types import remote
 
 from nti.common.representation import WithRepr
-#
+
 from nti.graphdb.common import get_node_pk
-#
+
 from nti.graphdb.interfaces import IGraphDB
 from nti.graphdb.interfaces import IGraphNode
 from nti.graphdb.interfaces import ILabelAdapter
@@ -110,7 +105,7 @@ def _match_rel_query(key, value, rel_type=None, start_id=None, end_id=None, bidi
 
 def _isolate(self, node):
 	remote_node = remote(node) or node
-	query = "START a=node(%s) MATCH a-[r]-b DELETE r" % remote_node._id
+	query = "START a=node(%s) MATCH (a)-[r]-(b) DELETE r" % remote_node._id
 	self.append(CypherJob(query))
 WriteBatch.isolate = _isolate
 
@@ -222,7 +217,7 @@ class Neo4jDB(object):
 				pk = get_node_pk(obj)
 				if pk is not None:
 					result = self.graph.find_one(pk.label, pk.key, pk.value)
-					props = False  # # no need to refresh
+					props = False  # no need to refresh
 			if result is not None and props:
 				self.graph.pull(result)
 		except GraphError as e:
@@ -243,6 +238,17 @@ class Neo4jDB(object):
 				 or	self.create_node(obj, raw=raw, props=props)
 		return result
 
+	def _run_read_batch(self, rb):
+		modified = False
+		if not hasattr(rb.graph, 'batch'):
+			modified = True
+			rb.graph.batch = rb.runner
+		try:
+			return rb.run()
+		finally:
+			if modified:
+				del rb.graph.batch
+
 	def get_nodes(self, *objs):
 		nodes = []
 		rb = ReadBatch(self.graph)
@@ -251,7 +257,7 @@ class Neo4jDB(object):
 			query = _match_node_query(pk.label, pk.key, pk.value)
 			rb.append(CypherJob(query))
 
-		for result in rb.submit():
+		for result in self._run_read_batch(rb):
 			if result is not None:
 				nodes.append(Neo4jNode.create(result))
 			else:
@@ -273,13 +279,13 @@ class Neo4jDB(object):
 			rb.append(CypherJob(query))
 
 		nodes = []
-		for node in rb.submit():
+		for node in self._run_read_batch(rb):
 			if node is not None:
 				nodes.append(node)
 		return nodes
 
 	def update_node(self, obj, properties=_marker):
-		node = self._get_node(obj, raw=True, props=False)
+		node = self._get_node(obj, props=False)
 		if node is not None and properties != _marker:
 			node.update(properties)
 			self.graph.push(node)
@@ -292,7 +298,7 @@ class Neo4jDB(object):
 			wb = WriteBatch(self.graph)
 			wb.isolate(node)
 			wb.delete(node)
-			responses = wb.submit()
+			responses = wb.run()
 			return responses[1] is None
 		return False
 
@@ -310,7 +316,7 @@ class Neo4jDB(object):
 			query = _match_node_query(pk.label, pk.key, pk.value)
 			rb.append(CypherJob(query))
 
-		for node in rb.submit():
+		for node in self._run_read_batch(rb):
 			if node is not None:
 				nodes.append(node)
 
@@ -321,7 +327,7 @@ class Neo4jDB(object):
 			wb.delete(node)
 
 		result = 0
-		responses = wb.submit()
+		responses = wb.run()
 		for idx in range(1, len(responses), 2):
 			if responses[idx] is None:
 				result += 1
