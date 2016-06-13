@@ -9,7 +9,6 @@
 	<include package="zope.component" />
 	<include package="zope.security" />
 
-	<!--
 	<class class="py2neo.Node">
 		<implements interface=".interfaces.INeo4jNode" />
 	</class>
@@ -17,6 +16,5 @@
 	<class class="py2neo.Relationship">
 		<implements interface=".interfaces.INeo4jRelationship" />
 	</class>
-	-->
 	
 </configure>

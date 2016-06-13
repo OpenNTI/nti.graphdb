@@ -14,13 +14,13 @@ import six
 import numbers
 import ConfigParser
 # from collections import Mapping
-#
-# from zope import component
+
+from zope import component
 from zope import interface
-#
+
 from py2neo import Node
 from py2neo import Graph
-# from py2neo import Relationship
+from py2neo import Relationship
 
 # from py2neo.neo4j import CypherJob
 
@@ -32,7 +32,9 @@ from py2neo.ext.batman.jobs import CypherJob
 #
 # from py2neo import node as node4j
 from py2neo.database import GraphError
-#
+
+from py2neo.types import remote
+
 from nti.common.representation import WithRepr
 #
 from nti.graphdb.common import get_node_pk
@@ -48,9 +50,11 @@ from nti.graphdb.neo4j.node import Neo4jNode
 # from nti.graphdb.neo4j.interfaces import INeo4jNode
 # from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
 #
-# from nti.graphdb.neo4j.relationship import Neo4jRelationship
+from nti.graphdb.neo4j.relationship import Neo4jRelationship
 #
 from nti.schema.schema import EqHash
+
+_marker = object()
 
 def _is_404(ex):
 	response = getattr(ex, 'response', None)
@@ -70,6 +74,17 @@ def _match_node_query(label, key, value):
 	result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
 	return result.strip()
 
+def _create_unique_rel_query(start_id, end_id, rel_type, bidirectional=False):
+	direction = '-' if bidirectional else '->'
+	result = """
+	MATCH (a)
+	WHERE id(a)=%s
+	MATCH (b)
+	WHERE id(b)=%s
+	CREATE UNIQUE (a)-[r:%s]%s(b)
+	RETURN r""" % (start_id, end_id, rel_type, direction)
+	return result.strip()
+
 def _merge_rel_query(start_id, end_id, rel_type, bidirectional=False):
 	direction = '-' if bidirectional else '->'
 	result = """
@@ -81,26 +96,23 @@ def _merge_rel_query(start_id, end_id, rel_type, bidirectional=False):
 	RETURN r""" % (start_id, end_id, rel_type, direction)
 	return result.strip()
 
-def _match_rel_query(key, value, rel_type=None, start_id=None, end_id=None,
-					 bidirectional=False):
-	result = ""
+def _match_rel_query(key, value, rel_type=None, start_id=None, end_id=None, bidirectional=False):
 	direction = '-' if bidirectional else '->'
 	if start_id is not None:
-		result += "MATCH (a) WHERE id(a)=%s " % start_id
+		result = "MATCH (a) WHERE id(a)=%s " % start_id
 	if end_id is not None:
-		result += "MATCH (b) WHERE id(b)=%s " % end_id
+		result = "MATCH (b) WHERE id(b)=%s " % end_id
 	if rel_type:
-		result += "MATCH p=(a)-[:%s {%s:%s}]%s(b) RETURN p" % (rel_type, key, value, direction)
+		result = "MATCH p=(a)-[:%s {%s:%s}]%s(b) RETURN p" % (rel_type, key, value, direction)
 	else:
-		result += "MATCH p=(a)-[ {%s:%s}]%s(b) RETURN p" % (key, value, direction)
+		result = "MATCH p=(a)-[ {%s:%s}]%s(b) RETURN p" % (key, value, direction)
 	return result
 
 def _isolate(self, node):
-	query = "START a=node(%s) MATCH a-[r]-b DELETE r" % node._id
+	remote_node = remote(node) or node
+	query = "START a=node(%s) MATCH a-[r]-b DELETE r" % remote_node._id
 	self.append(CypherJob(query))
 WriteBatch.isolate = _isolate
-
-_marker = object()
 
 @WithRepr
 @EqHash('url')
@@ -137,8 +149,21 @@ class Neo4jDB(object):
 	def _reinit(self):
 		self._v_graph = None
 
-	def _create_node(self, obj, key=None, value=None, label=None,
-					 properties=None, props=False):
+	def _create_unique_node(self, label, key, value, properties=None):
+		wb = WriteBatch(self.graph)
+		query = _merge_node_query(label, key,value)
+		wb.append(CypherJob(query))
+		if properties:
+			query = _set_properties_query(label, key, value)
+			wb.append(CypherJob(query, parameters={"props":properties}))
+
+		created = wb.run()
+		result = created[0]
+		if result is not None and isinstance(result, Node):
+			return result
+		return None
+
+	def _create_node(self, obj, key=None, value=None, label=None, properties=None):
 		# Get object properties
 		properties = dict(properties or {})
 		properties.update(IPropertyAdapter(obj))
@@ -149,20 +174,14 @@ class Neo4jDB(object):
 
 		pk = get_node_pk(obj)
 		if pk is not None:
-			result = self.graph.merge_one(label, pk.key, pk.value)
-			result.properties.update(properties)
-			result.push()
-			if props:  # refresh
-				self.graph.pull(result)
+			result = self._create_unique_node(pk.label, pk.key, pk.value, properties)
 		else:
-			node = Node(label, **properties)
-			result = self.graph.create(node)[0]
+			result = node = Node(label, **properties)
+			self.graph.create(node)
 		return result
 
-	def create_node(self, obj, label=None, properties=None, key=None,
-					value=None, raw=False, props=True):
-		result = self._create_node(obj, label=label, properties=properties,
-									key=key, value=value, props=props)
+	def create_node(self, obj, label=None, properties=None, key=None, value=None, raw=False):
+		result = self._create_node(obj, label=label,properties=properties, key=key, value=value)
 		result = Neo4jNode.create(result) if not raw else result
 		return result
 
@@ -182,8 +201,7 @@ class Neo4jDB(object):
 				abstract = Node(label, **properties)
 				wb.create(abstract)
 		result = []
-		created = wb.submit()
-		for n in created:
+		for n in wb.run():
 			if n is not None and isinstance(n, Node):
 				result.append(Neo4jNode.create(n))
 		return result
@@ -308,37 +326,39 @@ class Neo4jDB(object):
 			if responses[idx] is None:
 				result += 1
 		return result
-#
-# 	# relationships
-#
-# 	@classmethod
-# 	def _rel_properties(cls, start, end, rel_type):
-# 		result = component.queryMultiAdapter((start, end, rel_type), IPropertyAdapter)
-# 		return result or {}
-#
-# 	def _create_relationship(self, start, end, rel_type, properties=None, unique=True):
-# 		# neo4j nodes
-# 		n4j_end = self.get_or_create_node(end, raw=True, props=False)
-# 		n4j_start = self.get_or_create_node(start, raw=True, props=False)
-#
-# 		# properties
-# 		props = dict(self._rel_properties(start, end, rel_type))
-# 		props.update(properties or {})
-# 		properties = props
-# 		if unique:
-# 			result = Relationship(n4j_start, str(rel_type), n4j_end, **properties)
-# 			result = self.graph.create_unique(result)[0]
-# 		else:
-# 			result = Relationship(n4j_start, str(rel_type), n4j_end, **properties)
-# 			result = self.graph.create(result)[0]
-# 		return result
-#
-# 	def create_relationship(self, start, end, rel_type, properties=None,
-# 							unique=True, raw=False):
-# 		result = self._create_relationship(start, end, rel_type, properties, unique=unique)
-# 		result = Neo4jRelationship.create(result) if not raw else result
-# 		return result
-#
+
+	# relationships
+
+	@classmethod
+	def _rel_properties(cls, start, end, rel_type):
+		result = component.queryMultiAdapter((start, end, rel_type), IPropertyAdapter)
+		return result or {}
+
+	def _create_relationship(self, start, end, rel_type, properties=None, unique=True):
+		# neo4j nodes
+		n4j_end = self.get_or_create_node(end, raw=True, props=False)
+		n4j_start = self.get_or_create_node(start, raw=True, props=False)
+
+		# properties
+		props = dict(self._rel_properties(start, end, rel_type))
+		props.update(properties or {})
+		properties = props
+		if unique:
+			result = Relationship(n4j_start, str(rel_type), n4j_end)
+			result = _create_unique_rel_query(n4j_start._id, n4j_end._id, str(rel_type))
+			# TODO: Fix result
+			result = self.graph.create_unique(result)[0]
+		else:
+			result = Relationship(n4j_start, str(rel_type), n4j_end, **properties)
+			result = self.graph.create(result)[0]
+		return result
+
+	def create_relationship(self, start, end, rel_type, properties=None,
+							unique=True, raw=False):
+		result = self._create_relationship(start, end, rel_type, properties, unique=unique)
+		result = Neo4jRelationship.create(result) if not raw else result
+		return result
+
 # 	def _get_relationship(self, obj, props=True):
 # 		result = None
 # 		try:

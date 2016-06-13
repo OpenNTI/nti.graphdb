@@ -45,7 +45,7 @@ class Neo4jNode(SchemaConfigured):
 							   properties=dict(node.properties))
 		elif INeo4jNode.providedBy(node):
 			remote_node = remote(node) or node
-			labels = list(node.labels or ())
+			labels = list(node.labels() or ())
 			result = Neo4jNode(id=unicode(remote_node._id),
 							   uri=unicode(remote_node.uri.string),
 							   label=labels[0] if labels else None)

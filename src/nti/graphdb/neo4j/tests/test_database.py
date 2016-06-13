@@ -47,6 +47,7 @@ class TestNeo4jDB(GraphDBTestCase):
 
 	@WithMockDSTrans
 	def test_node_funcs(self):
+		# from IPython.core.debugger import Tracer; Tracer()()
 		username = random_username()
 		user = self._create_user(username)
 		node = self.db.create_node(user)
@@ -79,7 +80,7 @@ class TestNeo4jDB(GraphDBTestCase):
 		assert_that(node, is_not(none()))
 
 		nodes = self.db.get_indexed_nodes(("User", 'username', user.username),
-										   ("User", 'username', user2.username))
+										  ("User", 'username', user2.username))
 		assert_that(nodes, has_length(2))
 
 		props = dict(node.properties)
@@ -101,7 +102,7 @@ class TestNeo4jDB(GraphDBTestCase):
 		assert_that(res, is_(1))
 
 	@WithMockDSTrans
-	def test_relationship_funcs(self):
+	def _test_relationship_funcs(self):
 		user1 = random_username()
 		user1 = self._create_user(user1)
 		node1 = self.db.create_node(user1)
@@ -151,12 +152,12 @@ class TestNeo4jDB(GraphDBTestCase):
 		rel_type = 'BROTHER_OF'
 		rels = self.db.match(start=node1, end=node2, rel_type=rel_type)
 		assert_that(rels, has_length(1))
-		
+
 		splits = unicode(uuid.uuid4()).split('-')
 		key, value = splits[-1], splits[0]
 		params = ("x%s" % splits[-3], splits[-1])
-		
-		res = self.db.update_relationship(rels[0], {params[0]:params[1],'a':2})
+
+		res = self.db.update_relationship(rels[0], {params[0]:params[1], 'a':2})
 		assert_that(res, is_(True))
 
 		res = self.db.index_relationship(rels[0], key, value)
@@ -169,7 +170,7 @@ class TestNeo4jDB(GraphDBTestCase):
 
 		res = self.db.get_indexed_relationships(key, value)
 		assert_that(res, has_length(0))
-		
+
 		res = self.db.find_relationships(params[0], params[1], rel_type)
 		assert_that(res, has_length(1))
 
