@@ -158,7 +158,7 @@ class Neo4jDB(object):
 			wb.append(CypherJob(query, parameters={"props":properties}))
 
 		created = wb.run()
-		result = created[0]
+		result = created[0] if created else None
 		if result is not None and isinstance(result, Node):
 			return result
 		return None
