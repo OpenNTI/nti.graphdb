@@ -108,8 +108,6 @@ class TestNeo4jDB(GraphDBTestCase):
 		user2 = random_username()
 		user2 = self._create_user(user2)
 		node2 = self.db.create_node(user2)
-		# from IPython.core.debugger import Tracer; Tracer()()
-		return
 		rel = self.db.create_relationship(user1, user2, "IS_FRIEND_OF")
 
 		assert_that(rel, is_not(none()))
@@ -119,6 +117,8 @@ class TestNeo4jDB(GraphDBTestCase):
 		assert_that(rel, has_property('start', is_not(none())))
 		assert_that(rel, has_property('type', is_not(none())))
 
+		# from IPython.core.debugger import Tracer; Tracer()()
+		return
 		res = self.db.get_relationship(rel.id)
 		assert_that(res, is_not(none()))
 

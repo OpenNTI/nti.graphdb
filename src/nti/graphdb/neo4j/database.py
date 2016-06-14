@@ -145,15 +145,16 @@ class Neo4jDB(object):
 		self._v_graph = None
 
 	def _create_unique_node(self, label, key, value, properties=None):
-		wb = WriteBatch(self.graph)
+		# prepre query
 		query = _merge_node_query(label, key,value)
+		# prepare batch job
+		wb = WriteBatch(self.graph)
 		wb.append(CypherJob(query))
 		if properties:
 			query = _set_properties_query(label, key, value)
 			wb.append(CypherJob(query, parameters={"props":properties}))
-
-		created = wb.run()
-		result = created[0] if created else None
+		# run cypher query
+		result = wb.run()[0]
 		if result is not None and isinstance(result, Node):
 			return result
 		return None
@@ -308,7 +309,6 @@ class Neo4jDB(object):
 
 	def delete_nodes(self, *objs):
 		nodes = []
-
 		# get all the nodes at once
 		rb = ReadBatch(self.graph)
 		for o in objs:
@@ -340,23 +340,40 @@ class Neo4jDB(object):
 		result = component.queryMultiAdapter((start, end, rel_type), IPropertyAdapter)
 		return result or {}
 
+	def _create_unique_relationship(self, start, end, rel_type, properties=None,
+									bidirectional=False):
+		# prepare query
+		end = remote(end) or end
+		start = remote(start) or start
+		query = _create_unique_rel_query(start._id, end._id, rel_type, bidirectional)
+		# run cyper query 
+		wb = WriteBatch(self.graph)
+		wb.append(CypherJob(query))
+		relationship = wb.run()[0]
+		relationship = relationship if isinstance(relationship, Relationship) else None
+		# update properties
+		if relationship is not None and properties:
+			relationship.update(properties)
+			self.graph.push(relationship)
+		return relationship
+
 	def _create_relationship(self, start, end, rel_type, properties=None, unique=True):
-		# neo4j nodes
+		# get or create nodes
 		n4j_end = self.get_or_create_node(end, raw=True, props=False)
 		n4j_start = self.get_or_create_node(start, raw=True, props=False)
-
-		# properties
+		# capture properties
 		props = dict(self._rel_properties(start, end, rel_type))
 		props.update(properties or {})
 		properties = props
+		# create
 		if unique:
-			result = Relationship(n4j_start, str(rel_type), n4j_end)
-			result = _create_unique_rel_query(n4j_start._id, n4j_end._id, str(rel_type))
-			# TODO: Fix result
-			result = self.graph.create_unique(result)[0]
+			result = self._create_unique_relationship(n4j_start, 
+													  n4j_end, 
+													  str(rel_type),
+													  properties)
 		else:
 			result = Relationship(n4j_start, str(rel_type), n4j_end, **properties)
-			result = self.graph.create(result)[0]
+			self.graph.create(result)
 		return result
 
 	def create_relationship(self, start, end, rel_type, properties=None,
