@@ -14,20 +14,23 @@ from zope import component
 from nti.async import create_job
 from nti.async import get_job_queue as async_queue
 
+from nti.externalization.interfaces import StandardExternalFields
+from nti.externalization.interfaces import StandardInternalFields
+
 from nti.graphdb.interfaces import IGraphDB
 from nti.graphdb.interfaces import IGraphDBQueueFactory
 
 #: OID field
-OID = 'oid'
+OID = StandardExternalFields.OID.lower()
 
 #: NTIID field
-NTIID = 'ntiid'
+NTIID = StandardExternalFields.NTIID.lower()
 
 #: IntId field
-INTID = 'intid'
+INTID = StandardExternalFields.INTID.lower()
 
 #: CreatedTime field
-CREATED_TIME = 'createdTime'
+CREATED_TIME = StandardInternalFields.CREATED_TIME
 
 #: Redis queue name
 QUEUE_NAME = "++etc++graphdb++queue"
