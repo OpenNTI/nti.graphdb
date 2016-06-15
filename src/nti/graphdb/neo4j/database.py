@@ -45,6 +45,7 @@ from nti.graphdb.interfaces import IGraphRelationship
 
 from nti.graphdb.neo4j.interfaces import INeo4jNode
 from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
+from nti.graphdb.neo4j.interfaces import INeo4jRelationship
 
 from nti.graphdb.neo4j.node import Neo4jNode
 
@@ -499,40 +500,42 @@ class Neo4jDB(object):
 			return True
 		return False
 
-# 	def _find_relationships(self, key, value, rel_type=None, start=None, end=None,
-# 							bidirectional=False):
-# 		# get nodes
-# 		n4j_type = str(rel_type) if rel_type is not None else None
-# 		n4j_end = self._get_node(end, False) if end is not None else None
-# 		n4j_start = self._get_node(start, False) if start is not None else None
-#
-# 		if isinstance(value, six.string_types):
-# 			value = value if value.endswith("'") else "%s'" % value
-# 			value = value if value.startswith("'") else "'%s" % value
-#
-# 		n4j_end = getattr(n4j_end, '_id', None)
-# 		n4j_start = getattr(n4j_start, '_id', None)
-#
-# 		# construct query
-# 		result = []
-# 		query = _match_rel_query(key, value,
-# 								 rel_type=n4j_type,
-# 								 start_id=n4j_start,
-# 								 end_id=n4j_end,
-# 								 bidirectional=bidirectional)
-# 		records = self.graph.cypher.execute(query)
-# 		for record in records:
-# 			rel = record.p.relationships[0]  # p is the path returned
-# 			result.append(rel)
-# 		return result
-#
-# 	def find_relationships(self, key, value, rel_type=None, start=None, end=None,
-# 						   bidirectional=False, raw=False):
-# 		result = self._find_relationships(key, value, rel_type=rel_type, start=start,
-# 										  end=start, bidirectional=bidirectional)
-# 		result = [Neo4jRelationship.create(x) for x in result] \
-# 				 if not raw else result
-# 		return result
+	def _find_relationships(self, key, value, rel_type=None, start=None, end=None,
+							bidirectional=False):
+		# get nodes
+		n4j_type = str(rel_type) if rel_type is not None else None
+		n4j_end = self._get_node(end, False) if end is not None else None
+		n4j_start = self._get_node(start, False) if start is not None else None
+
+		if isinstance(value, six.string_types):
+			value = value if value.endswith("'") else "%s'" % value
+			value = value if value.startswith("'") else "'%s" % value
+
+		# get remote node ids
+		n4j_end = remote(n4j_end) if n4j_end is not None else n4j_end
+		n4j_start = remote(n4j_start) if n4j_start is not None else n4j_start
+		n4j_end = getattr(n4j_end, '_id', None)
+		n4j_start = getattr(n4j_start, '_id', None)
+
+		# construct query
+		result = []
+		query = _match_rel_query(key, value,
+								 rel_type=n4j_type,
+								 start_id=n4j_start,
+								 end_id=n4j_end,
+								 bidirectional=bidirectional)
+		records = self.graph.evaluate(query)
+		for record in records or ():
+			if INeo4jRelationship.providedBy(record):
+				result.append(record)
+		return result
+
+	def find_relationships(self, key, value, rel_type=None, start=None, end=None,
+						   bidirectional=False, raw=False):
+		result = self._find_relationships(key, value, rel_type=rel_type, start=start,
+										  end=start, bidirectional=bidirectional)
+		result = [Neo4jRelationship.create(x) for x in result] if not raw else result
+		return result
 
 	# index
 

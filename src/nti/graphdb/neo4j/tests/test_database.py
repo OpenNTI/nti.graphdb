@@ -46,7 +46,7 @@ class TestNeo4jDB(GraphDBTestCase):
 		return user
 
 	@WithMockDSTrans
-	def _test_node_funcs(self):
+	def test_node_funcs(self):
 		username = random_username()
 		user = self._create_user(username)
 		node = self.db.create_node(user)
@@ -168,9 +168,7 @@ class TestNeo4jDB(GraphDBTestCase):
 
 		res = self.db.get_indexed_relationships(key, value)
 		assert_that(res, has_length(0))
-
-		#from IPython.core.debugger import Tracer; Tracer()()
-		return
+		
 		res = self.db.find_relationships(params[0], params[1], rel_type)
 		assert_that(res, has_length(1))
 
