@@ -13,7 +13,7 @@ import os
 import six
 import numbers
 import ConfigParser
-# from collections import Mapping
+from collections import Mapping
 
 from zope import component
 from zope import interface
@@ -38,15 +38,15 @@ from nti.graphdb.interfaces import IGraphDB
 from nti.graphdb.interfaces import IGraphNode
 from nti.graphdb.interfaces import ILabelAdapter
 from nti.graphdb.interfaces import IPropertyAdapter
-# from nti.graphdb.interfaces import IGraphRelationship
-#
+from nti.graphdb.interfaces import IGraphRelationship
+
+from nti.graphdb.neo4j.interfaces import INeo4jNode
+from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
+
 from nti.graphdb.neo4j.node import Neo4jNode
-#
-# from nti.graphdb.neo4j.interfaces import INeo4jNode
-# from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
-#
+
 from nti.graphdb.neo4j.relationship import Neo4jRelationship
-#
+
 from nti.schema.schema import EqHash
 
 _marker = object()
@@ -382,113 +382,112 @@ class Neo4jDB(object):
 		result = Neo4jRelationship.create(result) if not raw else result
 		return result
 
-# 	def _get_relationship(self, obj, props=True):
-# 		result = None
-# 		try:
-# 			if isinstance(obj, Relationship):
-# 				result = obj
-# 			elif isinstance(obj, (six.string_types, numbers.Number)):
-# 				result = self.graph.relationship(str(obj))
-# 			elif isinstance(obj, Neo4jRelationship) and obj.neo is not None:
-# 				result = obj.neo
-# 			elif IGraphRelationship.providedBy(obj):
-# 				result = self.graph.relationship(obj.id)
-# 			if result is not None and props:
-# 				result.pull()
-# 		except GraphError as e:
-# 			if not _is_404(e):
-# 				raise e
-# 			result = None
-# 		return result
-#
-# 	def get_relationship(self, obj, raw=False):
-# 		result = self._get_relationship(obj)
-# 		result = Neo4jRelationship.create(result) \
-# 				 if result is not None and not raw else result
-# 		return result
-#
-# 	relationship = get_relationship
-#
-# 	def _match(self, start_node=None, end_node=None, rel_type=None,
-# 				  bidirectional=False, limit=None, loose=False):
-# 		n4j_type = str(rel_type) if rel_type is not None else None
-# 		n4j_end = self._get_node(end_node, False) if end_node is not None else None
-# 		n4j_start = self._get_node(start_node, False) if start_node is not None else None
-# 		if not loose and (n4j_type is None or n4j_start is None or n4j_end is None):
-# 			result = ()
-# 		else:
-# 			result = self.graph.match(n4j_start, n4j_type, n4j_end, bidirectional, limit)
-# 		return result
-#
-# 	def match(self, start=None, end=None, rel_type=None, bidirectional=False,
-# 			  limit=None, raw=False, loose=False):
-# 		result = self._match(start_node=start,
-# 							 end_node=end,
-# 							 rel_type=rel_type,
-# 							 bidirectional=bidirectional,
-# 							 limit=limit,
-# 							 loose=loose)
-# 		result = [Neo4jRelationship.create(x) for x in result or ()] \
-# 				 if not raw else result
-# 		return result or ()
-#
-# 	def create_relationships(self, *rels):
-# 		wb = WriteBatch(self.graph)
-# 		for rel in rels:
-# 			assert isinstance(rel, (tuple, list)) and len(rel) >= 3, 'invalid tuple'
-#
-# 			# get relationship type
-# 			rel_type = rel[1]
-# 			assert rel_type, 'invalid relationship type'
-#
-# 			# get nodes
-# 			end = rel[2]  # end node
-# 			start = rel[0]  # start node
-# 			for n in (start, end):
-# 				assert INeo4jNode.providedBy(n) or IGraphNodeNeo4j.providedBy(n)
-#
-# 			end = end if INeo4jNode.providedBy(end) else end.neo
-# 			start = start if INeo4jNode.providedBy(start) else start.neo
-#
-# 			# get properties
-# 			properties = {} if len(rel) < 4 or rel[3] is None  else rel[3]
-# 			assert isinstance(properties, Mapping)
-#
-# 			# get unique
-# 			unique = False if len(rel) < 5 or rel[4] is None else rel[4]
-# 			if not unique:
-# 				rel = Relationship(start, str(rel_type), end, **properties)
-# 				wb.create(rel)
-# 			else:
-# 				query = _merge_rel_query(start._id, end._id, rel_type)
-# 				wb.append(CypherJob(query))  # Parameter maps cannot be used in MERGE patterns
-#
-# 		result = wb.submit()
-# 		return result
-#
-# 	def delete_relationships(self, *objs):
-# 		# collect node4j rels
-# 		rels = [self._get_relationship(x, False) for x in objs]
-#
-# 		wb = WriteBatch(self.graph)
-# 		for rel in rels:
-# 			if rel is not None:
-# 				wb.delete(rel)
-# 		wb.submit()
-#
-# 		result = True if rels else False
-# 		return result
-#
-# 	delete_relationship = delete_relationships
-#
-# 	def update_relationship(self, obj, properties=_marker):
-# 		rel = self._get_relationship(obj)
-# 		if rel is not None and properties != _marker:
-# 			rel.properties.update(properties)
-# 			rel.push()
-# 			return True
-# 		return False
-#
+	def _get_relationship(self, obj, props=True):
+		result = None
+		try:
+			if isinstance(obj, Relationship):
+				result = obj
+			elif isinstance(obj, (six.string_types, numbers.Number)):
+				result = self.graph.relationship(str(obj))
+			elif isinstance(obj, Neo4jRelationship) and obj.neo is not None:
+				result = obj.neo
+			elif IGraphRelationship.providedBy(obj):
+				result = self.graph.relationship(obj.id)
+			if result is not None and props:
+				self.graph.pull(result)
+		except GraphError as e:
+			if not _is_404(e):
+				raise e
+			result = None
+		return result
+
+	def get_relationship(self, obj, raw=False):
+		result = self._get_relationship(obj)
+		result = Neo4jRelationship.create(result) if result is not None and not raw else result
+		return result
+
+	relationship = get_relationship
+
+	def _match(self, start_node=None, end_node=None, rel_type=None,
+			   bidirectional=False, limit=None, loose=False):
+		n4j_type = str(rel_type) if rel_type is not None else None
+		n4j_end = self._get_node(end_node, False) if end_node is not None else None
+		n4j_start = self._get_node(start_node, False) if start_node is not None else None
+		if not loose and (n4j_type is None or n4j_start is None or n4j_end is None):
+			result = ()
+		else:
+			result = self.graph.match(n4j_start, n4j_type, n4j_end, bidirectional, limit)
+		return result
+
+	def match(self, start=None, end=None, rel_type=None, bidirectional=False,
+			  limit=None, raw=False, loose=False):
+		result = self._match(start_node=start,
+							 end_node=end,
+							 rel_type=rel_type,
+							 bidirectional=bidirectional,
+							 limit=limit,
+							 loose=loose)
+		result = [Neo4jRelationship.create(x) for x in result or ()] if not raw else result
+		return result or ()
+
+	def create_relationships(self, *rels):
+		wb = WriteBatch(self.graph)
+		for rel in rels:
+			assert isinstance(rel, (tuple, list)) and len(rel) >= 3, 'Invalid tuple'
+
+			# get relationship type
+			rel_type = rel[1]
+			assert rel_type, 'Invalid relationship type'
+
+			# get nodes
+			end = rel[2]  # end node
+			start = rel[0]  # start node
+			for n in (start, end):
+				assert INeo4jNode.providedBy(n) or IGraphNodeNeo4j.providedBy(n)
+
+			end = end if INeo4jNode.providedBy(end) else end.neo
+			start = start if INeo4jNode.providedBy(start) else start.neo
+
+			# get properties
+			properties = {} if len(rel) < 4 or rel[3] is None  else rel[3]
+			assert isinstance(properties, Mapping)
+
+			# get unique
+			unique = False if len(rel) < 5 or rel[4] is None else rel[4]
+			if not unique:
+				rel = Relationship(start, str(rel_type), end, **properties)
+				wb.create(rel)
+			else:
+				end = remote(end) or end
+				start = remote(start) or start
+				query = _merge_rel_query(start._id, end._id, rel_type)
+				wb.append(CypherJob(query))  # Parameter maps cannot be used in MERGE patterns
+
+		result = wb.run()
+		return result
+
+	def delete_relationships(self, *objs):
+		# collect node4j rels
+		rels = [self._get_relationship(x, False) for x in objs]
+		# prepare and execute 
+		wb = WriteBatch(self.graph)
+		for rel in rels:
+			if rel is not None:
+				wb.delete(rel)
+		deleted = wb.run()
+		result = bool(deleted)
+		return result
+
+	delete_relationship = delete_relationships
+
+	def update_relationship(self, obj, properties=_marker):
+		rel = self._get_relationship(obj)
+		if rel is not None and properties != _marker:
+			rel.update(properties)
+			self.graph.push(rel)
+			return True
+		return False
+
 # 	def _find_relationships(self, key, value, rel_type=None, start=None, end=None,
 # 							bidirectional=False):
 # 		# get nodes
