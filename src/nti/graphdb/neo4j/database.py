@@ -525,30 +525,29 @@ class Neo4jDB(object):
 #
 # 	# index
 #
-# 	def _get_or_create_index(self, abstract=Relationship, name="PKIndex"):
-# 		return self.graph.legacy.get_or_create_index(abstract, name)
-#
-# 	def _index_entity(self, key, value, entity, abstract=Relationship):
-# 		if entity is not None:
-# 			index = self._get_or_create_index(abstract=abstract)
-# 			index.add(key, value, entity)
-# 			return True
-# 		return False
-#
-# 	def index_relationship(self, rel, key, value):
-# 		rel = self._get_relationship(rel, False)
-# 		result = self._index_entity(key, value, rel)
-# 		return result
-#
-# 	def get_indexed_relationships(self, key, value, raw=False):
-# 		index = self._get_or_create_index()
-# 		result = index.get(key, value)
-# 		result = [Neo4jRelationship.create(x) for x in result or ()] \
-# 				  if not raw else result
-# 		return result
-#
-# 	def unindex_relationship(self, key, value, rel=None):
-# 		rel = self._get_relationship(rel, False) if rel is not None else None
-# 		index = self._get_or_create_index()
-# 		result = index.remove(key, value, rel)
-# 		return result
+	def _get_or_create_index(self, abstract=Relationship, name="PKIndex"):
+		return self.graph.legacy.get_or_create_index(abstract, name)
+
+	def _index_entity(self, key, value, entity, abstract=Relationship):
+		if entity is not None:
+			index = self._get_or_create_index(abstract=abstract)
+			index.add(key, value, entity)
+			return True
+		return False
+
+	def index_relationship(self, rel, key, value):
+		rel = self._get_relationship(rel, False)
+		result = self._index_entity(key, value, rel)
+		return result
+
+	def get_indexed_relationships(self, key, value, raw=False):
+		index = self._get_or_create_index()
+		result = index.get(key, value)
+		result = [Neo4jRelationship.create(x) for x in result or ()] if not raw else result
+		return result
+
+	def unindex_relationship(self, key, value, rel=None):
+		rel = self._get_relationship(rel, False) if rel is not None else None
+		index = self._get_or_create_index()
+		result = index.remove(key, value, rel)
+		return result
