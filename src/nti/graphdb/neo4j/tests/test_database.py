@@ -116,7 +116,7 @@ class TestNeo4jDB(GraphDBTestCase):
 		assert_that(rel, has_property('end', is_not(none())))
 		assert_that(rel, has_property('start', is_not(none())))
 		assert_that(rel, has_property('type', is_not(none())))
-		
+
 		res = self.db.get_relationship(rel.id)
 		assert_that(res, is_not(none()))
 
@@ -141,7 +141,7 @@ class TestNeo4jDB(GraphDBTestCase):
 
 		rels = self.db.match(start=node1, end=node2, rel_type=rel_type)
 		assert_that(rels, has_length(0))
-		
+
 		rels = [ (node1, 'BROTHER_OF', node2, {}, True),
 				 (node2, 'FAMILY_OF', node1, {'a':1}, False) ]
 		res = self.db.create_relationships(*rels)
@@ -157,8 +157,7 @@ class TestNeo4jDB(GraphDBTestCase):
 
 		res = self.db.update_relationship(rels[0], {params[0]:params[1], 'a':2})
 		assert_that(res, is_(True))
-		from IPython.core.debugger import Tracer; Tracer()()
-		
+
 		res = self.db.index_relationship(rels[0], key, value)
 		assert_that(res, is_(True))
 
@@ -166,10 +165,12 @@ class TestNeo4jDB(GraphDBTestCase):
 		assert_that(res, has_length(1))
 
 		self.db.unindex_relationship(key, value)
-		return
+
 		res = self.db.get_indexed_relationships(key, value)
 		assert_that(res, has_length(0))
 
+		#from IPython.core.debugger import Tracer; Tracer()()
+		return
 		res = self.db.find_relationships(params[0], params[1], rel_type)
 		assert_that(res, has_length(1))
 

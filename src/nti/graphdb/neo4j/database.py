@@ -26,6 +26,9 @@ from py2neo.database import GraphError
 
 from py2neo.ext.batman import ReadBatch
 from py2neo.ext.batman import WriteBatch
+
+from py2neo.ext.batman.index import ManualIndexManager
+
 from py2neo.ext.batman.jobs import CypherJob
 
 from py2neo.types import remote
@@ -115,6 +118,7 @@ WriteBatch.isolate = _isolate
 class Neo4jDB(object):
 
 	_v_graph = None
+	_v_index_manager = None
 
 	def __init__(self, url=None, username=None, password=None, config=None):
 		self.url = url
@@ -141,8 +145,15 @@ class Neo4jDB(object):
 		return self._v_graph
 	db = graph
 
+	@property
+	def index_manager(self):
+		if self._v_index_manager is None:
+			self._v_index_manager = ManualIndexManager(self.graph)
+		return self._v_index_manager
+	
 	def _reinit(self):
 		self._v_graph = None
+		self._v_index_manager = None
 
 	def _create_unique_node(self, label, key, value, properties=None):
 		# prepre query
@@ -522,15 +533,15 @@ class Neo4jDB(object):
 # 		result = [Neo4jRelationship.create(x) for x in result] \
 # 				 if not raw else result
 # 		return result
-#
-# 	# index
-#
-	def _get_or_create_index(self, abstract=Relationship, name="PKIndex"):
-		return self.graph.legacy.get_or_create_index(abstract, name)
 
-	def _index_entity(self, key, value, entity, abstract=Relationship):
+	# index
+
+	def _get_or_create_index(self, name="PKIndex", content_type=Relationship):
+		return self.index_manager.get_or_create_index(Relationship, name)
+
+	def _index_entity(self, key, value, entity, content_type=Relationship):
 		if entity is not None:
-			index = self._get_or_create_index(abstract=abstract)
+			index = self._get_or_create_index(content_type=content_type)
 			index.add(key, value, entity)
 			return True
 		return False
