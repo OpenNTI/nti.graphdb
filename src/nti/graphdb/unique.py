@@ -15,7 +15,6 @@ from zope import interface
 from zope.intid import IIntIds
 
 from nti.common.property import Lazy
-from nti.common.representation import WithRepr
 
 from nti.contentlibrary.interfaces import IContentUnit
 
@@ -27,6 +26,8 @@ from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 from nti.dataserver.interfaces import IEntity
 from nti.dataserver.interfaces import IUseNTIIDAsExternalUsername
 from nti.dataserver.interfaces import IDynamicSharingTargetFriendsList
+
+from nti.externalization.representation import WithRepr
 
 from nti.graphdb import OID
 from nti.graphdb import NTIID

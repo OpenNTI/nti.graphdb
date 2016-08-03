@@ -33,8 +33,6 @@ from py2neo.ext.batman.jobs import CypherJob
 
 from py2neo.types import remote
 
-from nti.common.representation import WithRepr
-
 from nti.graphdb.common import get_node_pk
 
 from nti.graphdb.interfaces import IGraphDB
@@ -50,6 +48,8 @@ from nti.graphdb.neo4j.interfaces import INeo4jRelationship
 from nti.graphdb.neo4j.node import Neo4jNode
 
 from nti.graphdb.neo4j.relationship import Neo4jRelationship
+
+from nti.externalization.representation import WithRepr
 
 from nti.schema.eqhash import EqHash
 

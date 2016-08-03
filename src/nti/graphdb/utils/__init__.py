@@ -11,9 +11,9 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
-from nti.common.representation import WithRepr
-
 from nti.graphdb.interfaces import IUniqueAttributeAdapter
+
+from nti.externalization.representation import WithRepr
 
 from nti.schema.eqhash import EqHash
 

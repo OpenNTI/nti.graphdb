@@ -14,7 +14,6 @@ from zope import interface
 from py2neo.types import remote
 
 from nti.common.property import alias
-from nti.common.representation import WithRepr
 
 from nti.graphdb.interfaces import IGraphRelationship
 
@@ -22,6 +21,8 @@ from nti.graphdb.neo4j.interfaces import INeo4jRelationship
 from nti.graphdb.neo4j.interfaces import IGraphRelationshipNeo4j
 
 from nti.graphdb.neo4j.node import Neo4jNode
+
+from nti.externalization.representation import WithRepr
 
 from nti.schema.eqhash import EqHash
 
