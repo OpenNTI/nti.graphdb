@@ -40,7 +40,7 @@ from nti.graphdb.relationships import MemberOf
 
 from nti.ntiids.ntiids import find_object_with_ntiid
 
-from nti.schema.schema import EqHash
+from nti.schema.eqhash import EqHash
 
 @EqHash('_from', '_to')
 class _Relationship(object):

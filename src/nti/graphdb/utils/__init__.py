@@ -15,7 +15,7 @@ from nti.common.representation import WithRepr
 
 from nti.graphdb.interfaces import IUniqueAttributeAdapter
 
-from nti.schema.schema import EqHash
+from nti.schema.eqhash import EqHash
 
 @WithRepr
 @EqHash('key', 'value')

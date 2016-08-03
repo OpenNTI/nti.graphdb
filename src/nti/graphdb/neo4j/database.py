@@ -51,7 +51,7 @@ from nti.graphdb.neo4j.node import Neo4jNode
 
 from nti.graphdb.neo4j.relationship import Neo4jRelationship
 
-from nti.schema.schema import EqHash
+from nti.schema.eqhash import EqHash
 
 _marker = object()
 

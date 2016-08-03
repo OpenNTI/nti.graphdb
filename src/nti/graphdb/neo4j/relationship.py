@@ -23,10 +23,11 @@ from nti.graphdb.neo4j.interfaces import IGraphRelationshipNeo4j
 
 from nti.graphdb.neo4j.node import Neo4jNode
 
-from nti.schema.field import SchemaConfigured
-from nti.schema.fieldproperty import createDirectFieldProperties
+from nti.schema.eqhash import EqHash
 
-from nti.schema.schema import EqHash
+from nti.schema.field import SchemaConfigured
+
+from nti.schema.fieldproperty import createDirectFieldProperties
 
 @WithRepr
 @EqHash('id')

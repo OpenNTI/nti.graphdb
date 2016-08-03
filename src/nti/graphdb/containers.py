@@ -41,7 +41,7 @@ from nti.graphdb.relationships import Contained
 
 from nti.ntiids.ntiids import find_object_with_ntiid
 
-from nti.schema.schema import EqHash
+from nti.schema.eqhash import EqHash
 
 @WithRepr
 @EqHash('id')
