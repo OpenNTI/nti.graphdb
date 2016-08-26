@@ -19,8 +19,6 @@ from zope.intid.interfaces import IIntIdRemovedEvent
 from zope.lifecycleevent.interfaces import IObjectAddedEvent
 from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 
-from nti.common.property import alias
-
 from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 
 from nti.dataserver.interfaces import IContained
@@ -39,6 +37,8 @@ from nti.graphdb.interfaces import IPropertyAdapter
 from nti.graphdb.relationships import Contained
 
 from nti.externalization.representation import WithRepr
+
+from nti.property.property import alias
 
 from nti.ntiids.ntiids import find_object_with_ntiid
 

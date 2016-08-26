@@ -12,14 +12,14 @@ from zope import interface
 
 from py2neo.types import remote
 
-from nti.common.property import alias
-
 from nti.graphdb.interfaces import IGraphNode
 
 from nti.graphdb.neo4j.interfaces import INeo4jNode
 from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
 
 from nti.externalization.representation import WithRepr
+
+from nti.property.property import alias
 
 from nti.schema.eqhash import EqHash
 

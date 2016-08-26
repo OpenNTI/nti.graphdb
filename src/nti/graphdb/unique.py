@@ -14,8 +14,6 @@ from zope import interface
 
 from zope.intid import IIntIds
 
-from nti.common.property import Lazy
-
 from nti.contentlibrary.interfaces import IContentUnit
 
 from nti.contenttypes.presentation.interfaces import IPresentationAsset
@@ -38,6 +36,8 @@ from nti.graphdb.common import get_ntiid
 
 from nti.graphdb.interfaces import IContainer
 from nti.graphdb.interfaces import IUniqueAttributeAdapter
+
+from nti.property.property import Lazy
 
 @WithRepr
 @component.adapter(interface.Interface)
