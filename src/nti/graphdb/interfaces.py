@@ -12,7 +12,7 @@ from zope import interface
 from dolmen.builtins import IDict
 from dolmen.builtins import IString
 
-from nti.dataserver_core.interfaces import IExternalService
+from nti.coremetadata.interfaces import IExternalService
 
 from nti.schema.field import Bool
 from nti.schema.field import Dict
