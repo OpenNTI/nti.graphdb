@@ -12,6 +12,8 @@ logger = __import__('logging').getLogger(__name__)
 from zope import component
 from zope import interface
 
+from zope.cachedescriptors.property import Lazy
+
 from zope.intid import IIntIds
 
 from nti.contentlibrary.interfaces import IContentUnit
@@ -37,7 +39,6 @@ from nti.graphdb.common import get_ntiid
 from nti.graphdb.interfaces import IContainer
 from nti.graphdb.interfaces import IUniqueAttributeAdapter
 
-from nti.property.property import Lazy
 
 @WithRepr
 @component.adapter(interface.Interface)
