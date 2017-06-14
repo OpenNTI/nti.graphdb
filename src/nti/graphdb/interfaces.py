@@ -9,8 +9,8 @@ __docformat__ = "restructuredtext en"
 
 from zope import interface
 
-from dolmen.builtins import IDict
-from dolmen.builtins import IString
+from nti.base.interfaces import IDict
+from nti.base.interfaces import IString
 
 from nti.coremetadata.interfaces import IExternalService
 
