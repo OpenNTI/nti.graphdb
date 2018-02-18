@@ -48,7 +48,7 @@ setup(
 	install_requires=[
 		'setuptools',
 		'py2neo',
-		'nti.async'
+		'nti.asynchronous',
 	],
 	extras_require={
 		'test': TESTS_REQUIRE,
