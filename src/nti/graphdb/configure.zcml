@@ -9,17 +9,18 @@
 	<include package="zope.component" />
 	<include package="zope.security" />
 
-	<!-- Generations -->
+	<!-- 
+	Generations
 	<utility factory=".generations.install._GraphDBSchemaManager"
 			 name="nti.dataserver-graphdb"
 			 provides="zope.generations.interfaces.IInstallableSchemaManager"/>
 			  
-	<include package="nti.async" />
+	<include package="nti.asynchronous" />
 	
-	<!-- Database -->
+	Database 
 	<include package=".neo4j" file="configure.zcml" />
 	
-	<!-- Adapters -->	
+	Adapters 	
 	<adapter factory=".containers._default_container_adapter"
 			 provides=".interfaces.IContainer"
 			 for="basestring" />
@@ -81,7 +82,7 @@
 	<subscriber handler=".threadables._threadable_removed" />
 	<subscriber handler=".threadables._threadable_modified" />
 
-	<!-- Utilities -->
+	Utilities
 	<utility component=".ratings" provides=".interfaces.IObjectProcessor" name="ratings"/>
 	<utility component=".created" provides=".interfaces.IObjectProcessor" name="created"/>
 	<utility component=".sharing" provides=".interfaces.IObjectProcessor" name="sharing"/>
@@ -93,7 +94,7 @@
 	<utility component=".discussions" provides=".interfaces.IObjectProcessor" name="discussions"/>
 	<utility component=".threadables" provides=".interfaces.IObjectProcessor" name="threadables"/>
 
-	<!-- Graph store -->
+	Graph store
 	<include package="." file="meta.zcml" />
 
 	<configure zcml:condition="have devmode">
@@ -108,6 +109,6 @@
 	<configure zcml:condition="not-have devmode">
 		<gdb:registerRedisProcessingQueue />
 	</configure>
-
+	-->
 </configure>
 
