@@ -13,6 +13,8 @@ import numbers
 
 from zope import interface
 
+from zope.cachedescriptors.property import Lazy
+
 from neo4j.v1 import GraphDatabase
 
 from nti.graphdb.common import get_node_pk, NodePK
@@ -133,30 +135,25 @@ def match_node_query(label, key, value):
 @interface.implementer(IGraphDB)
 class Neo4jDB(object):
 
-    _v_graph = None
-
     def __init__(self, url=None, username=None, password=None):
         self.url = url
         self.username = username
         self.password = password
 
-    @property
+    @Lazy
     def graph(self):
-        if self._v_graph is None:
-            if self.username and self.password:
-                self._v_graph = GraphDatabase.driver(
-                    self.url,
-                    auth=(self.username, self.password)
-                )
-            else:
-                self._v_graph = GraphDatabase.driver(self.url)
-        return self._v_graph
+        if self.username and self.password:
+            result = GraphDatabase.driver(
+                self.url,
+                auth=(self.username, self.password)
+            )
+        else:
+            result = GraphDatabase.driver(self.url)
+        return result
     db = graph
 
-    def _reinit(self):
-        self._v_graph = None
-
     def session(self):
+        # pylint: disable=no-member
         return self.db.session()
 
     def _create_unique_node(self, label, key, value, properties=None):
