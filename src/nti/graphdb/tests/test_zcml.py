@@ -24,13 +24,13 @@ import nti.testing.base
 ZCML_STRING = u"""
 <configure  xmlns="http://namespaces.zope.org/zope"
             xmlns:zcml="http://namespaces.zope.org/zcml"
-            xmlns:graphdb="http://nextthought.com/graphdb"
-            i18n_domain='nti.graphdb'>
+            xmlns:graphdb="http://nextthought.com/ntp/graphdb"
+            i18n_domain='nti.dataserver'>
 
     <include package="zope.component" />
 
     <include package="." file="meta.zcml" />
-    <graphdb:registerProcessingQueue />
+    <graphdb:registerRedisProcessingQueue />
 
 </configure>
 """

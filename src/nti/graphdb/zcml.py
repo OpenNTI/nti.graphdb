@@ -44,8 +44,6 @@ class IRegisterGraphDB(interface.Interface):
     username = fields.TextLine(title=u"db username", required=False)
     password = schema.Password(title=u"db password", required=False)
 
-    config = fields.TextLine(title="path to config file", required=False)
-
 
 def registerGraphDB(_context, url, username=None, password=None):
     """
