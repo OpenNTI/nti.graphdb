@@ -17,7 +17,8 @@ from zope.cachedescriptors.property import Lazy
 
 from neo4j.v1 import GraphDatabase
 
-from nti.graphdb.common import get_node_pk, NodePK
+from nti.graphdb.common import NodePK
+from nti.graphdb.common import get_node_pk
 
 from nti.graphdb.interfaces import IGraphDB
 # from nti.graphdb.interfaces import IGraphNode
@@ -170,9 +171,9 @@ class Neo4jDB(object):
     def _create_node(self, obj, label=None, key=None, value=None, properties=None):
         # get object properties
         properties = dict(properties or {})
-        properties.update(IPropertyAdapter(obj))
+        properties.update(IPropertyAdapter(obj, None) or {})
         # get object labels
-        label = label or ILabelAdapter(obj)
+        label = label or ILabelAdapter(obj, None)
         assert label, "must provide an object label"
         # get primary key
         if key and value:
