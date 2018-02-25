@@ -27,6 +27,7 @@ from nti.asynchronous import get_job_queue as async_queue
 from nti.coremetadata.interfaces import IRedisClient
 
 from nti.graphdb import QUEUE_NAME
+from nti.graphdb import DEFAULT_URI
 
 from nti.graphdb.interfaces import IGraphDB
 from nti.graphdb.interfaces import IGraphDBQueueFactory
@@ -40,17 +41,18 @@ class IRegisterGraphDB(interface.Interface):
     """
     The arguments needed for registering an graph db
     """
-    url = fields.TextLine(title=u"db url", required=True)
+    url = fields.TextLine(title=u"db url", required=False,
+                          default=DEFAULT_URI)
     username = fields.TextLine(title=u"db username", required=False)
     password = schema.Password(title=u"db password", required=False)
 
 
-def registerGraphDB(_context, url, username=None, password=None):
+def registerGraphDB(_context, url=DEFAULT_URI, username=None, password=None):
     """
     Register an db
     """
     factory = functools.partial(Neo4jDB, 
-								url=url,
+								url=url or DEFAULT_URI,
 								username=username, 
 								password=password)
     utility(_context, provides=IGraphDB, factory=factory)
