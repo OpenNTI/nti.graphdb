@@ -47,8 +47,9 @@ setup(
 	namespace_packages=['nti'],
 	install_requires=[
 		'setuptools',
-		'py2neo',
+		'neo4j_driver',
 		'nti.asynchronous',
+		'nti.externalization',
 	],
 	extras_require={
 		'test': TESTS_REQUIRE,
