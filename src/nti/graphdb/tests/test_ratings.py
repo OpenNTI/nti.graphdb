@@ -1,108 +1,108 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-# disable: accessing protected members, too many methods
-# pylint: disable=W0212,R0904
-
-from hamcrest import none
-from hamcrest import is_not
-from hamcrest import has_entry
-from hamcrest import has_length
-from hamcrest import assert_that
-from hamcrest import has_property
-
-import unittest
-
-from nti.dataserver.users import User
-
-from nti.dataserver.contenttypes import Note
-
-from nti.graphdb.relationships import Like
-from nti.graphdb.relationships import Rate
-from nti.graphdb.neo4j.database import Neo4jDB
-
-from nti.graphdb.common import get_oid
-from nti.graphdb.ratings import _add_like_relationship
-from nti.graphdb.ratings import _add_rate_relationship
-from nti.graphdb.ratings import _remove_like_relationship
-from nti.graphdb.ratings import _remove_rate_relationship
-
-from nti.ntiids.ntiids import make_ntiid
-
-import nti.dataserver.tests.mock_dataserver as mock_dataserver
-from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
-
-from nti.graphdb.tests import DEFAULT_URI
-from nti.graphdb.tests import cannot_connect
-from nti.graphdb.tests import random_username
-from nti.graphdb.tests import GraphDBTestCase
-
-@unittest.skipIf(cannot_connect(DEFAULT_URI), "Neo4j not available")
-class TestRatings(GraphDBTestCase):
-
-	def setUp(self):
-		super(TestRatings, self).setUp()
-		self.db = Neo4jDB(DEFAULT_URI)
-
-	def _create_user(self, username='nt@nti.com', password='temp001'):
-		usr = User.create_user(self.ds, username=username, password=password)
-		return usr
-
-	def _create_random_user(self):
-		username = random_username()
-		user = self._create_user(username)
-		return user
-
-	def _create_note(self, msg, creator, containerId=None):
-		note = Note()
-		note.body = [unicode(msg)]
-		note.creator = creator
-		note.containerId = containerId or make_ntiid(nttype='bleach', specific='manga')
-		return note
-
-	@WithMockDSTrans
-	def test_like(self):
-		user = self._create_random_user()
-		note = self._create_note('sample note', user)
-		mock_dataserver.current_transaction.add(note)
-		note = user.addContainedObject(note)
-		
-		oid = get_oid(note)
-		m = _add_like_relationship(self.db, user.username, oid)
-		assert_that(m, is_not(none()))
-
-		rels = self.db.match(user, note, Like())
-		assert_that(rels, has_length(1))
-		
-		_remove_like_relationship(self.db, user.username, oid)
-		
-		rels = self.db.match(user, note, Like())
-		assert_that(rels, has_length(0))
-
-	@WithMockDSTrans
-	def test_rate(self):
-		user = self._create_random_user()
-		note = self._create_note('sample note', user)
-		mock_dataserver.current_transaction.add(note)
-		note = user.addContainedObject(note)
-		
-		oid = get_oid(note)
-		m = _add_rate_relationship(self.db, user.username, oid, 10)
-		assert_that(m, is_not(none()))
-
-		rels = self.db.match(user, note, Rate())
-		assert_that(rels, has_length(1))
-		assert_that(rels[0], has_property('properties', has_entry('rating', 10)))
-		
-		m = _add_rate_relationship(self.db, user.username, oid, 100)
-		assert_that(m, is_not(none()))
-		rels = self.db.match(user, note, Rate())
-		assert_that(rels[0], has_property('properties', has_entry('rating', 100)))
-		
-		_remove_rate_relationship(self.db, user.username, oid)
-		
-		rels = self.db.match(user, note, Rate())
-		assert_that(rels, has_length(0))
+# #!/usr/bin/env python
+# # -*- coding: utf-8 -*-
+# 
+# from __future__ import print_function, unicode_literals, absolute_import, division
+# __docformat__ = "restructuredtext en"
+# 
+# # disable: accessing protected members, too many methods
+# # pylint: disable=W0212,R0904
+# 
+# from hamcrest import none
+# from hamcrest import is_not
+# from hamcrest import has_entry
+# from hamcrest import has_length
+# from hamcrest import assert_that
+# from hamcrest import has_property
+# 
+# import unittest
+# 
+# from nti.dataserver.users import User
+# 
+# from nti.dataserver.contenttypes import Note
+# 
+# from nti.graphdb.relationships import Like
+# from nti.graphdb.relationships import Rate
+# from nti.graphdb.neo4j.database import Neo4jDB
+# 
+# from nti.graphdb.common import get_oid
+# from nti.graphdb.ratings import _add_like_relationship
+# from nti.graphdb.ratings import _add_rate_relationship
+# from nti.graphdb.ratings import _remove_like_relationship
+# from nti.graphdb.ratings import _remove_rate_relationship
+# 
+# from nti.ntiids.ntiids import make_ntiid
+# 
+# import nti.dataserver.tests.mock_dataserver as mock_dataserver
+# from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
+# 
+# from nti.graphdb.tests import DEFAULT_URI
+# from nti.graphdb.tests import cannot_connect
+# from nti.graphdb.tests import random_username
+# from nti.graphdb.tests import GraphDBTestCase
+# 
+# @unittest.skipIf(cannot_connect(DEFAULT_URI), "Neo4j not available")
+# class TestRatings(GraphDBTestCase):
+# 
+# 	def setUp(self):
+# 		super(TestRatings, self).setUp()
+# 		self.db = Neo4jDB(DEFAULT_URI)
+# 
+# 	def _create_user(self, username='nt@nti.com', password='temp001'):
+# 		usr = User.create_user(self.ds, username=username, password=password)
+# 		return usr
+# 
+# 	def _create_random_user(self):
+# 		username = random_username()
+# 		user = self._create_user(username)
+# 		return user
+# 
+# 	def _create_note(self, msg, creator, containerId=None):
+# 		note = Note()
+# 		note.body = [unicode(msg)]
+# 		note.creator = creator
+# 		note.containerId = containerId or make_ntiid(nttype='bleach', specific='manga')
+# 		return note
+# 
+# 	@WithMockDSTrans
+# 	def test_like(self):
+# 		user = self._create_random_user()
+# 		note = self._create_note('sample note', user)
+# 		mock_dataserver.current_transaction.add(note)
+# 		note = user.addContainedObject(note)
+# 		
+# 		oid = get_oid(note)
+# 		m = _add_like_relationship(self.db, user.username, oid)
+# 		assert_that(m, is_not(none()))
+# 
+# 		rels = self.db.match(user, note, Like())
+# 		assert_that(rels, has_length(1))
+# 		
+# 		_remove_like_relationship(self.db, user.username, oid)
+# 		
+# 		rels = self.db.match(user, note, Like())
+# 		assert_that(rels, has_length(0))
+# 
+# 	@WithMockDSTrans
+# 	def test_rate(self):
+# 		user = self._create_random_user()
+# 		note = self._create_note('sample note', user)
+# 		mock_dataserver.current_transaction.add(note)
+# 		note = user.addContainedObject(note)
+# 		
+# 		oid = get_oid(note)
+# 		m = _add_rate_relationship(self.db, user.username, oid, 10)
+# 		assert_that(m, is_not(none()))
+# 
+# 		rels = self.db.match(user, note, Rate())
+# 		assert_that(rels, has_length(1))
+# 		assert_that(rels[0], has_property('properties', has_entry('rating', 10)))
+# 		
+# 		m = _add_rate_relationship(self.db, user.username, oid, 100)
+# 		assert_that(m, is_not(none()))
+# 		rels = self.db.match(user, note, Rate())
+# 		assert_that(rels[0], has_property('properties', has_entry('rating', 100)))
+# 		
+# 		_remove_rate_relationship(self.db, user.username, oid)
+# 		
+# 		rels = self.db.match(user, note, Rate())
+# 		assert_that(rels, has_length(0))
