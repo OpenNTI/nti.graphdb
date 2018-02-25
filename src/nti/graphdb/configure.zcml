@@ -100,5 +100,10 @@
 		<gdb:registerRedisProcessingQueue />
 	</configure>
 
+	<!-- Graph Store -->
+	<configure zcml:condition="have testmode">
+		<gdb:registerGraphDB />
+	</configure>
+
 </configure>
 

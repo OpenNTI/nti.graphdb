@@ -20,7 +20,7 @@ from nti.testing.layers import ConfiguringLayerMixin
 
 from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
 
-DEFAULT_URI = "bolt://localhost:7687"
+from nti.graphdb import DEFAULT_URI
 
 
 def random_username():

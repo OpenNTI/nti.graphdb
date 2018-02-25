@@ -40,6 +40,8 @@ LAST_MODIFIED = StandardInternalFields.LAST_MODIFIED
 #: Redis queue name
 QUEUE_NAME = "++etc++graphdb++queue"
 
+DEFAULT_URI = u"bolt://localhost:7687"
+
 logger = __import__('logging').getLogger(__name__)
 
 
