@@ -58,6 +58,7 @@ setup(
     install_requires=[
 		'setuptools',
 		'neo4j_driver',
+		'nti.assessment',
 		'nti.asynchronous',
 		'nti.base',
 		'nti.coremetadata',
