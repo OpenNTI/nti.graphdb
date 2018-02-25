@@ -48,7 +48,7 @@ logger = __import__('logging').getLogger(__name__)
 #     return getattr(response, 'status_code', None) == 404
 #
 def merge_node_query(label, key, value):
-    result = "MERGE (n:%s { %s:'%s' }" % (label, key, value)
+    result = "MERGE (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
     return result
 
 
@@ -166,7 +166,8 @@ class Neo4jDB(object):
             if properties:
                 query = set_node_properties_query(label, key, value, properties)
                 result = s.run(query)
-        return result
+        result = result.single() if result is not None else result
+        return result.value() if result is not None else None
 
     def _create_node(self, obj, label=None, key=None, value=None, properties=None):
         # get object properties
