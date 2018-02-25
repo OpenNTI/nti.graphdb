@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, unicode_literals, absolute_import
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
-# disable: accessing protected members, too many methods
-# pylint: disable=W0212,R0904
+# pylint: disable=protected-access,too-many-public-methods,arguments-differ
 
 import uuid
+import unittest
+
+import zope.testing.cleanup
 
 from zope.component.hooks import setHooks
 
@@ -17,14 +20,14 @@ from nti.testing.layers import ConfiguringLayerMixin
 
 from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
 
-import zope.testing.cleanup
+DEFAULT_URI = "bolt://localhost:7687"
 
-DEFAULT_URI = 'http://localhost:7474/db/data'
 
 def random_username():
     splits = unicode(uuid.uuid4()).split('-')
-    username = "%s@%s" % (splits[-1], splits[0])
+    username = u"%s@%s" % (splits[-1], splits[0])
     return username
+
 
 class SharedConfiguringTestLayer(ZopeComponentLayer,
                                  GCLayerMixin,
@@ -47,24 +50,25 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
     def testSetUp(cls, test=None):
         setHooks()
         cls.setUpTestDS(test)
-        
+
     @classmethod
     def testTearDown(cls):
         pass
 
-import unittest
 
 class GraphDBTestCase(unittest.TestCase):
     layer = SharedConfiguringTestLayer
 
-def can_connect(uri=None):
-    from py2neo import Graph
+
+def can_connect(uri=DEFAULT_URI):
+    from neo4j.v1 import GraphDatabase
     try:
-        graph = Graph(uri)
-        assert graph.neo4j_version
-        return True
-    except Exception:
+        graph = GraphDatabase.driver(uri)
+        with graph.session():
+            return True
+    except Exception:  # pylint: disable=broad-except
         return False
 
-def cannot_connect(uri=None):
+
+def cannot_connect(uri=DEFAULT_URI):
     return not can_connect(uri)
