@@ -1,19 +1,16 @@
 <!-- -*- mode: nxml -*- -->
 <configure	xmlns="http://namespaces.zope.org/zope"
 			xmlns:i18n="http://namespaces.zope.org/i18n"
-			xmlns:zcml="http://namespaces.zope.org/zcml"
-			xmlns:gdb="http://nextthought.com/ntp/graphdb">
+			xmlns:zcml="http://namespaces.zope.org/zcml">
 
 	<include package="zope.component" file="meta.zcml" />
-	<include package="zope.security" file="meta.zcml" />
 	<include package="zope.component" />
-	<include package="zope.security" />
 
-	<class class="py2neo.Node">
+	<class class="neo4j.v1.Node">
 		<implements interface=".interfaces.INeo4jNode" />
 	</class>
-	
-	<class class="py2neo.Relationship">
+
+	<class class="neo4j.v1.Relationship">
 		<implements interface=".interfaces.INeo4jRelationship" />
 	</class>
 	
