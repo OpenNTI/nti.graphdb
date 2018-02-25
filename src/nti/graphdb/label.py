@@ -4,10 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from zope import component
 from zope import interface
@@ -49,144 +48,173 @@ from nti.graphdb.interfaces import ILabelAdapter
 
 from nti.schema.interfaces import find_most_derived_interface
 
+logger = __import__('logging').getLogger(__name__)
+
+
 @interface.implementer(ILabelAdapter)
 @component.adapter(interface.Interface)
 def _GenericLabelAdpater(obj):
-	return obj.__class__.__name__.title()
+    return obj.__class__.__name__.title()
+
 
 @component.adapter(IEntity)
 @interface.implementer(ILabelAdapter)
 def _EntityLabelAdpater(entity):
-	return entity.__class__.__name__.title()
+    return entity.__class__.__name__.title()
+
 
 @component.adapter(IUser)
 @interface.implementer(ILabelAdapter)
-def _UserLabelAdpater(entity):
-	return u'User'
+def _UserLabelAdpater(unused_entity):
+    return u'User'
+
 
 @interface.implementer(ILabelAdapter)
 @component.adapter(IDynamicSharingTargetFriendsList)
-def _DFLLabelAdpater(context):
-	return 'DFL'
+def _DFLLabelAdpater(unused_context):
+    return u'DFL'
+
 
 @component.adapter(IModeledContent)
 @interface.implementer(ILabelAdapter)
 def _ModeledContentLabelAdpater(context):
-	return context.__class__.__name__.title()
+    return context.__class__.__name__.title()
+
 
 @component.adapter(INote)
-def _NoteLabelAdpater(context):
-	return u'Note'
+def _NoteLabelAdpater(unused_context):
+    return u'Note'
+
 
 @interface.implementer(ILabelAdapter)
-def _CommentLabelAdpater(context):
-	return u'Comment'
+def _CommentLabelAdpater(unused_context):
+    return u'Comment'
+
 
 @component.adapter(IForum)
 @interface.implementer(ILabelAdapter)
-def _ForumLabelAdpater(context):
-	return u"Forum"
+def _ForumLabelAdpater(unused_context):
+    return u"Forum"
+
 
 @component.adapter(ITopic)
 @interface.implementer(ILabelAdapter)
-def _TopicLabelAdpater(context):
-	return u'Topic'
+def _TopicLabelAdpater(unused_context):
+    return u'Topic'
+
 
 @component.adapter(IBoard)
 @interface.implementer(ILabelAdapter)
-def _BoardLabelAdpater(context):
-	return u"Board"
+def _BoardLabelAdpater(unused_context):
+    return u"Board"
+
 
 @component.adapter(IHeadlinePost)
 @interface.implementer(ILabelAdapter)
 def _HeadlinePostLabelAdpater(post):
-	return ILabelAdapter(post.__parent__)
+    return ILabelAdapter(post.__parent__)
+
 
 @component.adapter(IContentPackage)
 @interface.implementer(ILabelAdapter)
-def _ContentPackageLabelAdpater(context):
-	return u"ContentPackage"
+def _ContentPackageLabelAdpater(unused_context):
+    return u"ContentPackage"
+
 
 @component.adapter(IContentUnit)
 @interface.implementer(ILabelAdapter)
-def _ContentUnitLabelAdpater(context):
-	return u"ContentUnit"
+def _ContentUnitLabelAdpater(unused_context):
+    return u"ContentUnit"
+
 
 @component.adapter(IMeeting)
 @interface.implementer(ILabelAdapter)
-def _MeetingLabelAdpater(meeting):
-	return u'Meeting'
+def _MeetingLabelAdpater(unused_meeting):
+    return u'Meeting'
+
 
 @component.adapter(IMessageInfo)
 @interface.implementer(ILabelAdapter)
-def _MessageInfoLabelAdpater(message):
-	return u'Message'
+def _MessageInfoLabelAdpater(unused_message):
+    return u'Message'
+
 
 @component.adapter(IQuestion)
 @interface.implementer(ILabelAdapter)
-def _QuestionLabelAdpater(obj):
-	return u"Question"
+def _QuestionLabelAdpater(unused_obj):
+    return u"Question"
+
 
 @component.adapter(IQuestionSet)
 @interface.implementer(ILabelAdapter)
-def _QuestionSetLabelAdpater(obj):
-	return u'QuestionSet'
+def _QuestionSetLabelAdpater(unused_obj):
+    return u'QuestionSet'
+
 
 @component.adapter(IQAssignment)
 @interface.implementer(ILabelAdapter)
-def _AssignmentLabelAdpater(obj):
-	return u'Assignment'
+def _AssignmentLabelAdpater(unused_obj):
+    return u'Assignment'
+
 
 @component.adapter(IQSurvey)
 @interface.implementer(ILabelAdapter)
-def _SurveyLabelAdpater(obj):
-	return u'Survey'
+def _SurveyLabelAdpater(unused_obj):
+    return u'Survey'
+
 
 @component.adapter(IQPoll)
 @interface.implementer(ILabelAdapter)
-def _PollLabelAdpater(onj):
-	return u'Poll'
+def _PollLabelAdpater(unused_obj):
+    return u'Poll'
+
 
 @component.adapter(ICourseInstance)
 @interface.implementer(ILabelAdapter)
-def _CourseInstanceLabelAdpater(obj):
-	return u'CourseInstance'
+def _CourseInstanceLabelAdpater(unused_obj):
+    return u'CourseInstance'
+
 
 @interface.implementer(ILabelAdapter)
 @component.adapter(ICourseCatalogEntry)
-def _CourseCatalogEntryLabelAdpater(obj):
-	return u'CatalogEntry'
+def _CourseCatalogEntryLabelAdpater(unused_obj):
+    return u'CatalogEntry'
+
 
 @interface.implementer(ILabelAdapter)
 @component.adapter(ICourseOutlineNode)
-def _CourseOutlineNodeLabelAdpater(node):
-	return u'CourseOutlineNode'
+def _CourseOutlineNodeLabelAdpater(unused_node):
+    return u'CourseOutlineNode'
+
 
 @interface.implementer(ILabelAdapter)
 @component.adapter(ICourseOutlineContentNode)
-def _CourseOutlineContentNodeLabelAdpater(node):
-	return u'CourseOutlineContentNode'
+def _CourseOutlineContentNodeLabelAdpater(unused_node):
+    return u'CourseOutlineContentNode'
+
 
 @interface.implementer(ILabelAdapter)
 @component.adapter(ICourseOutlineCalendarNode)
-def _CourseOutlineCalendarNodeLabelAdpater(node):
-	return u'CourseOutlineCalendarNode'
+def _CourseOutlineCalendarNodeLabelAdpater(unused_node):
+    return u'CourseOutlineCalendarNode'
+
 
 @interface.implementer(ILabelAdapter)
 @component.adapter(ICourseInstanceEnrollmentRecord)
-def _EnrollmentRecordLabelAdpater(obj):
-	return u'EnrollmentRecord'
+def _EnrollmentRecordLabelAdpater(unused_obj):
+    return u'EnrollmentRecord'
+
 
 @component.adapter(IContainer)
 @interface.implementer(ILabelAdapter)
-def _ContainerLabelAdpater(container):
-	result = 'Container'
-	return result
+def _ContainerLabelAdpater(unused_container):
+    return u'Container'
 
-@component.adapter(IPresentationAsset)
+
 @interface.implementer(ILabelAdapter)
+@component.adapter(IPresentationAsset)
 def _PresentationAssetLabelAdpater(asset):
-	iface = find_most_derived_interface(asset, IPresentationAsset,
-										possibilities=interface.providedBy(asset))
-	result = iface.__name__[1:]
-	return result
+    iface = find_most_derived_interface(asset, IPresentationAsset,
+                                        possibilities=interface.providedBy(asset))
+    result = iface.__name__[1:]
+    return result
