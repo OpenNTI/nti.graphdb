@@ -13,6 +13,7 @@ from collections import namedtuple
 
 from zope.security.interfaces import IPrincipal
 from zope.security.interfaces import NoInteraction
+
 from zope.security.management import getInteraction
 
 from ZODB.POSException import POSError
@@ -93,6 +94,7 @@ def get_principal_id(obj):
     """
     Return the principal id from the specified object
     """
+    result = None
     try:
         if IPrincipal.providedBy(obj):
             result = obj.id
@@ -100,10 +102,8 @@ def get_principal_id(obj):
             result = obj.username
         elif isinstance(obj, six.string_types):
             result = obj
-        else:
-            result = None
     except (TypeError, POSError):  # pragma: no cover
-        result = None
+        pass
     return result
 
 
