@@ -28,8 +28,14 @@ NTIID = StandardInternalFields.NTIID
 #: IntId field
 INTID = StandardExternalFields.INTID.lower()
 
-#: CreatedTime field
+#: Creator field
+CREATOR = StandardInternalFields.CREATOR
+
+#: Created time field
 CREATED_TIME = StandardInternalFields.CREATED_TIME
+
+#: Last modified field
+LAST_MODIFIED = StandardInternalFields.LAST_MODIFIED
 
 #: Redis queue name
 QUEUE_NAME = "++etc++graphdb++queue"
