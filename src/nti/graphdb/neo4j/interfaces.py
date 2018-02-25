@@ -4,24 +4,29 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
-logger = __import__('logging').getLogger(__name__)
+# pylint: disable=inherit-non-class,expression-not-assigned
 
 from nti.graphdb.interfaces import INode
 from nti.graphdb.interfaces import IGraphNode
 from nti.graphdb.interfaces import IRelationship
 from nti.graphdb.interfaces import IGraphRelationship
 
+
 class INeo4jNode(INode):
-	pass
+    pass
+
 
 class INeo4jRelationship(IRelationship):
-	pass
+    pass
+
 
 class IGraphNodeNeo4j(IGraphNode):
-	pass
+    pass
+
 
 class IGraphRelationshipNeo4j(IGraphRelationship):
-	pass
+    pass
