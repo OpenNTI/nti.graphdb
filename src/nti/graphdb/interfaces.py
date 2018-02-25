@@ -25,12 +25,6 @@ from nti.schema.field import Object
 from nti.schema.field import Variant
 from nti.schema.field import DecodingValidTextLine as ValidTextLine
 
-#: Neo4J database name
-NEO4J = u"neo4j"
-
-#: Database types
-DATABASE_TYPES = (NEO4J,)
-
 #: Add event code
 ADD_EVENT = 0
 
