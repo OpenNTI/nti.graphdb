@@ -8,23 +8,26 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import six
+import numbers
+
 from zope import interface
 
 from neo4j.v1 import GraphDatabase
 
-# from nti.graphdb.common import get_node_pk
+from nti.graphdb.common import get_node_pk, NodePK
 
 from nti.graphdb.interfaces import IGraphDB
 # from nti.graphdb.interfaces import IGraphNode
-# from nti.graphdb.interfaces import ILabelAdapter
-# from nti.graphdb.interfaces import IPropertyAdapter
+from nti.graphdb.interfaces import ILabelAdapter
+from nti.graphdb.interfaces import IPropertyAdapter
 # from nti.graphdb.interfaces import IGraphRelationship
 
 # from nti.graphdb.neo4j.interfaces import INeo4jNode
 # from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
 # from nti.graphdb.neo4j.interfaces import INeo4jRelationship
 #
-# from nti.graphdb.neo4j.node import Neo4jNode
+from nti.graphdb.neo4j.node import Neo4jNode
 
 # from nti.graphdb.neo4j.relationship import Neo4jRelationship
 
@@ -41,25 +44,48 @@ logger = __import__('logging').getLogger(__name__)
 #     response = getattr(ex, 'response', None)
 #     return getattr(response, 'status_code', None) == 404
 #
-def merge_node_query(label, properties):
-    result = ["MERGE (n:%s" % label]
-    if properties:
-        result.append(" {")
-        for key, value in properties.items():
-            result.append(" %s:'%s'" % (key, value))
-        result.append(" }")
-    result.append(")")
+def merge_node_query(label, key, value):
+    result = "MERGE (n:%s { %s:'%s' }" % (label, key, value)
+    return result
+
+
+def process_properties(properties):
+    props = []
+    for key, value in properties.items():
+        if isinstance(value, six.string_types):
+            props.append("%s:'%s'" % (key, value))
+        elif isinstance(value, bool):
+            props.append("%s:%s" % (key, str(value).upper()))
+        elif isinstance(value, numbers.Number):
+            props.append("%s:%s" % (key, value))
+        else:
+            props.append("%s:'%s'" % (key, value))
+    return props
+
+
+def set_node_properties_query(label, key, value, properties):
+    result = ["MATCH (n:%s { %s:'%s' })" % (label, key, value)]
+    result.append(" SET n += {")
+    props = process_properties(properties)
+    result.append(','.join(props))
+    result.append('} RETURN n')
     return ''.join(result)
-#
-# def _set_properties_query(label, key, value):
-#     result = """
-#     MATCH (n:%s { %s:'%s' }) SET n += { props }
-#     """ % (label, key, value)
-#     return result.strip()
-#
-# def _match_node_query(label, key, value):
-#     result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
-#     return result.strip()
+
+
+def create_node_query(label, properties):
+    result = ["CREATE (n:%s)" % label]
+    props = process_properties(properties)
+    if props:
+        result.append(" { ")
+        result.append(','.join(props))
+        result.append(" }")
+    result.append(" RETURN n")
+    return ''.join(result)
+
+
+def match_node_query(label, key, value):
+    result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
+    return result
 #
 # def _create_unique_rel_query(start_id, end_id, rel_type, bidirectional=False):
 #     direction = '-' if bidirectional else '->'
@@ -119,9 +145,9 @@ class Neo4jDB(object):
         if self._v_graph is None:
             if self.username and self.password:
                 self._v_graph = GraphDatabase.driver(
-                                    self.url,
-                                    auth=(self.username, self.password)
-                                )
+                    self.url,
+                    auth=(self.username, self.password)
+                )
             else:
                 self._v_graph = GraphDatabase.driver(self.url)
         return self._v_graph
@@ -133,36 +159,41 @@ class Neo4jDB(object):
     def session(self):
         return self.db.session()
 
-    def create_unique_node(self, label, key, value, properties=None):
+    def _create_unique_node(self, label, key, value, properties=None):
         # prepare query
         properties = dict(properties or {})
-        properties[key] = value
-        query = merge_node_query(label, properties)
+        query = merge_node_query(label, key, value)
         with self.session() as s:
             result = s.run(query)
+            if properties:
+                query = set_node_properties_query(label, key, value, properties)
+                result = s.run(query)
         return result
-#
-#     def _create_node(self, obj, key=None, value=None, label=None, properties=None):
-#         # Get object properties
-#         properties = dict(properties or {})
-#         properties.update(IPropertyAdapter(obj))
-#
-#         # Get object labels
-#         label = label or ILabelAdapter(obj)
-#         assert label, "must provide an object label"
-#
-#         pk = get_node_pk(obj)
-#         if pk is not None:
-#             result = self._create_unique_node(pk.label, pk.key, pk.value, properties)
-#         else:
-#             result = node = Node(label, **properties)
-#             self.graph.create(node)
-#         return result
-#
-#     def create_node(self, obj, label=None, properties=None, key=None, value=None, raw=False):
-#         result = self._create_node(obj, label=label,properties=properties, key=key, value=value)
-#         result = Neo4jNode.create(result) if not raw else result
-#         return result
+
+    def _create_node(self, obj, label=None, key=None, value=None, properties=None):
+        # get object properties
+        properties = dict(properties or {})
+        properties.update(IPropertyAdapter(obj))
+        # get object labels
+        label = label or ILabelAdapter(obj)
+        assert label, "must provide an object label"
+        # get primary key
+        if key and value:
+            pk = NodePK(label, key, value)
+        else:
+            pk = get_node_pk(obj)
+        if pk is not None:
+            result = self._create_unique_node(pk.label, pk.key, pk.value, properties)
+        else:
+            query = create_node_query(label, **properties)
+            with self.session() as s:
+                result = s.run(query)
+        return result
+
+    def create_node(self, obj, label=None, key=None, value=None, properties=None, raw=False):
+        result = self._create_node(obj, label, key, value, properties)
+        result = Neo4jNode.create(result) if not raw else result
+        return result
 #
 #     def create_nodes(self, *objs):
 #         wb = WriteBatch(self.graph)
