@@ -76,13 +76,13 @@ def set_node_properties_query(label, key, value, properties):
 
 
 def create_node_query(label, properties):
-    result = ["CREATE (n:%s)" % label]
+    result = ["CREATE (n:%s" % label]
     props = process_properties(properties)
     if props:
         result.append(" { ")
         result.append(','.join(props))
         result.append(" }")
-    result.append(" RETURN n")
+    result.append(") RETURN n")
     return ''.join(result)
 
 
@@ -184,9 +184,11 @@ class Neo4jDB(object):
         if pk is not None:
             result = self._create_unique_node(pk.label, pk.key, pk.value, properties)
         else:
-            query = create_node_query(label, **properties)
+            query = create_node_query(label, properties)
             with self.session() as s:
                 result = s.run(query)
+                result = result.single() if result is not None else result
+                result = result.value() if result is not None else None
         return result
 
     def create_node(self, obj, label=None, key=None, value=None, properties=None, raw=False):
