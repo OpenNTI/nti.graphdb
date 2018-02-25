@@ -10,8 +10,6 @@ from __future__ import absolute_import
 
 from zope import interface
 
-from nti.graphdb.interfaces import IGraphRelationship
-
 from nti.graphdb.neo4j.interfaces import INeo4jRelationship
 from nti.graphdb.neo4j.interfaces import IGraphRelationshipNeo4j
 
@@ -45,7 +43,7 @@ class Neo4jRelationship(SchemaConfigured):
         result = None
         if IGraphRelationshipNeo4j.providedBy(rel):
             result = rel
-        elif INeo4jRelationship.providedBy(rel) or IGraphRelationship.providedBy(rel):
+        elif INeo4jRelationship.providedBy(rel):
             result = Neo4jRelationship(id=rel.id,
                                        type=rel.type,
                                        end=Neo4jNode.create(rel.end),

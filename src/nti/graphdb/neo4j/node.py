@@ -10,8 +10,6 @@ from __future__ import absolute_import
 
 from zope import interface
 
-from nti.graphdb.interfaces import IGraphNode
-
 from nti.graphdb.neo4j.interfaces import INeo4jNode
 from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
 
@@ -43,10 +41,6 @@ class Neo4jNode(SchemaConfigured):
         result = None
         if IGraphNodeNeo4j.providedBy(node):
             result = node
-        elif IGraphNode.providedBy(node):
-            result = Neo4jNode(id=node.id,
-                               label=node.label,
-                               properties=dict(node.properties or {}))
         elif INeo4jNode.providedBy(node):
             labels = list(node.labels or ())
             result = Neo4jNode(id=node.id)
