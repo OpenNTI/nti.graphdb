@@ -43,16 +43,26 @@ logger = __import__('logging').getLogger(__name__)
 
 
 def is_node_404(e):
+    """
+    Check if the exception is for an entitiy not found error
+    """
     code = getattr(e, 'code', None) or ''
     return "EntityNotFound" in code
 
 
 def merge_node_query(label, key, value):
+    """
+    Returns a merge query for the specififed label, key and value
+    """
     result = "MERGE (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
     return result
 
 
 def process_properties(properties):
+    """
+    Returns an array with entries of key,value pairs
+    for node properties
+    """
     props = []
     for key, value in properties.items():
         if isinstance(value, six.string_types):
@@ -67,6 +77,10 @@ def process_properties(properties):
 
 
 def set_node_properties_query(label, key, value, properties):
+    """
+    Returns a query that sets the specified properties for a node
+    with the specified label, key, value
+    """
     result = ["MATCH (n:%s { %s:'%s' })" % (label, key, value)]
     result.append(" SET n += {")
     props = process_properties(properties)
@@ -76,6 +90,10 @@ def set_node_properties_query(label, key, value, properties):
 
 
 def set_node_properties_with_id_query(nid, properties):
+    """
+    Returns a query that sets the specified properties for a node
+    with the specified node id
+    """
     result = ["START n=NODE(%s) MATCH (n)" % nid]
     result.append(" SET n += {")
     props = process_properties(properties)
@@ -85,6 +103,10 @@ def set_node_properties_with_id_query(nid, properties):
 
 
 def create_node_query(label, properties):
+    """
+    Returns a a query to create a node with the specified label and
+    properties
+    """
     result = ["CREATE (n:%s" % label]
     props = process_properties(properties)
     if props:
@@ -96,19 +118,31 @@ def create_node_query(label, properties):
 
 
 def match_node_query(label, key, value):
+    """
+    Returns a query that matches a node with the specified label, key and value
+    """
     result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
     return result
 
 
 def match_node_by_id_query(nid):
+    """
+    Returns a query that matches a node with the specified id
+    """
     return "START n=NODE(%s) MATCH (n) RETURN n" % nid
 
 
 def isolate_node(nid):
+    """
+    Returns a query that deletes all relationships of a node
+    """
     return "START a=node(%s) MATCH (a)-[r]-(b) DELETE r" % nid
 
 
 def delete_node(nid):
+    """
+    Returns a query that deletes a node with the specified id
+    """
     return "START n=node(%s) MATCH (n) DELETE n" % nid
 
 # def _create_unique_rel_query(start_id, end_id, rel_type, bidirectional=False):
