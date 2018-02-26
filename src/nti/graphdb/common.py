@@ -139,15 +139,15 @@ def get_ntiid(obj):
     return getattr(obj, EXT_NTIID, None) or getattr(obj, NTIID, None)
 
 #: Node Primary key tuple
-NodePK = namedtuple('NodePK', 'label key value')
+NodePrimaryKey = namedtuple('NodePrimaryKey', 'label key value')
 
 
-def get_node_pk(obj):
+def get_node_primary_key(obj):
     """
     Return the primary key for specified object
     """
     label = ILabelAdapter(obj, None)
     unique = IUniqueAttributeAdapter(obj, None)
     if label and unique and unique.key and unique.value:
-        return NodePK(label, unique.key, unique.value)
+        return NodePrimaryKey(label, unique.key, unique.value)
     return None

@@ -12,19 +12,22 @@ from hamcrest import none
 from hamcrest import is_not
 # from hamcrest import contains
 # from hamcrest import has_entry
-# from hamcrest import has_length
+from hamcrest import has_length
 from hamcrest import assert_that
 # from hamcrest import has_property
-# does_not = is_not
-#
+does_not = is_not
+
 import uuid
 import unittest
 
-# from nti.dataserver.users import User
-
 from zope import component
 
+from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
+
+from nti.dataserver.users.users import User
+
 from nti.graphdb.interfaces import IGraphDB
+from nti.graphdb.interfaces import ILabelAdapter
 
 from nti.graphdb.tests import GraphDBTestCase
 
@@ -32,8 +35,18 @@ from nti.graphdb.tests import cannot_connect
 from nti.graphdb.tests import random_username
 
 
+class FakeObject(object):
+
+    def __conform__(self, iface):
+        if iface == ILabelAdapter:
+            return "Fake"
+
+
 @unittest.skipIf(cannot_connect(), "Neo4j not available")
 class TestNeo4jDB(GraphDBTestCase):
+
+    def create_user(self, username=u'nt@nti.com', password=u'temp001', **kwargs):
+        return User.create_user(username=username, password=password, **kwargs)
 
     def test_create_node(self):
         db = component.getUtility(IGraphDB)
@@ -50,15 +63,14 @@ class TestNeo4jDB(GraphDBTestCase):
                               properties={"oid": str(uuid.uuid4())})
         assert_that(node, is_not(none()))
 
-# 	def _create_user(self, username='nt@nti.com', password='temp001', **kwargs):
-# 		user = User.create_user(self.ds, username=username, password=password, **kwargs)
-# 		return user
-#
-# 	@WithMockDSTrans
-# 	def test_node_funcs(self):
-# 		username = random_username()
-# 		user = self._create_user(username)
-# 		node = self.db.create_node(user)
+    @WithMockDSTrans
+    def test_create_nodes(self):
+        db = component.getUtility(IGraphDB)
+        username = random_username()
+        user = self.create_user(username)
+        nodes = db.create_nodes(user, FakeObject())
+        assert_that(nodes, has_length(2))
+
 # 		assert_that(node, has_property('id', is_not(none())))
 # 		assert_that(node, has_property('uri', is_not(none())))
 # 		assert_that(node, has_property('properties',

@@ -17,8 +17,8 @@ from zope.cachedescriptors.property import Lazy
 
 from neo4j.v1 import GraphDatabase
 
-from nti.graphdb.common import NodePK
-from nti.graphdb.common import get_node_pk
+from nti.graphdb.common import NodePrimaryKey
+from nti.graphdb.common import get_node_primary_key
 
 from nti.graphdb.interfaces import IGraphDB
 # from nti.graphdb.interfaces import IGraphNode
@@ -157,17 +157,23 @@ class Neo4jDB(object):
         # pylint: disable=no-member
         return self.db.session()
 
-    def _create_unique_node(self, label, key, value, properties=None):
-        # prepare query
-        properties = dict(properties or {})
+    def _create_unique_node_session(self, session, label, key, value, properties=None):
+        properties = {} if properties is None else properties
         query = merge_node_query(label, key, value)
-        with self.session() as s:
-            result = s.run(query)
-            if properties:
-                query = set_node_properties_query(label, key, value, properties)
-                result = s.run(query)
+        result = session.run(query)
+        if properties:
+            query = set_node_properties_query(label, key, value, properties)
+            result = session.run(query)
         result = result.single() if result is not None else result
         return result.value() if result is not None else None
+
+    def _create_node_session(self, session, label, properties=None):
+        properties = {} if properties is None else properties
+        query = create_node_query(label, properties)
+        result = session.run(query)
+        result = result.single() if result is not None else result
+        result = result.value() if result is not None else None
+        return result
 
     def _create_node(self, obj, label=None, key=None, value=None, properties=None):
         # get object properties
@@ -178,44 +184,42 @@ class Neo4jDB(object):
         assert label, "must provide an object label"
         # get primary key
         if key and value:
-            pk = NodePK(label, key, value)
+            pk = NodePrimaryKey(label, key, value)
         else:
-            pk = get_node_pk(obj)
-        if pk is not None:
-            result = self._create_unique_node(pk.label, pk.key, pk.value, properties)
-        else:
-            query = create_node_query(label, properties)
-            with self.session() as s:
-                result = s.run(query)
-                result = result.single() if result is not None else result
-                result = result.value() if result is not None else None
+            pk = get_node_primary_key(obj)
+        # create node
+        with self.session() as session:
+            if pk is not None:
+                result = self._create_unique_node_session(session, pk.label, 
+                                                          pk.key, pk.value, 
+                                                          properties)
+            else:
+                result = self._create_node_session(session, label, properties)
         return result
 
     def create_node(self, obj, label=None, key=None, value=None, properties=None, raw=False):
         result = self._create_node(obj, label, key, value, properties)
         result = Neo4jNode.create(result) if not raw else result
         return result
-#
-#     def create_nodes(self, *objs):
-#         wb = WriteBatch(self.graph)
-#         for o in objs:
-#             pk = get_node_pk(o)
-#             properties = IPropertyAdapter(o)
-#             if pk is not None:
-#                 query = _merge_node_query(pk.label, pk.key, pk.value)
-#                 wb.append(CypherJob(query))
-#                 if properties:
-#                     query = _set_properties_query(pk.label, pk.key, pk.value)
-#                     wb.append(CypherJob(query, parameters={"props":properties}))
-#             else:
-#                 label = ILabelAdapter(o)
-#                 abstract = Node(label, **properties)
-#                 wb.create(abstract)
-#         result = []
-#         for n in wb.run():
-#             if n is not None and isinstance(n, Node):
-#                 result.append(Neo4jNode.create(n))
-#         return result
+
+    def create_nodes(self, *objects):
+        result = []
+        with self.session() as session:
+            for obj in objects:
+                # must get a label
+                label = ILabelAdapter(obj)
+                # try to get primary key
+                pk = get_node_primary_key(obj)
+                # optional properties
+                properties = IPropertyAdapter(obj, None)
+                if pk is not None:
+                    node = self._create_unique_node_session(session, pk.label, 
+                                                            pk.key, pk.value, 
+                                                            properties)
+                else:
+                    node = self._create_node_session(session, label, properties)
+                result.append(Neo4jNode.create(node))
+        return result
 #
 #     def _get_node(self, obj, props=True):
 #         result = None
