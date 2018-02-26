@@ -42,12 +42,16 @@ class FakeObject(object):
         if iface == ILabelAdapter:
             return "Fake"
 
+    def get(self, key):
+        pass
+
 
 @unittest.skipIf(cannot_connect(), "Neo4j not available")
 class TestNeo4jDB(GraphDBTestCase):
 
-    def create_user(self, username=u'nt@nti.com', password=u'temp001', **kwargs):
-        return User.create_user(username=username, password=password, **kwargs)
+    def create_user(self, username=u'nt@nti.com', password=u'temp001'):
+        return User.create_user(username=username, password=password,
+                                parent=FakeObject())  # pass parent to avoid added event
 
     def test_create_node(self):
         db = component.getUtility(IGraphDB)
@@ -94,7 +98,7 @@ class TestNeo4jDB(GraphDBTestCase):
         assert_that(db.get_indexed_node("User", 'username', username),
                     is_not(none()))
         data = ('fake', 'key', 'value')
-        assert_that(db.get_indexed_nodes(data), 
+        assert_that(db.get_indexed_nodes(data),
                     is_([None]))
 # 		assert_that(node, has_property('id', is_not(none())))
 # 		assert_that(node, has_property('uri', is_not(none())))
