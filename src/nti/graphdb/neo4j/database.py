@@ -274,26 +274,28 @@ class Neo4jDB(object):
                 node = self.do_get_node_session(session, obj)
                 result.append(node)
         return result
-#
-#     def get_indexed_node(self, label, key, value, raw=False, props=True):
-#         __traceback_info__ = label, key, value
-#         result = self.graph.find_one(label, key, value)
-#         if props and result is not None:
-#             self.graph.pull(result)
-#         result = Neo4jNode.create(result) if result is not None and not raw else result
-#         return result
-#
-#     def get_indexed_nodes(self, *tuples):
-#         rb = ReadBatch(self.graph)
-#         for label, key, value in tuples:
-#             query = _match_node_query(label, key, value)
-#             rb.append(CypherJob(query))
-#
-#         nodes = []
-#         for node in self._run_read_batch(rb):
-#             if node is not None:
-#                 nodes.append(node)
-#         return nodes
+
+    def do_get_index_node_session(self, session, label, key, value):
+        query = match_node_query(label, key, value)
+        result = session.run(query)
+        result = result.single() if result is not None else None
+        result = result.value() if result is not None else None
+        return result
+
+    def get_indexed_node(self, label, key, value, raw=False):
+        with self.session() as session:
+            result = self.do_get_index_node_session(session, label, key, value)
+            result = Neo4jNode.create(result) if result is not None and not raw else result
+            return result
+
+    def get_indexed_nodes(self, *tuples):
+        result = []
+        with self.session() as session:
+            for label, key, value in tuples:
+                node = self.do_get_index_node_session(session, label, key, value)
+                node = Neo4jNode.create(node) if node is not None else None
+                result.append(node)
+        return result
 #
 #     def update_node(self, obj, properties=_marker):
 #         node = self._get_node(obj, props=False)
