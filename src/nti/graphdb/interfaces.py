@@ -46,7 +46,7 @@ class IGraphDB(IExternalService):
     def create_node(obj, label=None, key=None, value=None, properties=None):
         """
         Create a graph node for the specified object
-        
+
         :param object obj: Object to create the node for
         :param str label: Optional object label
         :param str key: Optional object [primary] key name
@@ -60,7 +60,7 @@ class IGraphDB(IExternalService):
         Create nodes for the specified objects
         """
         pass
- 
+
     def get_node(obj):
         """
         Return the graph node for the specified object
@@ -70,59 +70,66 @@ class IGraphDB(IExternalService):
         """
         Get or create a node for the specified object
         """
- 
+
     def get_nodes(*objs):
         """
         Return the nodes for the specified objects
         """
 
-# 
-#     def get_indexed_node(label, key, value):
-#         pass
-# 
-#     def get_indexed_nodes(tuples):
-#         pass
-# 
+    def get_indexed_node(label, key, value):
+        """
+        Return a graph node for the specified values
+
+        :param str label: Node label
+        :param str key: Node [primary] key name
+        :param str value: Node [primary] key value
+        """
+
+    def get_indexed_nodes(*tuples):
+        """
+        Return the nodes for the specified data 3-value tuples
+        """
+
 #     def get_node_properties(obj):
 #         pass
-# 
+#
 #     def update_node(obj, properties=None):
 #         pass
-# 
+#
 #     def delete_node(obj):
 #         pass
-# 
+#
 #     def delete_nodes(*objs):
 #         pass
-# 
+#
 #     def create_relationship(start, end, rel_type, properties=None, key=None, value=None):
 #         pass
-# 
+#
 #     def get_relationship(obj):
 #         pass
-# 
+#
 #     def match(start=None, end=None, rel_type=None, bidirectional=False,
 #               limit=None, loose=False):
 #         pass
-# 
+#
 #     def delete_relationships(*rels):
 #         pass
-# 
+#
 #     def update_relationship(obj, properties=None):
 #         pass
-# 
+#
 #     def find_relationships(key, value, rel_type=None, start=None, end=None,
 #                            bidirectional=False):
 #         """
 #         Find relationships for the specified key and value property
 #         """
-# 
+#
 #     def index_relationship(rel, key, value):
 #         pass
-# 
+#
 #     def get_indexed_relationships(key, value):
 #         pass
-# 
+#
 #     def unindex_relationship(key, value, rel=None):
 #         pass
 
@@ -141,8 +148,8 @@ class IGraphNode(INode):
     properties = Dict(ValidTextLine(title=u"The key"),
                       Variant((Number(title=u"The Number"),
                                Bool(title=u'The Boolean'),
-                               ValidTextLine(title=u'The String value')), 
-                               title=u"The value"),
+                               ValidTextLine(title=u'The String value')),
+                              title=u"The value"),
                       required=False,
                       min_length=0)
 

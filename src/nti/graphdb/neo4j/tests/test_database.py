@@ -90,7 +90,12 @@ class TestNeo4jDB(GraphDBTestCase):
         assert_that(db.get_or_create_node(user), is_not(none()))
         # get nodes
         assert_that(db.get_nodes(user), has_length(1))
-
+        # get index nodess
+        assert_that(db.get_indexed_node("User", 'username', username),
+                    is_not(none()))
+        data = ('fake', 'key', 'value')
+        assert_that(db.get_indexed_nodes(data), 
+                    is_([None]))
 # 		assert_that(node, has_property('id', is_not(none())))
 # 		assert_that(node, has_property('uri', is_not(none())))
 # 		assert_that(node, has_property('properties',
