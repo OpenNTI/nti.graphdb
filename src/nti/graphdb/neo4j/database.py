@@ -75,6 +75,15 @@ def set_node_properties_query(label, key, value, properties):
     return ''.join(result)
 
 
+def set_node_properties_with_id_query(nid, properties):
+    result = ["START n=NODE(%s) MATCH (n)" % nid]
+    result.append(" SET n += {")
+    props = process_properties(properties)
+    result.append(','.join(props))
+    result.append('} RETURN n')
+    return ''.join(result)
+
+
 def create_node_query(label, properties):
     result = ["CREATE (n:%s" % label]
     props = process_properties(properties)
@@ -285,26 +294,31 @@ class Neo4jDB(object):
     def get_indexed_node(self, label, key, value, raw=False):
         with self.session() as session:
             result = self.do_get_index_node_session(session, label, key, value)
-            result = Neo4jNode.create(result) if result is not None and not raw else result
+            result = Neo4jNode.create(
+                result) if result is not None and not raw else result
             return result
 
     def get_indexed_nodes(self, *tuples):
         result = []
         with self.session() as session:
             for label, key, value in tuples:
-                node = self.do_get_index_node_session(session, label, key, value)
+                node = self.do_get_index_node_session(session, label, 
+                                                      key, value)
                 node = Neo4jNode.create(node) if node is not None else None
                 result.append(node)
         return result
-#
-#     def update_node(self, obj, properties=_marker):
-#         node = self._get_node(obj, props=False)
-#         if node is not None and properties != _marker:
-#             node.update(properties)
-#             self.graph.push(node)
-#             return True
-#         return False
-#
+
+    def update_node(self, obj, properties=None):
+        with self.session() as session:
+            node = self.do_get_node_session(session, obj)
+            if node is not None:
+                new_props = IPropertyAdapter(obj, None) or {}
+                new_props.update(properties or {})  # set and overwrite
+                query = set_node_properties_with_id_query(node.id, properties)
+                session.run(query)
+                return True
+        return False
+
 #     def _delete_node(self, obj):
 #         node = self._get_node(obj, props=False)
 #         if node is not None:
