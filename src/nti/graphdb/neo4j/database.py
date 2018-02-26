@@ -43,16 +43,26 @@ logger = __import__('logging').getLogger(__name__)
 
 
 def is_node_404(e):
+    """
+    Check if the exception is for an entitiy not found error
+    """
     code = getattr(e, 'code', None) or ''
     return "EntityNotFound" in code
 
 
 def merge_node_query(label, key, value):
+    """
+    Returns a merge query for the specififed label, key and value
+    """
     result = "MERGE (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
     return result
 
 
 def process_properties(properties):
+    """
+    Returns an array with entries of key,value pairs
+    for node properties
+    """
     props = []
     for key, value in properties.items():
         if isinstance(value, six.string_types):
@@ -67,6 +77,10 @@ def process_properties(properties):
 
 
 def set_node_properties_query(label, key, value, properties):
+    """
+    Returns a query that sets the specified properties for a node
+    with the specified label, key, value
+    """
     result = ["MATCH (n:%s { %s:'%s' })" % (label, key, value)]
     result.append(" SET n += {")
     props = process_properties(properties)
@@ -75,7 +89,24 @@ def set_node_properties_query(label, key, value, properties):
     return ''.join(result)
 
 
+def set_node_properties_with_id_query(nid, properties):
+    """
+    Returns a query that sets the specified properties for a node
+    with the specified node id
+    """
+    result = ["START n=NODE(%s) MATCH (n)" % nid]
+    result.append(" SET n += {")
+    props = process_properties(properties)
+    result.append(','.join(props))
+    result.append('} RETURN n')
+    return ''.join(result)
+
+
 def create_node_query(label, properties):
+    """
+    Returns a a query to create a node with the specified label and
+    properties
+    """
     result = ["CREATE (n:%s" % label]
     props = process_properties(properties)
     if props:
@@ -87,12 +118,32 @@ def create_node_query(label, properties):
 
 
 def match_node_query(label, key, value):
+    """
+    Returns a query that matches a node with the specified label, key and value
+    """
     result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
     return result
 
 
 def match_node_by_id_query(nid):
+    """
+    Returns a query that matches a node with the specified id
+    """
     return "START n=NODE(%s) MATCH (n) RETURN n" % nid
+
+
+def isolate_node(nid):
+    """
+    Returns a query that deletes all relationships of a node
+    """
+    return "START a=node(%s) MATCH (a)-[r]-(b) DELETE r" % nid
+
+
+def delete_node(nid):
+    """
+    Returns a query that deletes a node with the specified id
+    """
+    return "START n=node(%s) MATCH (n) DELETE n" % nid
 
 # def _create_unique_rel_query(start_id, end_id, rel_type, bidirectional=False):
 #     direction = '-' if bidirectional else '->'
@@ -285,65 +336,53 @@ class Neo4jDB(object):
     def get_indexed_node(self, label, key, value, raw=False):
         with self.session() as session:
             result = self.do_get_index_node_session(session, label, key, value)
-            result = Neo4jNode.create(result) if result is not None and not raw else result
+            result = Neo4jNode.create(
+                result) if result is not None and not raw else result
             return result
 
     def get_indexed_nodes(self, *tuples):
         result = []
         with self.session() as session:
             for label, key, value in tuples:
-                node = self.do_get_index_node_session(session, label, key, value)
+                node = self.do_get_index_node_session(session, label,
+                                                      key, value)
                 node = Neo4jNode.create(node) if node is not None else None
                 result.append(node)
         return result
-#
-#     def update_node(self, obj, properties=_marker):
-#         node = self._get_node(obj, props=False)
-#         if node is not None and properties != _marker:
-#             node.update(properties)
-#             self.graph.push(node)
-#             return True
-#         return False
-#
-#     def _delete_node(self, obj):
-#         node = self._get_node(obj, props=False)
-#         if node is not None:
-#             wb = WriteBatch(self.graph)
-#             wb.isolate(node)
-#             wb.delete(node)
-#             responses = wb.run()
-#             return responses[1] is None
-#         return False
-#
-#     def delete_node(self, obj):
-#         result = self._delete_node(obj)
-#         return result
-#
-#     def delete_nodes(self, *objs):
-#         nodes = []
-#         # get all the nodes at once
-#         rb = ReadBatch(self.graph)
-#         for o in objs:
-#             pk = get_node_pk(o)
-#             query = _match_node_query(pk.label, pk.key, pk.value)
-#             rb.append(CypherJob(query))
-#
-#         for node in self._run_read_batch(rb):
-#             if node is not None:
-#                 nodes.append(node)
-#
-#         # process all deletions at once
-#         wb = WriteBatch(self.graph)
-#         for node in nodes:
-#             wb.isolate(node)
-#             wb.delete(node)
-#
-#         result = 0
-#         responses = wb.run()
-#         for idx in range(1, len(responses), 2):
-#             if responses[idx] is None:
-#                 result += 1
-#         return result
+
+    def update_node(self, obj, properties=None):
+        with self.session() as session:
+            node = self.do_get_node_session(session, obj)
+            if node is not None:
+                new_props = IPropertyAdapter(obj, None) or {}
+                new_props.update(properties or {})  # set and overwrite
+                query = set_node_properties_with_id_query(node.id, properties)
+                session.run(query)
+                return True
+        return False
+
+    def do_delete_node_session(self, session, obj):
+        node = self.do_get_node_session(session, obj)
+        if node is not None:
+            query = isolate_node(node.id)
+            session.run(query)
+            query = delete_node(node.id)
+            session.run(query)
+            return True
+        return False
+
+    def delete_node(self, obj):
+        with self.session() as session:
+            return self.do_delete_node_session(session, obj)
+
+    def delete_nodes(self, *objects):
+        result = 0
+        with self.session() as session:
+            for obj in objects:
+                if self.do_delete_node_session(session, obj):
+                    result += 1
+        return result
+
 #
 #     # relationships
 #

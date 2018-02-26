@@ -90,18 +90,21 @@ class IGraphDB(IExternalService):
         Return the nodes for the specified data 3-value tuples
         """
 
-#     def get_node_properties(obj):
-#         pass
-#
-#     def update_node(obj, properties=None):
-#         pass
-#
-#     def delete_node(obj):
-#         pass
-#
-#     def delete_nodes(*objs):
-#         pass
-#
+    def update_node(obj, properties=None):
+        """
+        Update the node for specified object
+        """
+
+    def delete_node(obj):
+        """
+        Delete the node for specified object
+        """
+
+    def delete_nodes(*objs):
+        """
+        Delete the nodes for specified objects
+        """
+
 #     def create_relationship(start, end, rel_type, properties=None, key=None, value=None):
 #         pass
 #

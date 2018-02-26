@@ -11,7 +11,7 @@ from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
 # from hamcrest import contains
-# from hamcrest import has_entry
+from hamcrest import has_entry
 from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_property
@@ -100,6 +100,32 @@ class TestNeo4jDB(GraphDBTestCase):
         data = ('fake', 'key', 'value')
         assert_that(db.get_indexed_nodes(data),
                     is_([None]))
+
+    @WithMockDSTrans
+    def test_update_node(self):
+        db = component.getUtility(IGraphDB)
+        user = self.create_user(random_username())
+        db.create_node(user)
+        assert_that(db.update_node(user, {'foo': 'bar'}),
+                    is_(True))
+        node = db.get_node(user)
+        assert_that(node,
+                    has_property('properties', has_entry('foo', 'bar')))
+
+    @WithMockDSTrans
+    def test_delete_node(self):
+        db = component.getUtility(IGraphDB)
+        user = self.create_user(random_username())
+        db.create_node(user)
+        assert_that(db.delete_node(user), is_(True))
+
+        user = self.create_user(random_username())
+        db.create_node(user)
+        assert_that(db.delete_nodes(user), is_(1))
+
+        node = db.get_node(user)
+        assert_that(node, is_(none()))
+
 # 		assert_that(node, has_property('id', is_not(none())))
 # 		assert_that(node, has_property('uri', is_not(none())))
 # 		assert_that(node, has_property('properties',
