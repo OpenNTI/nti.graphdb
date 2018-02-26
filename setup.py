@@ -75,6 +75,7 @@ setup(
 		'zope.configuration',
 		'zope.interface',
 		'zope.intid',
+		'zope.lifecycleevent',
 		'zope.schema',
 		'zope.security',
     ],
