@@ -60,15 +60,22 @@ class IGraphDB(IExternalService):
         Create nodes for the specified objects
         """
         pass
-# 
-#     def get_node(obj):
-#         pass
-# 
-#     def get_or_create_node(obj):
-#         pass
-# 
-#     def get_nodes(*objs):
-#         pass
+ 
+    def get_node(obj):
+        """
+        Return the graph node for the specified object
+        """
+
+    def get_or_create_node(obj):
+        """
+        Get or create a node for the specified object
+        """
+ 
+    def get_nodes(*objs):
+        """
+        Return the nodes for the specified objects
+        """
+
 # 
 #     def get_indexed_node(label, key, value):
 #         pass

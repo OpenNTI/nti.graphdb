@@ -21,13 +21,12 @@ from nti.graphdb.common import NodePrimaryKey
 from nti.graphdb.common import get_node_primary_key
 
 from nti.graphdb.interfaces import IGraphDB
-# from nti.graphdb.interfaces import IGraphNode
 from nti.graphdb.interfaces import ILabelAdapter
 from nti.graphdb.interfaces import IPropertyAdapter
 # from nti.graphdb.interfaces import IGraphRelationship
 
-# from nti.graphdb.neo4j.interfaces import INeo4jNode
-# from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
+from nti.graphdb.neo4j.interfaces import INeo4jNode
+from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
 # from nti.graphdb.neo4j.interfaces import INeo4jRelationship
 #
 from nti.graphdb.neo4j.node import Neo4jNode
@@ -43,10 +42,11 @@ _marker = object()
 logger = __import__('logging').getLogger(__name__)
 
 
-# def _is_404(ex):
-#     response = getattr(ex, 'response', None)
-#     return getattr(response, 'status_code', None) == 404
-#
+def is_node_404(e):
+    code = getattr(e, 'code', None) or ''
+    return "EntityNotFound" in code
+
+
 def merge_node_query(label, key, value):
     result = "MERGE (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
     return result
@@ -89,7 +89,11 @@ def create_node_query(label, properties):
 def match_node_query(label, key, value):
     result = "MATCH (n:%s { %s:'%s' }) RETURN n" % (label, key, value)
     return result
-#
+
+
+def match_node_by_id_query(nid):
+    return "START n=NODE(%s) MATCH (n) RETURN n" % nid
+
 # def _create_unique_rel_query(start_id, end_id, rel_type, bidirectional=False):
 #     direction = '-' if bidirectional else '->'
 #     result = """
@@ -157,7 +161,9 @@ class Neo4jDB(object):
         # pylint: disable=no-member
         return self.db.session()
 
-    def _create_unique_node_session(self, session, label, key, value, properties=None):
+    # nodes
+
+    def do_create_unique_node_session(self, session, label, key, value, properties=None):
         properties = {} if properties is None else properties
         query = merge_node_query(label, key, value)
         result = session.run(query)
@@ -167,7 +173,7 @@ class Neo4jDB(object):
         result = result.single() if result is not None else result
         return result.value() if result is not None else None
 
-    def _create_node_session(self, session, label, properties=None):
+    def do_create_node_session(self, session, label, properties=None):
         properties = {} if properties is None else properties
         query = create_node_query(label, properties)
         result = session.run(query)
@@ -175,7 +181,7 @@ class Neo4jDB(object):
         result = result.value() if result is not None else None
         return result
 
-    def _create_node(self, obj, label=None, key=None, value=None, properties=None):
+    def do_create_node(self, obj, label=None, key=None, value=None, properties=None):
         # get object properties
         properties = dict(properties or {})
         properties.update(IPropertyAdapter(obj, None) or {})
@@ -190,17 +196,18 @@ class Neo4jDB(object):
         # create node
         with self.session() as session:
             if pk is not None:
-                result = self._create_unique_node_session(session, pk.label, 
-                                                          pk.key, pk.value, 
-                                                          properties)
+                result = self.do_create_unique_node_session(session, pk.label,
+                                                            pk.key, pk.value,
+                                                            properties)
             else:
-                result = self._create_node_session(session, label, properties)
+                result = self.do_create_node_session(session, label,
+                                                     properties)
         return result
 
     def create_node(self, obj, label=None, key=None, value=None, properties=None, raw=False):
-        result = self._create_node(obj, label, key, value, properties)
-        result = Neo4jNode.create(result) if not raw else result
-        return result
+        node = self.do_create_node(obj, label, key, value, properties)
+        node = Neo4jNode.create(node) if not raw else node
+        return node
 
     def create_nodes(self, *objects):
         result = []
@@ -213,76 +220,60 @@ class Neo4jDB(object):
                 # optional properties
                 properties = IPropertyAdapter(obj, None)
                 if pk is not None:
-                    node = self._create_unique_node_session(session, pk.label, 
-                                                            pk.key, pk.value, 
-                                                            properties)
+                    node = self.do_create_unique_node_session(session, pk.label,
+                                                              pk.key, pk.value,
+                                                              properties)
                 else:
-                    node = self._create_node_session(session, label, properties)
+                    node = self.do_create_node_session(session, label,
+                                                       properties)
                 result.append(Neo4jNode.create(node))
         return result
-#
-#     def _get_node(self, obj, props=True):
-#         result = None
-#         __traceback_info__ = obj, props
-#         try:
-#             if isinstance(obj, Node):
-#                 result = obj
-#             elif isinstance(obj, (six.string_types, numbers.Number)):
-#                 result = self.graph.node(str(obj))
-#             elif isinstance(obj, Neo4jNode) and obj.neo is not None:
-#                 result = obj.neo
-#             elif IGraphNode.providedBy(obj):
-#                 result = self.graph.node(obj.id)
-#             elif obj is not None:
-#                 pk = get_node_pk(obj)
-#                 if pk is not None:
-#                     result = self.graph.find_one(pk.label, pk.key, pk.value)
-#                     props = False  # no need to refresh
-#             if result is not None and props:
-#                 self.graph.pull(result)
-#         except GraphError as e:
-#             if not _is_404(e):
-#                 raise e
-#             result = None
-#         return result
-#
-#     def get_node(self, obj, raw=False, props=True):
-#         result = self._get_node(obj, props=props)
-#         result = Neo4jNode.create(result) if result is not None and not raw else result
-#         return result
-#
-#     node = get_node
-#
-#     def get_or_create_node(self, obj, raw=False, props=True):
-#         result =     self.get_node(obj, raw=raw, props=props) \
-#                  or    self.create_node(obj, raw=raw, props=props)
-#         return result
-#
-#     def _run_read_batch(self, rb):
-#         modified = False
-#         if not hasattr(rb.graph, 'batch'):
-#             modified = True
-#             rb.graph.batch = rb.runner
-#         try:
-#             return rb.run()
-#         finally:
-#             if modified:
-#                 del rb.graph.batch
-#
-#     def get_nodes(self, *objs):
-#         nodes = []
-#         rb = ReadBatch(self.graph)
-#         for o in objs:
-#             pk = get_node_pk(o)
-#             query = _match_node_query(pk.label, pk.key, pk.value)
-#             rb.append(CypherJob(query))
-#
-#         for result in self._run_read_batch(rb):
-#             if result is not None:
-#                 nodes.append(Neo4jNode.create(result))
-#             else:
-#                 nodes.append(None)
-#         return nodes
+
+    def do_get_node_session(self, session, obj):
+        result = None
+        try:
+            if INeo4jNode.providedBy(obj):
+                result = obj
+            elif IGraphNodeNeo4j.providedBy(obj):
+                result = obj.neo
+            elif obj is not None:
+                if isinstance(obj, (six.string_types, numbers.Number)):
+                    query = match_node_by_id_query(obj)
+                    result = session.run(query)
+                else:
+                    pk = get_node_primary_key(obj)
+                    if pk is not None:
+                        query = match_node_query(pk.label, pk.key, pk.value)
+                        result = session.run(query)
+                # return a single node
+                result = result.single() if result is not None else None
+                result = result.value() if result is not None else None
+        except Exception as e:  # pylint: disable=broad-except
+            if not is_node_404(e):
+                raise e
+        return result
+
+    def do_get_node(self, obj):
+        with self.session() as session:
+            result = self.do_get_node_session(session, obj)
+        return result
+
+    def get_node(self, obj, raw=False):
+        node = self.do_get_node(obj)
+        node = Neo4jNode.create(node) if node is not None and not raw else node
+        return node
+    node = get_node
+
+    def get_or_create_node(self, obj, raw=False):
+        return self.get_node(obj, raw=raw) or self.create_node(obj, raw=raw)
+
+    def get_nodes(self, *objects):
+        result = []
+        with self.session() as session:
+            for obj in objects:
+                node = self.do_get_node_session(session, obj)
+                result.append(node)
+        return result
 #
 #     def get_indexed_node(self, label, key, value, raw=False, props=True):
 #         __traceback_info__ = label, key, value
@@ -378,8 +369,8 @@ class Neo4jDB(object):
 #
 #     def _create_relationship(self, start, end, rel_type, properties=None, unique=True):
 #         # get or create nodes
-#         n4j_end = self.get_or_create_node(end, raw=True, props=False)
-#         n4j_start = self.get_or_create_node(start, raw=True, props=False)
+#         n4j_end = self.get_ordo_create_node(end, raw=True, props=False)
+#         n4j_start = self.get_ordo_create_node(start, raw=True, props=False)
 #         # capture properties
 #         props = dict(self._rel_properties(start, end, rel_type))
 #         props.update(properties or {})

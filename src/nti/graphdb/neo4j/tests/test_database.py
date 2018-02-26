@@ -7,16 +7,17 @@ from __future__ import absolute_import
 
 # pylint: disable=protected-access,too-many-public-methods,arguments-differ
 
-# from hamcrest import is_
+from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
 # from hamcrest import contains
 # from hamcrest import has_entry
 from hamcrest import has_length
 from hamcrest import assert_that
-# from hamcrest import has_property
+from hamcrest import has_property
 does_not = is_not
 
+import sys
 import uuid
 import unittest
 
@@ -57,6 +58,7 @@ class TestNeo4jDB(GraphDBTestCase):
                               value=random_username(),
                               properties={"oid": str(uuid.uuid4())})
         assert_that(node, is_not(none()))
+        assert_that(node, has_property('id', is_not(none())))
         # node w/o primary key
         node = db.create_node(object(),
                               label="User",
@@ -70,6 +72,24 @@ class TestNeo4jDB(GraphDBTestCase):
         user = self.create_user(username)
         nodes = db.create_nodes(user, FakeObject())
         assert_that(nodes, has_length(2))
+
+    @WithMockDSTrans
+    def test_get_node_funcs(self):
+        db = component.getUtility(IGraphDB)
+        username = random_username()
+        user = self.create_user(username)
+        node = db.create_node(user)
+        # test exists
+        assert_that(db.get_node(user), is_not(none()))
+        assert_that(db.get_node(node), is_not(none()))
+        assert_that(db.get_node(node.id), is_not(none()))
+        assert_that(db.get_node(node.neo), is_not(none()))
+        # test does not exists
+        assert_that(db.get_node(sys.maxint), is_(none()))
+        # get or create
+        assert_that(db.get_or_create_node(user), is_not(none()))
+        # get nodes
+        assert_that(db.get_nodes(user), has_length(1))
 
 # 		assert_that(node, has_property('id', is_not(none())))
 # 		assert_that(node, has_property('uri', is_not(none())))
