@@ -4,10 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from zope import component
 
@@ -31,62 +30,74 @@ from nti.graphdb.interfaces import IUniqueAttributeAdapter
 
 from nti.ntiids.ntiids import find_object_with_ntiid
 
-def _is_regular_dfl(obj):
-	return 	IFriendsList.providedBy(obj) and \
-			not IDynamicSharingTargetFriendsList.providedBy(obj)
+logger = __import__('logging').getLogger(__name__)
 
-def _remove_entity(db, label, key, value):
-	node = db.get_indexed_node(label, key, value)
-	if node is not None:
-		db.delete_node(node)
-		logger.debug("Node %s deleted", node)
-		return True
-	return False
 
-def _add_entity(db, oid):
-	entity = find_object_with_ntiid(oid)
-	if entity is not None:
-		node = db.get_or_create_node(entity)
-		logger.debug("Entity node %s created/retrieved", node)
-		return entity, node
-	return None, None
+def is_regular_DFL(obj):
+    return IFriendsList.providedBy(obj) \
+       and not IDynamicSharingTargetFriendsList.providedBy(obj)
 
-def _process_entity_removed(db, entity):
-	label = ILabelAdapter(entity)
-	adapted = IUniqueAttributeAdapter(entity)
-	queue = get_job_queue()
-	job = create_job(_remove_entity,
-					 db=db,
-					 label=label,
-					 key=adapted.key,
-					 value=adapted.value)
-	queue.put(job)
 
-def _process_entity_added(db, entity):
-	oid = get_oid(entity)
-	queue = get_job_queue()
-	job = create_job(_add_entity, db=db, oid=oid)
-	queue.put(job)
+def remove_entity(db, label, key, value):
+    node = db.get_indexed_node(label, key, value)
+    if node is not None:
+        db.delete_node(node)
+        logger.debug("Node %s deleted", node)
+        return True
+    return False
+
+
+def add_entity(db, oid):
+    entity = find_object_with_ntiid(oid)
+    if entity is not None:
+        node = db.get_or_create_node(entity)
+        logger.debug("Entity node %s created/retrieved", node)
+        return entity, node
+    return None, None
+
+
+def process_entity_removed(db, entity):
+    label = ILabelAdapter(entity)
+    adapted = IUniqueAttributeAdapter(entity)
+    queue = get_job_queue()
+    job = create_job(remove_entity,
+                     db=db,
+                     label=label,
+                     key=adapted.key,
+                     value=adapted.value)
+    queue.put(job)
+
+
+def process_entity_added(db, entity):
+    oid = get_oid(entity)
+    queue = get_job_queue()
+    job = create_job(add_entity, db=db, oid=oid)
+    queue.put(job)
+
 
 @component.adapter(IEntity, IObjectAddedEvent)
-def _entity_added(entity, event):
-	db = get_graph_db()
-	queue = get_job_queue()
-	if 	db is not None and queue is not None and \
-		not _is_regular_dfl(entity):  # check queue b/c of Everyone comm
-		_process_entity_added(db, entity)
+def _entity_added(entity, unused_event):
+    db = get_graph_db()
+    queue = get_job_queue()
+    if 		db is not None \
+        and queue is not None \
+        and not is_regular_DFL(entity):  # check queue b/c of Everyone comm
+        process_entity_added(db, entity)
+
 
 @component.adapter(IEntity, IIntIdRemovedEvent)
-def _entity_removed(entity, event):
-	db = get_graph_db()
-	if db is not None and not _is_regular_dfl(entity):
-		_process_entity_removed(db, entity)
+def _entity_removed(entity, unused_event):
+    db = get_graph_db()
+    if db is not None and not is_regular_DFL(entity):
+        process_entity_removed(db, entity)
+
 
 component.moduleProvides(IObjectProcessor)
 
+
 def init(db, obj):
-	result = False
-	if IEntity.providedBy(obj) and not _is_regular_dfl(obj):
-		_process_entity_added(db, obj)
-		result = True
-	return result
+    result = False
+    if IEntity.providedBy(obj) and not is_regular_DFL(obj):
+        process_entity_added(db, obj)
+        result = True
+    return result
