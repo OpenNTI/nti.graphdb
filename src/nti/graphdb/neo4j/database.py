@@ -103,6 +103,14 @@ def match_node_query(label, key, value):
 def match_node_by_id_query(nid):
     return "START n=NODE(%s) MATCH (n) RETURN n" % nid
 
+
+def isolate_node(nid):
+    return "START a=node(%s) MATCH (a)-[r]-(b) DELETE r" % nid
+
+
+def delete_node(nid):
+    return "START n=node(%s) MATCH (n) DELETE n" % nid
+
 # def _create_unique_rel_query(start_id, end_id, rel_type, bidirectional=False):
 #     direction = '-' if bidirectional else '->'
 #     result = """
@@ -302,7 +310,7 @@ class Neo4jDB(object):
         result = []
         with self.session() as session:
             for label, key, value in tuples:
-                node = self.do_get_index_node_session(session, label, 
+                node = self.do_get_index_node_session(session, label,
                                                       key, value)
                 node = Neo4jNode.create(node) if node is not None else None
                 result.append(node)
@@ -319,45 +327,28 @@ class Neo4jDB(object):
                 return True
         return False
 
-#     def _delete_node(self, obj):
-#         node = self._get_node(obj, props=False)
-#         if node is not None:
-#             wb = WriteBatch(self.graph)
-#             wb.isolate(node)
-#             wb.delete(node)
-#             responses = wb.run()
-#             return responses[1] is None
-#         return False
-#
-#     def delete_node(self, obj):
-#         result = self._delete_node(obj)
-#         return result
-#
-#     def delete_nodes(self, *objs):
-#         nodes = []
-#         # get all the nodes at once
-#         rb = ReadBatch(self.graph)
-#         for o in objs:
-#             pk = get_node_pk(o)
-#             query = _match_node_query(pk.label, pk.key, pk.value)
-#             rb.append(CypherJob(query))
-#
-#         for node in self._run_read_batch(rb):
-#             if node is not None:
-#                 nodes.append(node)
-#
-#         # process all deletions at once
-#         wb = WriteBatch(self.graph)
-#         for node in nodes:
-#             wb.isolate(node)
-#             wb.delete(node)
-#
-#         result = 0
-#         responses = wb.run()
-#         for idx in range(1, len(responses), 2):
-#             if responses[idx] is None:
-#                 result += 1
-#         return result
+    def do_delete_node_session(self, session, obj):
+        node = self.do_get_node_session(session, obj)
+        if node is not None:
+            query = isolate_node(node.id)
+            session.run(query)
+            query = delete_node(node.id)
+            session.run(query)
+            return True
+        return False
+
+    def delete_node(self, obj):
+        with self.session() as session:
+            return self.do_delete_node_session(session, obj)
+
+    def delete_nodes(self, *objects):
+        result = 0
+        with self.session() as session:
+            for obj in objects:
+                if self.do_delete_node_session(session, obj):
+                    result += 1
+        return result
+
 #
 #     # relationships
 #
