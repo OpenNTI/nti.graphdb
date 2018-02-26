@@ -55,8 +55,11 @@ class IGraphDB(IExternalService):
         """
         pass
 
-#     def create_nodes(*objs):
-#         pass
+    def create_nodes(*objs):
+        """
+        Create nodes for the specified objects
+        """
+        pass
 # 
 #     def get_node(obj):
 #         pass

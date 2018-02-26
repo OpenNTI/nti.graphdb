@@ -29,12 +29,12 @@ from nti.dataserver.users.users import User
 from nti.graphdb.common import get_ntiid
 from nti.graphdb.common import get_entity
 from nti.graphdb.common import get_creator
-from nti.graphdb.common import get_node_pk
 from nti.graphdb.common import get_createdTime
 from nti.graphdb.common import to_external_oid
 from nti.graphdb.common import get_current_user
 from nti.graphdb.common import get_lastModified
 from nti.graphdb.common import get_principal_id
+from nti.graphdb.common import get_node_primary_key
 from nti.graphdb.common import get_current_principal_id
 
 from nti.graphdb.tests import GraphDBTestCase
@@ -47,7 +47,6 @@ class TestCommon(GraphDBTestCase):
         return mock_dataserver.current_transaction
 
     def create_user(self, username=u'nt@nti.com', password=u'temp001', **kwargs):
-        # pylint: disable=no-member
         usr = User.create_user(username=username, password=password, **kwargs)
         return usr
 
@@ -107,6 +106,6 @@ class TestCommon(GraphDBTestCase):
 
     @WithMockDSTrans
     def test_get_node_pk(self):
-        assert_that(get_node_pk(object()), is_(none()))
-        user = self.create_user()
-        assert_that(get_node_pk(user), is_not(none()))
+        assert_that(get_node_primary_key(object()), is_(none()))
+        assert_that(get_node_primary_key(self.create_user()), 
+                    is_not(none()))
