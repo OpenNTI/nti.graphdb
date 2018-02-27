@@ -20,13 +20,14 @@
 	<!-- Labels -->
 	<include package="." file="configure_label.zcml" />
 
+	<!-- Properties -->
+	<include package="." file="configure_properties.zcml" />
+	
 	<!--
 	Adapters 	
 	<adapter factory=".containers._default_container_adapter"
 			 provides=".interfaces.IContainer"
 			 for="nti.base.interfaces.IBasestring" />
-
-	<include package="." file="configure_properties.zcml" />
 	
 	<subscriber handler=".entities._entity_added" />
 	<subscriber handler=".entities._entity_removed" />
