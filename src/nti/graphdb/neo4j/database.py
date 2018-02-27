@@ -15,6 +15,9 @@ from zope import interface
 
 from zope.cachedescriptors.property import Lazy
 
+# pylint: disable=no-name-in-module,import-error
+from neo4j.exceptions import CypherError
+
 from neo4j.v1 import GraphDatabase
 
 from nti.graphdb.common import NodePrimaryKey
@@ -299,7 +302,7 @@ class Neo4jDB(object):
                 # return a single node
                 result = result.single() if result is not None else None
                 result = result.value() if result is not None else None
-        except Exception as e:  # pylint: disable=broad-except
+        except CypherError as e:
             if not is_node_404(e):
                 raise e
         return result
@@ -383,7 +386,6 @@ class Neo4jDB(object):
                     result += 1
         return result
 
-#
 #     # relationships
 #
 #     @classmethod
