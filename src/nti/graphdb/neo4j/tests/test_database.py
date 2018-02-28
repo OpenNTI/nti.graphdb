@@ -72,8 +72,7 @@ class TestNeo4jDB(GraphDBTestCase):
     @WithMockDSTrans
     def test_create_nodes(self):
         db = component.getUtility(IGraphDB)
-        username = random_username()
-        user = self.create_user(username)
+        user = self.create_user(random_username())
         nodes = db.create_nodes(user, FakeObject())
         assert_that(nodes, has_length(2))
 
@@ -83,17 +82,22 @@ class TestNeo4jDB(GraphDBTestCase):
         username = random_username()
         user = self.create_user(username)
         node = db.create_node(user)
+
         # test exists
         assert_that(db.get_node(user), is_not(none()))
         assert_that(db.get_node(node), is_not(none()))
         assert_that(db.get_node(node.id), is_not(none()))
         assert_that(db.get_node(node.neo), is_not(none()))
+
         # test does not exists
         assert_that(db.get_node(sys.maxint), is_(none()))
+
         # get or create
         assert_that(db.get_or_create_node(user), is_not(none()))
+
         # get nodes
         assert_that(db.get_nodes(user), has_length(1))
+
         # get index nodess
         assert_that(db.get_indexed_node("User", 'username', username),
                     is_not(none()))
@@ -127,22 +131,31 @@ class TestNeo4jDB(GraphDBTestCase):
         assert_that(node, is_(none()))
 
     @WithMockDSTrans
-    def test_create_relationship(self):
+    def test_relationships(self):
         db = component.getUtility(IGraphDB)
         user_1 = self.create_user(random_username())
         user_2 = self.create_user(random_username())
+
         # create unique relationship
         rel = db.create_relationship(user_1, user_2, "Friend", unique=True,
-                                     properties={"foo":"bar"})
+                                     properties={"foo": "bar"})
         assert_that(rel, is_not(none()))
         assert_that(rel, has_property('id', is_not(none())))
         assert_that(rel,
                     has_property('properties', has_entry('foo', 'bar')))
+
         # create normal relationship
         rel = db.create_relationship(user_1, user_2, "Visited", unique=False,
-                                     properties={"foo":"bar"})
+                                     properties={"foo": "bar"})
         assert_that(rel, is_not(none()))
         assert_that(rel, has_property('id', is_not(none())))
+        assert_that(rel, has_property('neo', is_not(none())))
+
+        # test get relationship
+        assert_that(db.get_relationship(rel), is_not(none()))
+        assert_that(db.get_relationship(rel.id), is_not(none()))
+        assert_that(db.get_relationship(rel.neo), is_not(none()))
+        assert_that(db.get_relationship(sys.maxint), is_(none()))
 
 #         res = self.db.get_node(user)
 #         assert_that(res, is_not(none()))

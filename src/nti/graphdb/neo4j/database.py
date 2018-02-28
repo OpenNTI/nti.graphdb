@@ -31,8 +31,9 @@ from nti.graphdb.interfaces import IPropertyAdapter
 
 from nti.graphdb.neo4j.interfaces import INeo4jNode
 from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
-# from nti.graphdb.neo4j.interfaces import INeo4jRelationship
-#
+from nti.graphdb.neo4j.interfaces import INeo4jRelationship
+from nti.graphdb.neo4j.interfaces import IGraphRelationshipNeo4j
+
 from nti.graphdb.neo4j.node import Neo4jNode
 
 from nti.graphdb.neo4j.relationship import Neo4jRelationship
@@ -169,6 +170,14 @@ def create_relationship_query(start, end, type_, bidirectional=False, unique=Fal
 
 def create_unique_relationship_query(start, end, type_, bidirectional):
     return create_relationship_query(start, end, type_, bidirectional, True)
+
+
+def match_relationship_by_id_query(rid):
+    """
+    Returns a query that matches a relationship with the specified id
+    """
+    rid = getattr(rid, 'id', rid)
+    return "MATCH (a)-[r]-(b) WHERE ID(r) = %s RETURN r" % rid
 
 
 def set_relationship_properties_with_id_query(rid, properties):
@@ -452,14 +461,13 @@ class Neo4jDB(object):
             # capture properties
             merged_props = self.relationship_properties(start, end, type_)
             merged_props.update(properties or {})
-            properties = merged_props
             # create
             if unique:
                 result = self.do_create_unique_relationship_session(session, start, end, str(type_),
-                                                                    properties, bidirectional)
+                                                                    merged_props, bidirectional)
             else:
-                result = self.do_create_relationship_session(session, start, end, type_,
-                                                             properties, bidirectional)
+                result = self.do_create_relationship_session(session, start, end, str(type_),
+                                                             merged_props, bidirectional)
             return result
 
     def create_relationship(self, start, end, type_, properties=None,
@@ -468,32 +476,32 @@ class Neo4jDB(object):
                                              unique, bidirectional)
         result = Neo4jRelationship.create(result) if not raw else result
         return result
-#
-#     def _get_relationship(self, obj, props=True):
-#         result = None
-#         try:
-#             if isinstance(obj, Relationship):
-#                 result = obj
-#             elif isinstance(obj, (six.string_types, numbers.Number)):
-#                 result = self.graph.relationship(str(obj))
-#             elif isinstance(obj, Neo4jRelationship) and obj.neo is not None:
-#                 result = obj.neo
-#             elif IGraphRelationship.providedBy(obj):
-#                 result = self.graph.relationship(obj.id)
-#             if result is not None and props:
-#                 self.graph.pull(result)
-#         except GraphError as e:
-#             if not _is_404(e):
-#                 raise e
-#             result = None
-#         return result
-#
-#     def get_relationship(self, obj, raw=False):
-#         result = self._get_relationship(obj)
-#         result = Neo4jRelationship.create(result) if result is not None and not raw else result
-#         return result
-#
-#     relationship = get_relationship
+
+    def do_get_relationship_session(self, session, obj):
+        result = None
+        try:
+            if INeo4jRelationship.providedBy(obj):
+                result = obj
+            elif IGraphRelationshipNeo4j.providedBy(obj):
+                result = obj.neo
+            elif obj is not None:
+                query = match_relationship_by_id_query(obj)
+                result = self.single_value(session.run(query))
+        except CypherError as e:
+            if not is_node_404(e):
+                raise e
+        return result
+
+    def do_get_relationship(self, obj):
+        with self.session() as session:
+            result = self.do_get_relationship_session(session, obj)
+        return result
+    
+    def get_relationship(self, obj, raw=False):
+        result = self.do_get_relationship(obj)
+        result = Neo4jRelationship.create(result) if result is not None and not raw else result
+        return result
+    relationship = get_relationship
 #
 #     def _match(self, start_node=None, end_node=None, rel_type=None,
 #                bidirectional=False, limit=None, loose=False):
