@@ -25,7 +25,7 @@ from nti.graphdb import DEFAULT_URI
 
 def random_username():
     splits = str(uuid.uuid4()).split('-')
-    username = u"%s@%s" % (splits[0], splits[-1])
+    username = u"%s_%s@%s" % (splits[0], splits[1], splits[-1])
     return username.upper()
 
 
