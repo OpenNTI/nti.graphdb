@@ -148,17 +148,18 @@ def delete_node(nid):
     """
     return "START n=node(%s) MATCH (n) DELETE n" % nid
 
-# def _create_unique_rel_query(start_id, end_id, rel_type, bidirectional=False):
-#     direction = '-' if bidirectional else '->'
-#     result = """
-#     MATCH (a)
-#     WHERE id(a)=%s
-#     MATCH (b)
-#     WHERE id(b)=%s
-#     CREATE UNIQUE (a)-[r:%s]%s(b)
-#     RETURN r""" % (start_id, end_id, rel_type, direction)
-#     return result.strip()
-#
+
+def create_unique_relationship_query(start, end, type_, bidirectional=False):
+    direction = '-' if bidirectional else '->'
+    result = """
+    MATCH (a)
+    WHERE id(a)=%s
+    MATCH (b)
+    WHERE id(b)=%s
+    CREATE UNIQUE (a)-[r:%s]%s(b)
+    RETURN r""" % (start, end, type_, direction)
+    return ' '.join(result.split())
+
 # def _merge_rel_query(start_id, end_id, rel_type, bidirectional=False):
 #     direction = '-' if bidirectional else '->'
 #     result = """
@@ -181,12 +182,6 @@ def delete_node(nid):
 #     else:
 #         result = "MATCH p=(a)-[ {%s:%s}]%s(b) RETURN p" % (key, value, direction)
 #     return result
-#
-# def _isolate(self, node):
-#     remote_node = remote(node) or node
-#     query = "START a=node(%s) MATCH (a)-[r]-(b) DELETE r" % remote_node._id
-#     self.append(CypherJob(query))
-# WriteBatch.isolate = _isolate
 
 
 @WithRepr
