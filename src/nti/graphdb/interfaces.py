@@ -105,11 +105,23 @@ class IGraphDB(IExternalService):
         Delete the nodes for specified objects
         """
 
-#     def create_relationship(start, end, rel_type, properties=None, key=None, value=None):
-#         pass
-#
-#     def get_relationship(obj):
-#         pass
+    def create_relationship(start, end, type_, properties=None,
+                            unique=True, bidirectional=False):
+        """
+        Create a node relationship
+        
+        :param start: Starting object
+        :param end: Ending object
+        :param type_: Relationship type
+        :param dict properties: Optional relationship properties
+        :param bool unique: Create a unique relationship
+        :param bool bidirectional: Create a bidirectional relationship
+        """
+
+    def get_relationship(obj):
+        """
+        Return a relationship for the specified object
+        """
 #
 #     def match(start=None, end=None, rel_type=None, bidirectional=False,
 #               limit=None, loose=False):
