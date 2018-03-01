@@ -27,7 +27,6 @@ from nti.graphdb.common import get_node_primary_key
 from nti.graphdb.interfaces import IGraphDB
 from nti.graphdb.interfaces import ILabelAdapter
 from nti.graphdb.interfaces import IPropertyAdapter
-# from nti.graphdb.interfaces import IGraphRelationship
 
 from nti.graphdb.neo4j.interfaces import INeo4jNode
 from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
@@ -339,7 +338,7 @@ class Neo4jDB(object):
                 # return a single node
                 result = self.single_value(result)
         except CypherError as e:
-            if not is_node_404(e):
+            if not is_node_404(e):  # pragma: no cover
                 raise e
         return result
 
@@ -488,7 +487,7 @@ class Neo4jDB(object):
                 query = match_relationship_by_id_query(obj)
                 result = self.single_value(session.run(query))
         except CypherError as e:
-            if not is_node_404(e):
+            if not is_node_404(e):  # pragma: no cover
                 raise e
         return result
 
