@@ -82,22 +82,17 @@ class TestNeo4jDB(GraphDBTestCase):
         username = random_username()
         user = self.create_user(username)
         node = db.create_node(user)
-
         # test exists
         assert_that(db.get_node(user), is_not(none()))
         assert_that(db.get_node(node), is_not(none()))
         assert_that(db.get_node(node.id), is_not(none()))
         assert_that(db.get_node(node.neo), is_not(none()))
-
         # test does not exists
         assert_that(db.get_node(sys.maxint), is_(none()))
-
         # get or create
         assert_that(db.get_or_create_node(user), is_not(none()))
-
         # get nodes
         assert_that(db.get_nodes(user), has_length(1))
-
         # get index nodess
         assert_that(db.get_indexed_node("User", 'username', username),
                     is_not(none()))
@@ -135,7 +130,7 @@ class TestNeo4jDB(GraphDBTestCase):
         db = component.getUtility(IGraphDB)
         user_1 = self.create_user(random_username())
         user_2 = self.create_user(random_username())
-
+        user_3 = self.create_user(random_username())
         # create unique relationship
         rel = db.create_relationship(user_1, user_2, "Friend", unique=True,
                                      properties={"foo": "bar"})
@@ -145,47 +140,32 @@ class TestNeo4jDB(GraphDBTestCase):
         assert_that(rel, has_property('start', is_not(none())))
         assert_that(rel,
                     has_property('properties', has_entry('foo', 'bar')))
-
         # create normal relationship
         rel = db.create_relationship(user_1, user_2, "Visited", unique=False,
                                      properties={"foo": "bar"})
         assert_that(rel, is_not(none()))
         assert_that(rel, has_property('id', is_not(none())))
         assert_that(rel, has_property('neo', is_not(none())))
-
         # test get relationship
         assert_that(db.get_relationship(rel), is_not(none()))
         assert_that(db.get_relationship(rel.id), is_not(none()))
         assert_that(db.get_relationship(rel.neo), is_not(none()))
-        assert_that(db.get_relationship(sys.maxint), is_(none()))
-
-#
-#     @WithMockDSTrans
-#     def test_relationship_funcs(self):
-#         user1 = random_username()
-#         user1 = self._create_user(user1)
-#         node1 = self.db.create_node(user1)
-#
-#         user2 = random_username()
-#         user2 = self._create_user(user2)
-#         node2 = self.db.create_node(user2)
-#         rel = self.db.create_relationship(user1, user2, "IS_FRIEND_OF")
-#
-#         assert_that(rel, is_not(none()))
-#         assert_that(rel, has_property('id', is_not(none())))
-#         assert_that(rel, has_property('uri', is_not(none())))
-#         assert_that(rel, has_property('end', is_not(none())))
-#         assert_that(rel, has_property('start', is_not(none())))
-#         assert_that(rel, has_property('type', is_not(none())))
-#
-#         res = self.db.get_relationship(rel.id)
-#         assert_that(res, is_not(none()))
-#
-#         res = self.db.get_relationship(rel)
-#         assert_that(res, is_not(none()))
-#
-#         res = self.db.match(start=user2, end=user1, rel_type=FriendOf())
-#         assert_that(res, has_length(0))
+        # create multiple relastionships
+        rels = [(user_1, 'BrotherOf', user_2, None, True),
+                (user_1, 'FamilyOf', user_2, {'a': 1}, False)]
+        res = db.create_relationships(*rels)
+        assert_that(res, has_length(2))
+        # match
+        res = db.match(user_2, user_1, 'BrotherOf')
+        assert_that(res, has_length(0))
+        res = db.match(user_1, user_2, 'BrotherOf')
+        assert_that(res, has_length(1))
+        res = db.match(user_3, user_2, 'Friend')
+        assert_that(res, has_length(0))
+        # test match transitive
+        db.create_relationship(user_2, user_3, "Friend", unique=True)
+        res = db.match(user_1, user_3, 'Friend')
+        assert_that(res, has_length(0))
 #
 #         res = self.db.match(start=user1, end=user2, rel_type=FriendOf())
 #         assert_that(res, has_length(1))
@@ -203,10 +183,7 @@ class TestNeo4jDB(GraphDBTestCase):
 #         rels = self.db.match(start=node1, end=node2, rel_type=rel_type)
 #         assert_that(rels, has_length(0))
 #
-#         rels = [ (node1, 'BROTHER_OF', node2, {}, True),
-#                  (node2, 'FAMILY_OF', node1, {'a':1}, False) ]
-#         res = self.db.create_relationships(*rels)
-#         assert_that(res, has_length(2))
+
 #
 #         rel_type = 'BROTHER_OF'
 #         rels = self.db.match(start=node1, end=node2, rel_type=rel_type)

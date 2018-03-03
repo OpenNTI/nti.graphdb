@@ -122,13 +122,25 @@ class IGraphDB(IExternalService):
         """
         Return a relationship for the specified object
         """
-#
-#     def match(start=None, end=None, rel_type=None, bidirectional=False,
-#               limit=None, loose=False):
-#         pass
-#
-#     def delete_relationships(*rels):
-#         pass
+
+    def match(start=None, end=None, type_=None, bidirectional=False, limit=None):
+        """
+        Return all relationships from the specified start node to the
+        end node based on the specified type
+        
+        :param start: Starting object
+        :param end: (Optional) Ending object
+        :param type_: (Optional) Relationship type
+        :param bool bidirectional: (Optional) bidirectional relationship flag
+        :param bool limit: (Optional) number of relationships to return
+        """
+
+    def delete_relationships(*rels):
+        """
+        Delete the specified relationships
+
+        :param rels: relationships to deleted
+        """
 #
 #     def update_relationship(obj, properties=None):
 #         pass
