@@ -141,6 +141,8 @@ class TestNeo4jDB(GraphDBTestCase):
                                      properties={"foo": "bar"})
         assert_that(rel, is_not(none()))
         assert_that(rel, has_property('id', is_not(none())))
+        assert_that(rel, has_property('end', is_not(none())))
+        assert_that(rel, has_property('start', is_not(none())))
         assert_that(rel,
                     has_property('properties', has_entry('foo', 'bar')))
 
@@ -157,46 +159,6 @@ class TestNeo4jDB(GraphDBTestCase):
         assert_that(db.get_relationship(rel.neo), is_not(none()))
         assert_that(db.get_relationship(sys.maxint), is_(none()))
 
-#         res = self.db.get_node(user)
-#         assert_that(res, is_not(none()))
-#
-#         username = random_username()
-#         user2 = self._create_user(username)
-#         res = self.db.get_node(user2)
-#         assert_that(res, is_(none()))
-#
-#         res = self.db.create_nodes(user2)
-#         assert_that(res, is_not(none()))
-#         assert_that(res, has_length(1))
-#
-#         res = self.db.get_nodes(user, user2)
-#         assert_that(res, is_not(none()))
-#         assert_that(res, has_length(2))
-#         assert_that(res, does_not(contains(None)))
-#
-#         node = self.db.get_indexed_node("User", 'username', username)
-#         assert_that(node, is_not(none()))
-#
-#         nodes = self.db.get_indexed_nodes(("User", 'username', user.username),
-#                                           ("User", 'username', user2.username))
-#         assert_that(nodes, has_length(2))
-#
-#         props = dict(node.properties)
-#         props['language'] = 'latin'
-#         res = self.db.update_node(node, properties=props)
-#         assert_that(res, is_(True))
-#
-#         node = self.db.get_node(node)
-#         assert_that(node, has_property('properties',
-#                                         has_entry('language', 'latin')))
-#
-#         res = self.db.delete_node(user)
-#         assert_that(res, is_(True))
-#
-#         node = self.db.get_node(user)
-#         assert_that(node, is_(none()))
-#         res = self.db.delete_nodes(user2)
-#         assert_that(res, is_(1))
 #
 #     @WithMockDSTrans
 #     def test_relationship_funcs(self):
