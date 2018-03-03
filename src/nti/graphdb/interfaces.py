@@ -141,10 +141,15 @@ class IGraphDB(IExternalService):
 
         :param rels: relationships to deleted
         """
-#
-#     def update_relationship(obj, properties=None):
-#         pass
-#
+
+    def update_relationship(obj, properties):
+        """
+        Update the specified relationship
+
+        :param obj: relationships to update
+        :param properties: Relationship properties
+        """
+
 #     def find_relationships(key, value, rel_type=None, start=None, end=None,
 #                            bidirectional=False):
 #         """

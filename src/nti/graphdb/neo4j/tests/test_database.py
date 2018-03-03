@@ -10,7 +10,6 @@ from __future__ import absolute_import
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
-# from hamcrest import contains
 from hamcrest import has_entry
 from hamcrest import has_length
 from hamcrest import assert_that
@@ -131,6 +130,7 @@ class TestNeo4jDB(GraphDBTestCase):
         user_1 = self.create_user(random_username())
         user_2 = self.create_user(random_username())
         user_3 = self.create_user(random_username())
+
         # create unique relationship
         rel = db.create_relationship(user_1, user_2, "Friend", unique=True,
                                      properties={"foo": "bar"})
@@ -140,6 +140,7 @@ class TestNeo4jDB(GraphDBTestCase):
         assert_that(rel, has_property('start', is_not(none())))
         assert_that(rel,
                     has_property('properties', has_entry('foo', 'bar')))
+
         # create normal relationship
         rel = db.create_relationship(user_1, user_2, "Visited", unique=False,
                                      properties={"foo": "bar"})
@@ -150,11 +151,13 @@ class TestNeo4jDB(GraphDBTestCase):
         assert_that(db.get_relationship(rel), is_not(none()))
         assert_that(db.get_relationship(rel.id), is_not(none()))
         assert_that(db.get_relationship(rel.neo), is_not(none()))
+
         # create multiple relastionships
         rels = [(user_1, 'BrotherOf', user_2, None, True),
                 (user_1, 'FamilyOf', user_2, {'a': 1}, False)]
         res = db.create_relationships(*rels)
         assert_that(res, has_length(2))
+
         # match
         res = db.match(user_2, user_1, 'BrotherOf')
         assert_that(res, has_length(0))
@@ -162,39 +165,23 @@ class TestNeo4jDB(GraphDBTestCase):
         assert_that(res, has_length(1))
         res = db.match(user_3, user_2, 'Friend')
         assert_that(res, has_length(0))
-        # test match transitive
+
+        # transitive does not match
         db.create_relationship(user_2, user_3, "Friend", unique=True)
         res = db.match(user_1, user_3, 'Friend')
         assert_that(res, has_length(0))
-#
-#         res = self.db.match(start=user1, end=user2, rel_type=FriendOf())
-#         assert_that(res, has_length(1))
-#
-#         rel_type = str(FriendOf())
-#         rels = self.db.match(start=node1, end=node2, rel_type=rel_type)
-#         assert_that(rels, has_length(1))
-#
-#         res = self.db.match(start=user1, end=user2, rel_type="unknown")
-#         assert_that(res, has_length(0))
-#
-#         result = self.db.delete_relationship(rels[0])
-#         assert_that(result, is_(True))
-#
-#         rels = self.db.match(start=node1, end=node2, rel_type=rel_type)
-#         assert_that(rels, has_length(0))
-#
+        res = db.match(user_1, user_2, 'unknown')
+        assert_that(res, has_length(0))
 
-#
-#         rel_type = 'BROTHER_OF'
-#         rels = self.db.match(start=node1, end=node2, rel_type=rel_type)
-#         assert_that(rels, has_length(1))
-#
-#         splits = unicode(uuid.uuid4()).split('-')
-#         key, value = splits[-1], splits[0]
-#         params = ("x%s" % splits[-3], splits[-1])
-#
-#         res = self.db.update_relationship(rels[0], {params[0]:params[1], 'a':2})
-#         assert_that(res, is_(True))
+        # update
+        rels = db.match(user_1, user_2, 'BrotherOf')
+        splits = str(uuid.uuid4()).split('-')
+        key, value = splits[0], splits[-1]
+
+        res = db.update_relationship(rels[0], {key: value, 'a': 2})
+        assert_that(res, is_not(none()))
+        assert_that(res,
+                    has_property('properties', has_entry(key, value)))
 #
 #         res = self.db.index_relationship(rels[0], key, value)
 #         assert_that(res, is_(True))

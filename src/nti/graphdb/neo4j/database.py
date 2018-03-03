@@ -91,7 +91,7 @@ def set_node_properties_query(label, key, value, properties):
     result = ["MATCH (n:%s { %s:'%s' })" % (label, key, value)]
     result.append(" SET n += {")
     props = process_properties(properties)
-    result.append(','.join(props))
+    result.append(' , '.join(props))
     result.append('} RETURN n')
     return ''.join(result)
 
@@ -104,7 +104,7 @@ def set_node_properties_with_id_query(nid, properties):
     result = ["START n=NODE(%s) MATCH (n)" % nid]
     result.append(" SET n += {")
     props = process_properties(properties)
-    result.append(','.join(props))
+    result.append(' , '.join(props))
     result.append('} RETURN n')
     return ''.join(result)
 
@@ -118,7 +118,7 @@ def create_node_query(label, properties):
     props = process_properties(properties)
     if props:
         result.append(" { ")
-        result.append(','.join(props))
+        result.append(' , '.join(props))
         result.append(" }")
     result.append(") RETURN n")
     return ''.join(result)
@@ -193,7 +193,7 @@ def set_relationship_properties_with_id_query(rid, properties):
     # write query
     result = ["MATCH (a)-[r]-(b) WHERE ID(r) = %s" % rid]
     result.append(" SET r += {")
-    result.append(','.join(props))
+    result.append(' , '.join(props))
     result.append('} RETURN r')
     return ''.join(result)
 
@@ -229,18 +229,6 @@ def delist(x):
             result.append(a)
     return result
 
-
-# def _merge_rel_query(start_id, end_id, rel_type, bidirectional=False):
-#     direction = '-' if bidirectional else '->'
-#     result = """
-#     MATCH (a)
-#     WHERE id(a)=%s
-#     MATCH (b)
-#     WHERE id(b)=%s
-#     MERGE r=(a)-[:%s]%s(b)
-#     RETURN r""" % (start_id, end_id, rel_type, direction)
-#     return result.strip()
-#
 # def _match_rel_query(key, value, rel_type=None, start_id=None, end_id=None, bidirectional=False):
 #     direction = '-' if bidirectional else '->'
 #     if start_id is not None:
@@ -605,15 +593,18 @@ class Neo4jDB(object):
         with self.session() as session:
             self.do_delete_relationships_session(session, objects)
     delete_relationship = delete_relationships
-#
-#     def update_relationship(self, obj, properties=_marker):
-#         rel = self._get_relationship(obj)
-#         if rel is not None and properties != _marker:
-#             rel.update(properties)
-#             self.graph.push(rel)
-#             return True
-#         return False
-#
+
+    def do_update_relationship_session(self, session, obj, properties):
+        obj = self.do_get_relationship_session(session, obj)
+        if obj is not None:
+            query = set_relationship_properties_with_id_query(obj, properties)
+            return self.single_value(session.run(query))
+
+    def update_relationship(self, obj, properties):
+        with self.session() as session:
+            result = self.do_update_relationship_session(session, obj, properties)
+            return Neo4jRelationship.create(result) 
+
 #     def _find_relationships(self, key, value, rel_type=None, start=None, end=None,
 #                             bidirectional=False):
 #         # get nodes
