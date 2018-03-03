@@ -24,6 +24,10 @@ class INeo4jRelationship(IRelationship):
     pass
 
 
+class INeo4jPath(IRelationship):
+    pass
+
+
 class IGraphNodeNeo4j(IGraphNode):
     pass
 

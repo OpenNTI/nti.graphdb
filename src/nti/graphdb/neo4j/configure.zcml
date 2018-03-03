@@ -13,5 +13,9 @@
 	<class class="neo4j.v1.Relationship">
 		<implements interface=".interfaces.INeo4jRelationship" />
 	</class>
+
+	<class class="neo4j.v1.Path">
+		<implements interface=".interfaces.INeo4jPath" />
+	</class>
 	
 </configure>

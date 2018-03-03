@@ -122,31 +122,54 @@ class IGraphDB(IExternalService):
         """
         Return a relationship for the specified object
         """
-#
-#     def match(start=None, end=None, rel_type=None, bidirectional=False,
-#               limit=None, loose=False):
-#         pass
-#
-#     def delete_relationships(*rels):
-#         pass
-#
-#     def update_relationship(obj, properties=None):
-#         pass
-#
-#     def find_relationships(key, value, rel_type=None, start=None, end=None,
-#                            bidirectional=False):
-#         """
-#         Find relationships for the specified key and value property
-#         """
-#
-#     def index_relationship(rel, key, value):
-#         pass
-#
-#     def get_indexed_relationships(key, value):
-#         pass
-#
-#     def unindex_relationship(key, value, rel=None):
-#         pass
+
+    def match(start, end=None, type_=None, bidirectional=False, limit=None):
+        """
+        Return all relationships from the specified start node to the
+        end node based on the specified type
+        
+        :param start: Starting object
+        :param end: (Optional) Ending object
+        :param type_: (Optional) Relationship type
+        :param bool bidirectional: (Optional) bidirectional relationship flag
+        :param bool limit: (Optional) number of relationships to return
+        """
+
+    def delete_relationships(*rels):
+        """
+        Delete the specified relationships
+
+        :param rels: relationships to deleted
+        """
+
+    def update_relationship(obj, properties):
+        """
+        Update the specified relationship
+
+        :param obj: relationships to update
+        :param properties: Relationship properties
+        """
+
+    def find_relationships(key, value, type_=None, start=None, end=None,
+                           bidirectional=False):
+        """
+        Find relationships for the specified key and value property
+        
+        :param key: Property key
+        :param value: Property value
+        :param type_: (Optional) Relationship type
+        :param start: (Optional) Starting object
+        :param end: (Optional) Ending object
+        :param bool bidirectional: (Optional) bidirectional relationship flag
+        """
+
+    def get_indexed_relationships(key, value):
+        """
+        Return the relationships for the specified key and value property
+        
+        :param key: Property key
+        :param value: Property value
+        """
 
 
 class INode(interface.Interface):

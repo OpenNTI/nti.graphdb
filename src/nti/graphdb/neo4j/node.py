@@ -41,6 +41,8 @@ class Neo4jNode(SchemaConfigured):
         result = None
         if IGraphNodeNeo4j.providedBy(node):
             result = node
+        elif isinstance(node, int):
+            result = Neo4jNode(id=node)
         elif INeo4jNode.providedBy(node):
             labels = list(node.labels or ())
             result = Neo4jNode(id=node.id)
