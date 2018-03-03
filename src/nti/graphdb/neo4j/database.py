@@ -229,17 +229,23 @@ def delist(x):
             result.append(a)
     return result
 
-# def _match_rel_query(key, value, rel_type=None, start_id=None, end_id=None, bidirectional=False):
-#     direction = '-' if bidirectional else '->'
-#     if start_id is not None:
-#         result = "MATCH (a) WHERE id(a)=%s " % start_id
-#     if end_id is not None:
-#         result = "MATCH (b) WHERE id(b)=%s " % end_id
-#     if rel_type:
-#         result = "MATCH p=(a)-[:%s {%s:%s}]%s(b) RETURN p" % (rel_type, key, value, direction)
-#     else:
-#         result = "MATCH p=(a)-[ {%s:%s}]%s(b) RETURN p" % (key, value, direction)
-#     return result
+
+def find_relationship_query(key, value, start=None, end=None, type_=None, bidirectional=False):
+    result = ''
+    end = getattr(end, 'id', end)
+    start = getattr(start, 'id', start)
+    direction = '-' if bidirectional else '->'
+    if start is not None:
+        result = "MATCH (a) WHERE id(a)=%s " % start
+    if end is not None:
+        result += "MATCH (b) WHERE id(b)=%s " % end
+    if type_:
+        result += "MATCH p=(a)-[:%s {%s:%s}]%s(b) RETURN rels(p)" % (type_, key, value,
+                                                                     direction)
+    else:
+        result += "MATCH p=(a)-[ {%s:%s}]%s(b) RETURN rels(p)" % (key, value,
+                                                                  direction)
+    return result
 
 
 @WithRepr
@@ -372,9 +378,9 @@ class Neo4jDB(object):
             result = self.do_get_node_session(session, obj)
         return result
 
-    def get_node(self, obj, raw=False):
+    def get_node(self, obj):
         node = self.do_get_node(obj)
-        node = Neo4jNode.create(node) if node is not None and not raw else node
+        node = Neo4jNode.create(node)
         return node
     node = get_node
 
@@ -385,8 +391,8 @@ class Neo4jDB(object):
                                              IPropertyAdapter(obj, None))
         return result
 
-    def get_or_create_node(self, obj, raw=False):
-        return self.get_node(obj, raw=raw) or self.create_node(obj, raw=raw)
+    def get_or_create_node(self, obj):
+        return self.get_node(obj) or self.create_node(obj)
 
     def get_nodes(self, *objects):
         result = []
@@ -401,10 +407,10 @@ class Neo4jDB(object):
         result = session.run(query)
         return self.single_value(result)
 
-    def get_indexed_node(self, label, key, value, raw=False):
+    def get_indexed_node(self, label, key, value):
         with self.session() as session:
             result = self.do_get_index_node_session(session, label, key, value)
-            result = Neo4jNode.create(result) if result and not raw else result
+            result = Neo4jNode.create(result)
             return result
 
     def get_indexed_nodes(self, *tuples):
@@ -461,10 +467,13 @@ class Neo4jDB(object):
     def do_create_unique_relationship_session(self, session, start, end, type_,
                                               properties=None, bidirectional=False):
         # prepare query
-        query = create_unique_relationship_query(start, end, type_, bidirectional)
+        query = create_unique_relationship_query(start, end, 
+                                                 type_, bidirectional)
         result = self.single_value(session.run(query))
         if result is not None and properties:
-            query = set_relationship_properties_with_id_query(result, properties)
+            query = set_relationship_properties_with_id_query(
+                result, properties
+            )
             result = self.single_value(session.run(query))
         return result
 
@@ -474,7 +483,9 @@ class Neo4jDB(object):
         query = create_relationship_query(start, end, type_, bidirectional)
         result = self.single_value(session.run(query))
         if result is not None and properties:
-            query = set_relationship_properties_with_id_query(result, properties)
+            query = set_relationship_properties_with_id_query(
+                result, properties
+            )
             result = self.single_value(session.run(query))
         return result
 
@@ -497,10 +508,10 @@ class Neo4jDB(object):
             return result
 
     def create_relationship(self, start, end, type_, properties=None,
-                            unique=True, bidirectional=False, raw=False):
+                            unique=True, bidirectional=False):
         result = self.do_create_relationship(start, end, type_, properties,
                                              unique, bidirectional)
-        result = Neo4jRelationship.create(result) if not raw else result
+        result = Neo4jRelationship.create(result)
         return result
 
     def create_relationships(self, *relationships):
@@ -519,7 +530,7 @@ class Neo4jDB(object):
                 start = self.do_get_node_session(session, start)
                 assert start is not None, "Cannot find start node"
                 # get properties
-                properties = {} if len(data) < 4 or data[3] is None else data[3]
+                properties = {} if len(data) < 4 or not data[3] else data[3]
                 assert isinstance(properties, Mapping), "Invalid properties"
                 # get unique flag
                 unique = False if len(data) < 5 or data[4] is None else data[4]
@@ -555,13 +566,13 @@ class Neo4jDB(object):
             result = self.do_get_relationship_session(session, obj)
         return result
 
-    def get_relationship(self, obj, raw=False):
+    def get_relationship(self, obj):
         result = self.do_get_relationship(obj)
-        result = Neo4jRelationship.create(result) if result is not None and not raw else result
+        result = Neo4jRelationship.create(result)
         return result
     relationship = get_relationship
 
-    def do_match_session(self, session, start=None, end=None, type_=None,
+    def do_match_session(self, session, start, end=None, type_=None,
                          bidirectional=False, limit=None):
         result = ()
         limit = limit or sys.maxint
@@ -575,14 +586,13 @@ class Neo4jDB(object):
             result = delist(values)
         return result or ()
 
-    def match(self, start=None, end=None, type_=None, bidirectional=False,
-              limit=None, raw=False):
+    def match(self, start, end=None, type_=None, bidirectional=False, limit=None):
         with self.session() as session:
             result = self.do_match_session(session,
                                            start, end, type_,
                                            bidirectional, limit)
-            result = {Neo4jRelationship.create(x) for x in result} if not raw else result
-            return list(result or ()) if not isinstance(result, list) else ()
+            result = list({Neo4jRelationship.create(x) for x in result})
+            return result or ()
 
     def do_delete_relationships_session(self, session, *objects):
         for obj in objects:
@@ -602,45 +612,36 @@ class Neo4jDB(object):
 
     def update_relationship(self, obj, properties):
         with self.session() as session:
-            result = self.do_update_relationship_session(session, obj, properties)
-            return Neo4jRelationship.create(result) 
+            result = self.do_update_relationship_session(
+                session, obj, properties
+            )
+            return Neo4jRelationship.create(result)
 
-#     def _find_relationships(self, key, value, rel_type=None, start=None, end=None,
-#                             bidirectional=False):
-#         # get nodes
-#         n4j_type = str(rel_type) if rel_type is not None else None
-#         n4j_end = self._get_node(end, False) if end is not None else None
-#         n4j_start = self._get_node(start, False) if start is not None else None
-#
-#         if isinstance(value, six.string_types):
-#             value = value if value.endswith("'") else "%s'" % value
-#             value = value if value.startswith("'") else "'%s" % value
-#
-#         # get remote node ids
-#         n4j_end = remote(n4j_end) if n4j_end is not None else n4j_end
-#         n4j_start = remote(n4j_start) if n4j_start is not None else n4j_start
-#         n4j_end = getattr(n4j_end, '_id', None)
-#         n4j_start = getattr(n4j_start, '_id', None)
-#
-#         # construct query
-#         result = []
-#         query = _match_rel_query(key, value,
-#                                  rel_type=n4j_type,
-#                                  start_id=n4j_start,
-#                                  end_id=n4j_end,
-#                                  bidirectional=bidirectional)
-#         records = self.graph.evaluate(query)
-#         for record in records or ():
-#             if INeo4jRelationship.providedBy(record):
-#                 result.append(record)
-#         return result
-#
-#     def find_relationships(self, key, value, rel_type=None, start=None, end=None,
-#                            bidirectional=False, raw=False):
-#         result = self._find_relationships(key, value, rel_type=rel_type, start=start,
-#                                           end=start, bidirectional=bidirectional)
-#         result = [Neo4jRelationship.create(x) for x in result] if not raw else result
-#         return result
+    def do_find_relationships_session(self, session, key, value, type_=None, start=None, end=None,
+                                      bidirectional=False):
+        if isinstance(value, six.string_types):
+            value = value if value.endswith("'") else "%s'" % value
+            value = value if value.startswith("'") else "'%s" % value
+        # gather data
+        type_ = str(type_) if type_ else None
+        end = self.do_get_node_session(session, end)
+        start = self.do_get_node_session(session, start)
+        # construct query
+        query = find_relationship_query(key, value, 
+                                        start, end, type_, bidirectional)
+        values = session.run(query).values()
+        # delist relationships for paths of length 1
+        result = delist(values)
+        return result
+
+    def find_relationships(self, key, value, type_=None, start=None, end=None,
+                           bidirectional=False):
+        with self.session() as session:
+            result = self.do_find_relationships_session(session, key, value,
+                                                        type_, start, end,
+                                                        bidirectional)
+            result = list({Neo4jRelationship.create(x) for x in result})
+            return result or ()
 #
 #     # index
 #

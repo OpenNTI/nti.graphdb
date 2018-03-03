@@ -123,7 +123,7 @@ class IGraphDB(IExternalService):
         Return a relationship for the specified object
         """
 
-    def match(start=None, end=None, type_=None, bidirectional=False, limit=None):
+    def match(start, end=None, type_=None, bidirectional=False, limit=None):
         """
         Return all relationships from the specified start node to the
         end node based on the specified type

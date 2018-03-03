@@ -14,6 +14,7 @@ from hamcrest import has_entry
 from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_property
+from hamcrest import greater_than_or_equal_to
 does_not = is_not
 
 import sys
@@ -176,13 +177,20 @@ class TestNeo4jDB(GraphDBTestCase):
         # update
         rels = db.match(user_1, user_2, 'BrotherOf')
         splits = str(uuid.uuid4()).split('-')
-        key, value = splits[0], splits[-1]
+        key, value = 'mykey', splits[-1]
 
         res = db.update_relationship(rels[0], {key: value, 'a': 2})
         assert_that(res, is_not(none()))
         assert_that(res,
                     has_property('properties', has_entry(key, value)))
-#
+
+        # find relationships
+        res = db.find_relationships(key, value)
+        assert_that(res, has_length(greater_than_or_equal_to(1)))
+
+        res = db.find_relationships(key, value, 'BrotherOf', user_1, user_2)
+        assert_that(res, has_length(greater_than_or_equal_to(1)))
+
 #         res = self.db.index_relationship(rels[0], key, value)
 #         assert_that(res, is_(True))
 #
