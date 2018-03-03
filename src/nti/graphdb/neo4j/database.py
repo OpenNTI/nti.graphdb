@@ -44,8 +44,6 @@ from nti.externalization.representation import WithRepr
 
 from nti.schema.eqhash import EqHash
 
-_marker = object()
-
 logger = __import__('logging').getLogger(__name__)
 
 
@@ -228,6 +226,13 @@ def delist(x):
         else:
             result.append(a)
     return result
+
+
+def fix_query_value(value):
+    if isinstance(value, six.string_types):
+        value = value if value.endswith("'") else "%s'" % value
+        value = value if value.startswith("'") else "'%s" % value
+    return value
 
 
 def find_relationship_query(key, value, start=None, end=None, type_=None, bidirectional=False):
@@ -467,7 +472,7 @@ class Neo4jDB(object):
     def do_create_unique_relationship_session(self, session, start, end, type_,
                                               properties=None, bidirectional=False):
         # prepare query
-        query = create_unique_relationship_query(start, end, 
+        query = create_unique_relationship_query(start, end,
                                                  type_, bidirectional)
         result = self.single_value(session.run(query))
         if result is not None and properties:
@@ -617,17 +622,15 @@ class Neo4jDB(object):
             )
             return Neo4jRelationship.create(result)
 
-    def do_find_relationships_session(self, session, key, value, type_=None, start=None, end=None,
-                                      bidirectional=False):
-        if isinstance(value, six.string_types):
-            value = value if value.endswith("'") else "%s'" % value
-            value = value if value.startswith("'") else "'%s" % value
+    def do_find_relationships_session(self, session, key, value, type_=None,
+                                      start=None, end=None, bidirectional=False):
         # gather data
+        value = fix_query_value(value)
         type_ = str(type_) if type_ else None
         end = self.do_get_node_session(session, end)
         start = self.do_get_node_session(session, start)
         # construct query
-        query = find_relationship_query(key, value, 
+        query = find_relationship_query(key, value,
                                         start, end, type_, bidirectional)
         values = session.run(query).values()
         # delist relationships for paths of length 1
@@ -642,32 +645,6 @@ class Neo4jDB(object):
                                                         bidirectional)
             result = list({Neo4jRelationship.create(x) for x in result})
             return result or ()
-#
-#     # index
-#
-#     def _get_or_create_index(self, name="PKIndex", content_type=Relationship):
-#         return self.index_manager.get_or_create_index(Relationship, name)
-#
-#     def _index_entity(self, key, value, entity, content_type=Relationship):
-#         if entity is not None:
-#             index = self._get_or_create_index(content_type=content_type)
-#             index.add(key, value, entity)
-#             return True
-#         return False
-#
-#     def index_relationship(self, rel, key, value):
-#         rel = self._get_relationship(rel, False)
-#         result = self._index_entity(key, value, rel)
-#         return result
-#
-#     def get_indexed_relationships(self, key, value, raw=False):
-#         index = self._get_or_create_index()
-#         result = index.get(key, value)
-#         result = [Neo4jRelationship.create(x) for x in result or ()] if not raw else result
-#         return result
-#
-#     def unindex_relationship(self, key, value, rel=None):
-#         rel = self._get_relationship(rel, False) if rel is not None else None
-#         index = self._get_or_create_index()
-#         result = index.remove(key, value, rel)
-#         return result
+
+    def get_indexed_relationships(self, key, value):
+        return self.find_relationships(key, value)

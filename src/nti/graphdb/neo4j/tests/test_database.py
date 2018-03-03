@@ -191,19 +191,5 @@ class TestNeo4jDB(GraphDBTestCase):
         res = db.find_relationships(key, value, 'BrotherOf', user_1, user_2)
         assert_that(res, has_length(greater_than_or_equal_to(1)))
 
-#         res = self.db.index_relationship(rels[0], key, value)
-#         assert_that(res, is_(True))
-#
-#         res = self.db.get_indexed_relationships(key, value)
-#         assert_that(res, has_length(1))
-#
-#         self.db.unindex_relationship(key, value)
-#
-#         res = self.db.get_indexed_relationships(key, value)
-#         assert_that(res, has_length(0))
-#
-#         res = self.db.find_relationships(params[0], params[1], rel_type)
-#         assert_that(res, has_length(1))
-#
-#         res = self.db.find_relationships(params[0], params[1])
-#         assert_that(res, has_length(1))
+        res = db.get_indexed_relationships("foo", "bar")
+        assert_that(res, has_length(greater_than_or_equal_to(0)))

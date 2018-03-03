@@ -150,20 +150,26 @@ class IGraphDB(IExternalService):
         :param properties: Relationship properties
         """
 
-#     def find_relationships(key, value, rel_type=None, start=None, end=None,
-#                            bidirectional=False):
-#         """
-#         Find relationships for the specified key and value property
-#         """
-#
-#     def index_relationship(rel, key, value):
-#         pass
-#
-#     def get_indexed_relationships(key, value):
-#         pass
-#
-#     def unindex_relationship(key, value, rel=None):
-#         pass
+    def find_relationships(key, value, type_=None, start=None, end=None,
+                           bidirectional=False):
+        """
+        Find relationships for the specified key and value property
+        
+        :param key: Property key
+        :param value: Property value
+        :param type_: (Optional) Relationship type
+        :param start: (Optional) Starting object
+        :param end: (Optional) Ending object
+        :param bool bidirectional: (Optional) bidirectional relationship flag
+        """
+
+    def get_indexed_relationships(key, value):
+        """
+        Return the relationships for the specified key and value property
+        
+        :param key: Property key
+        :param value: Property value
+        """
 
 
 class INode(interface.Interface):
