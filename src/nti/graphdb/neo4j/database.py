@@ -606,7 +606,7 @@ class Neo4jDB(object):
 
     def delete_relationships(self, *objects):
         with self.session() as session:
-            self.do_delete_relationships_session(session, objects)
+            self.do_delete_relationships_session(session, *objects)
     delete_relationship = delete_relationships
 
     def do_update_relationship_session(self, session, obj, properties):

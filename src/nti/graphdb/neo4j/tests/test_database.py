@@ -185,11 +185,16 @@ class TestNeo4jDB(GraphDBTestCase):
                     has_property('properties', has_entry(key, value)))
 
         # find relationships
-        res = db.find_relationships(key, value)
-        assert_that(res, has_length(greater_than_or_equal_to(1)))
-
         res = db.find_relationships(key, value, 'BrotherOf', user_1, user_2)
         assert_that(res, has_length(greater_than_or_equal_to(1)))
 
         res = db.get_indexed_relationships("foo", "bar")
+        assert_that(res, has_length(greater_than_or_equal_to(0)))
+
+        res = db.find_relationships(key, value)
+        assert_that(res, has_length(greater_than_or_equal_to(1)))
+        
+        # delete relationships
+        db.delete_relationships(*res)
+        res = db.find_relationships(key, value)
         assert_that(res, has_length(greater_than_or_equal_to(0)))
