@@ -30,6 +30,7 @@ from nti.graphdb.common import get_node_primary_key
 from nti.graphdb.interfaces import IGraphDB
 from nti.graphdb.interfaces import ILabelAdapter
 from nti.graphdb.interfaces import IPropertyAdapter
+from nti.graphdb.interfaces import IUniqueAttributeAdapter
 
 from nti.graphdb.neo4j.interfaces import INeo4jNode
 from nti.graphdb.neo4j.interfaces import IGraphNodeNeo4j
@@ -606,7 +607,7 @@ class Neo4jDB(object):
 
     def delete_relationships(self, *objects):
         with self.session() as session:
-            self.do_delete_relationships_session(session, objects)
+            self.do_delete_relationships_session(session, *objects)
     delete_relationship = delete_relationships
 
     def do_update_relationship_session(self, session, obj, properties):
@@ -648,3 +649,27 @@ class Neo4jDB(object):
 
     def get_indexed_relationships(self, key, value):
         return self.find_relationships(key, value)
+
+    # index
+    
+    def create_index(self, obj=None, label=None, key=None):
+        label = label or ILabelAdapter(obj)
+        assert label, "must provided a node label"
+        
+        key = key or IUniqueAttributeAdapter(obj).key
+        assert key, "must provided a node key"
+        
+        with self.session() as session:
+            query = "CREATE INDEX ON :%s(%s)" % (label, key)
+            session.run(query)
+            
+    def drop_index(self, obj=None, label=None, key=None):
+        label = label or ILabelAdapter(obj)
+        assert label, "must provided a node label"
+        
+        key = key or IUniqueAttributeAdapter(obj).key
+        assert key, "must provided a node key"
+        
+        with self.session() as session:
+            query = "DROP INDEX ON :%s(%s)" % (label, key)
+            session.run(query)

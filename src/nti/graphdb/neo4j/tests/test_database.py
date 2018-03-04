@@ -185,11 +185,26 @@ class TestNeo4jDB(GraphDBTestCase):
                     has_property('properties', has_entry(key, value)))
 
         # find relationships
-        res = db.find_relationships(key, value)
-        assert_that(res, has_length(greater_than_or_equal_to(1)))
-
         res = db.find_relationships(key, value, 'BrotherOf', user_1, user_2)
         assert_that(res, has_length(greater_than_or_equal_to(1)))
 
         res = db.get_indexed_relationships("foo", "bar")
         assert_that(res, has_length(greater_than_or_equal_to(0)))
+
+        res = db.find_relationships(key, value)
+        assert_that(res, has_length(greater_than_or_equal_to(1)))
+        
+        # delete relationships
+        db.delete_relationships(*res)
+        res = db.find_relationships(key, value)
+        assert_that(res, has_length(greater_than_or_equal_to(0)))
+
+    @WithMockDSTrans
+    def test_index(self):
+        db = component.getUtility(IGraphDB)
+        user_1 = self.create_user(random_username())
+        db.create_index(user_1)
+        # create again no op
+        db.create_index(user_1)
+        # drop
+        db.drop_index(user_1)
