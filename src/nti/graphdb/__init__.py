@@ -37,6 +37,18 @@ CREATED_TIME = StandardInternalFields.CREATED_TIME
 #: Last modified field
 LAST_MODIFIED = StandardInternalFields.LAST_MODIFIED
 
+#: ContainerId field
+CONTAINER_ID = StandardInternalFields.CONTAINER_ID
+
+#: Type field
+TYPE = u'type'
+
+#: title field
+TITLE = u'title'
+
+#: Username field
+USERNAME = u'username'
+
 #: Redis queue name
 QUEUE_NAME = "++etc++graphdb++queue"
 
