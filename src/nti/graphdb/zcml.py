@@ -20,9 +20,11 @@ from zope.component.zcml import utility
 
 from zope.configuration import fields
 
-from nti.asynchronous.interfaces import IRedisQueue
-from nti.asynchronous.redis_queue import RedisQueue
 from nti.asynchronous import get_job_queue as async_queue
+
+from nti.asynchronous.interfaces import IRedisQueue
+
+from nti.asynchronous.redis_queue import RedisQueue
 
 from nti.coremetadata.interfaces import IRedisClient
 
@@ -51,10 +53,10 @@ def registerGraphDB(_context, url=DEFAULT_URI, username=None, password=None):
     """
     Register an db
     """
-    factory = functools.partial(Neo4jDB, 
-								url=url or DEFAULT_URI,
-								username=username, 
-								password=password)
+    factory = functools.partial(Neo4jDB,
+                                url=url or DEFAULT_URI,
+                                username=username,
+                                password=password)
     utility(_context, provides=IGraphDB, factory=factory)
 
 
