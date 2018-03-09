@@ -23,14 +23,19 @@
 	<!-- Properties -->
 	<include package="." file="configure_properties.zcml" />
 	
+	<!-- Entities -->
+	<subscriber handler=".entities._entity_added" />
+	<subscriber handler=".entities._entity_removed" />
+
+	<utility component=".entities" provides=".interfaces.IObjectProcessor" name="entities"/>
+
 	<!--
 	Adapters 	
 	<adapter factory=".containers._default_container_adapter"
 			 provides=".interfaces.IContainer"
 			 for="nti.base.interfaces.IBasestring" />
 	
-	<subscriber handler=".entities._entity_added" />
-	<subscriber handler=".entities._entity_removed" />
+
 		   
 	<subscriber handler=".connections._dfl_deleted" />
 	
