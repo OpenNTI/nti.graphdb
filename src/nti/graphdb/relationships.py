@@ -4,10 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from zope import interface
 
@@ -37,183 +36,213 @@ from nti.graphdb.interfaces import ITakenInquiry
 from nti.graphdb.interfaces import ITakenAssessment
 from nti.graphdb.interfaces import IAssignmentFeedback
 
-class _Singleton(object):
-	_instances = {}
-	def __new__(cls, *args, **kwargs):
-		if cls not in cls._instances:
-			cls._instances[cls] = super(_Singleton, cls).__new__(cls, *args, **kwargs)
-		return cls._instances[cls]
+logger = __import__('logging').getLogger(__name__)
+
+
+class Singleton(object):
+
+    instances = {}
+
+    def __new__(cls, *args, **kwargs):
+        if cls not in cls.instances:
+            cls.instances[cls] = super(Singleton, cls).__new__(cls, *args, **kwargs)
+        return cls.instances[cls]
+
 
 @interface.implementer(IFriendOf)
-class FriendOf(_Singleton):
+class FriendOf(Singleton):
 
-	def __str__(self):
-		return "IS_FRIEND_OF"
-	__repr__ = __str__
+    def __str__(self):
+        return "IS_FRIEND_OF"
+    __repr__ = __str__
+
 
 @interface.implementer(IMemberOf)
-class MemberOf(_Singleton):
+class MemberOf(Singleton):
 
-	def __str__(self):
-		return "IS_MEMBER_OF"
-	__repr__ = __str__
+    def __str__(self):
+        return "IS_MEMBER_OF"
+    __repr__ = __str__
+
 
 @interface.implementer(IFollow)
-class Follow(_Singleton):
+class Follow(Singleton):
 
-	def __str__(self):
-		return "FOLLOWS"
-	__repr__ = __str__
+    def __str__(self):
+        return "FOLLOWS"
+    __repr__ = __str__
+
 
 @interface.implementer(IFlagged)
-class Flagged(_Singleton):
+class Flagged(Singleton):
 
-	def __str__(self):
-		return "HAS_FLAGGED"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_FLAGGED"
+    __repr__ = __str__
+
 
 @interface.implementer(ICreated)
-class Created(_Singleton):
+class Created(Singleton):
 
-	def __str__(self):
-		return "HAS_CREATED"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_CREATED"
+    __repr__ = __str__
+
 
 @interface.implementer(ILike)
-class Like(_Singleton):
+class Like(Singleton):
 
-	def __str__(self):
-		return "LIKES"
-	__repr__ = __str__
+    def __str__(self):
+        return "LIKES"
+    __repr__ = __str__
+
 
 @interface.implementer(IRate)
-class Rate(_Singleton):
+class Rate(Singleton):
 
-	def __str__(self):
-		return "HAS_RATED"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_RATED"
+    __repr__ = __str__
+
 
 @interface.implementer(IAuthor)
-class Author(_Singleton):
+class Author(Singleton):
 
-	def __str__(self):
-		return "HAS_AUTHORED"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_AUTHORED"
+    __repr__ = __str__
+
 
 @interface.implementer(IShared)
-class Shared(_Singleton):
+class Shared(Singleton):
 
-	def __str__(self):
-		return "HAS_SHARED"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_SHARED"
+    __repr__ = __str__
+
 
 @interface.implementer(IIsSharedWith)
-class IsSharedWith(_Singleton):
+class IsSharedWith(Singleton):
 
-	def __str__(self):
-		return "IS_SHARED_WITH"
-	__repr__ = __str__
+    def __str__(self):
+        return "IS_SHARED_WITH"
+    __repr__ = __str__
+
 
 @interface.implementer(ICommentOn)
-class CommentOn(_Singleton):
+class CommentOn(Singleton):
 
-	def __str__(self):
-		return "HAS_COMMENTED_ON"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_COMMENTED_ON"
+    __repr__ = __str__
+
 
 @interface.implementer(ITaggedTo)
-class TaggedTo(_Singleton):
-	def __str__(self):
-		return "IS_TAGGED_TO"
-	__repr__ = __str__
+class TaggedTo(Singleton):
+    def __str__(self):
+        return "IS_TAGGED_TO"
+    __repr__ = __str__
+
 
 @interface.implementer(IViewed)
-class Viewed(_Singleton):
+class Viewed(Singleton):
 
-	def __str__(self):
-		return "HAS_VIEWED"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_VIEWED"
+    __repr__ = __str__
+
 
 @interface.implementer(ITakenAssessment)
-class TakenAssessment(_Singleton):
+class TakenAssessment(Singleton):
 
-	def __str__(self):
-		return "HAS_TAKEN_ASSESMENT"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_TAKEN_ASSESMENT"
+    __repr__ = __str__
+
 
 @interface.implementer(ITakenInquiry)
-class TakenInquiry(_Singleton):
+class TakenInquiry(Singleton):
 
-	def __str__(self):
-		return "HAS_TAKEN_INQUIRY"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_TAKEN_INQUIRY"
+    __repr__ = __str__
+
 
 @interface.implementer(IContained)
-class Contained(_Singleton):
+class Contained(Singleton):
 
-	def __str__(self):
-		return "IS_CONTAINED"
-	__repr__ = __str__
+    def __str__(self):
+        return "IS_CONTAINED"
+    __repr__ = __str__
+
 
 @interface.implementer(IFeedback)
-class Feedback(_Singleton):
+class Feedback(Singleton):
 
-	def __str__(self):
-		return "HAS_FEEDBACKED"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_FEEDBACKED"
+    __repr__ = __str__
+
 
 @interface.implementer(IAssignmentFeedback)
-class AssigmentFeedback(_Singleton):
+class AssigmentFeedback(Singleton):
 
-	def __str__(self):
-		return "ASM_FEEDBACKED"
-	__repr__ = __str__
+    def __str__(self):
+        return "ASM_FEEDBACKED"
+    __repr__ = __str__
+
 
 @interface.implementer(IParentOf)
-class ParentOf(_Singleton):
+class ParentOf(Singleton):
 
-	def __str__(self):
-		return "IS_PARENT_OF"
-	__repr__ = __str__
+    def __str__(self):
+        return "IS_PARENT_OF"
+    __repr__ = __str__
+
 
 @interface.implementer(IIsReplyOf)
-class IsReplyOf(_Singleton):
+class IsReplyOf(Singleton):
 
-	def __str__(self):
-		return "IS_REPLY_OF"
-	__repr__ = __str__
+    def __str__(self):
+        return "IS_REPLY_OF"
+    __repr__ = __str__
+
 
 @interface.implementer(IReply)
-class Reply(_Singleton):
+class Reply(Singleton):
 
-	def __str__(self):
-		return "HAS_REPLIED_TO"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_REPLIED_TO"
+    __repr__ = __str__
+
 
 @interface.implementer(IEnroll)
-class Enroll(_Singleton):
+class Enroll(Singleton):
 
-	def __str__(self):
-		return "HAS_ENROLLED"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_ENROLLED"
+    __repr__ = __str__
+
 
 @interface.implementer(IUnenroll)
-class Unenroll(_Singleton):
+class Unenroll(Singleton):
 
-	def __str__(self):
-		return "HAS_UNENROLLED"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_UNENROLLED"
+    __repr__ = __str__
+
 
 @interface.implementer(IBelong)
-class Belong(_Singleton):
+class Belong(Singleton):
 
-	def __str__(self):
-		return "BELONG_TO"
-	__repr__ = __str__
+    def __str__(self):
+        return "BELONG_TO"
+    __repr__ = __str__
+
 
 @interface.implementer(IBought)
-class Bought(_Singleton):
+class Bought(Singleton):
 
-	def __str__(self):
-		return "HAS_BOUGHT"
-	__repr__ = __str__
+    def __str__(self):
+        return "HAS_BOUGHT"
+    __repr__ = __str__
