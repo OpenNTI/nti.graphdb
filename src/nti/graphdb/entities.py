@@ -79,7 +79,7 @@ def process_entity_added(db, entity):
 def _entity_added(entity, unused_event):
     db = get_graph_db()
     queue = get_job_queue()
-    if 		db is not None \
+    if      db is not None \
         and queue is not None \
         and not is_regular_DFL(entity):  # check queue b/c of Everyone comm
         process_entity_added(db, entity)
@@ -95,7 +95,7 @@ def _entity_removed(entity, unused_event):
 component.moduleProvides(IObjectProcessor)
 
 
-def init(db, obj):
+def init(db, obj):  # pragma: no cover
     result = False
     if IEntity.providedBy(obj) and not is_regular_DFL(obj):
         process_entity_added(db, obj)
