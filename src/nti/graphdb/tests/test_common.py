@@ -22,8 +22,6 @@ from nti.dataserver.contenttypes.note import Note
 
 from nti.dataserver.tests import mock_dataserver
 
-from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
-
 from nti.dataserver.users.users import User
 
 from nti.graphdb.common import get_ntiid
@@ -37,7 +35,8 @@ from nti.graphdb.common import get_principal_id
 from nti.graphdb.common import get_node_primary_key
 from nti.graphdb.common import get_current_principal_id
 
-from nti.graphdb.tests import GraphDBTestCase
+from nti.graphdb.tests import random_username
+from nti.graphdb.tests import GraphDBTestCase 
 
 
 class TestCommon(GraphDBTestCase):
@@ -58,43 +57,48 @@ class TestCommon(GraphDBTestCase):
         self.current_transaction.add(note)
         return note
 
-    @WithMockDSTrans
+    @mock_dataserver.WithMockDSTrans
     def test_get_entity(self):
-        user = self.create_user()
+        username = random_username()
+        user = self.create_user(username)
         assert_that(get_entity(user), is_(user))
-        assert_that(get_entity('nt@nti.com'), is_(user))
+        assert_that(get_entity(username), is_(user))
 
     def test_get_current_principal_id(self):
         assert_that(get_current_principal_id(), is_(none()))
 
-    @WithMockDSTrans
+    @mock_dataserver.WithMockDSTrans
     @fudge.patch("nti.graphdb.common.get_current_principal_id")
     def test_get_user(self, mock_gpid):
-        user = self.create_user()
+        username = random_username()
+        user = self.create_user(username)
         assert_that(get_current_user(user), is_(user))
         mock_gpid.is_callable().returns(user)
         assert_that(get_current_user(), is_(user))
 
-    @WithMockDSTrans
+    @mock_dataserver.WithMockDSTrans
     def test_get_principal_id(self):
-        user = self.create_user()
-        assert_that(get_principal_id(user), is_('nt@nti.com'))
-        assert_that(get_principal_id('nt@nti.com'), is_('nt@nti.com'))
+        username = random_username()
+        user = self.create_user(username)
+        assert_that(get_principal_id(user), is_(username))
+        assert_that(get_principal_id(username), is_(username))
 
         @interface.implementer(IPrincipal)
         class Fake(object):
             id = 'fake'
         assert_that(get_principal_id(Fake()), is_('fake'))
 
-    @WithMockDSTrans
+    @mock_dataserver.WithMockDSTrans
     def test_get_creator(self):
-        user = self.create_user()
+        username = random_username()
+        user = self.create_user(username)
         note = self.create_note(user)
         assert_that(get_creator(note), is_(user))
 
-    @WithMockDSTrans
+    @mock_dataserver.WithMockDSTrans
     def test_times_and_oid(self):
-        user = self.create_user()
+        username = random_username()
+        user = self.create_user(username)
         note = self.create_note(user)
         assert_that(get_createdTime(note), is_not(none()))
         assert_that(get_lastModified(note), is_not(none()))
@@ -104,7 +108,7 @@ class TestCommon(GraphDBTestCase):
         fake = fudge.Fake().has_attr(ntiid='ntiid')
         assert_that(get_ntiid(fake), is_('ntiid'))
 
-    @WithMockDSTrans
+    @mock_dataserver.WithMockDSTrans
     def test_get_node_pk(self):
         assert_that(get_node_primary_key(object()), is_(none()))
         assert_that(get_node_primary_key(self.create_user()), 
