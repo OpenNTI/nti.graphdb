@@ -39,21 +39,23 @@ def is_regular_DFL(obj):
 
 
 def remove_entity(db, label, key, value):
+    result = False
     node = db.get_indexed_node(label, key, value)
     if node is not None:
         db.delete_node(node)
         logger.debug("Node %s deleted", node)
-        return True
-    return False
+        result = True
+    return result
 
 
 def add_entity(db, oid):
+    result = (None, None)
     entity = find_object_with_ntiid(oid)
     if entity is not None:
         node = db.get_or_create_node(entity)
         logger.debug("Entity node %s created/retrieved", node)
-        return entity, node
-    return None, None
+        result = entity, node
+    return result
 
 
 def process_entity_removed(db, entity):
