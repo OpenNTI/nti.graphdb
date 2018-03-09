@@ -22,21 +22,27 @@
 
 	<!-- Properties -->
 	<include package="." file="configure_properties.zcml" />
-	
+
 	<!-- Entities -->
 	<subscriber handler=".entities._entity_added" />
 	<subscriber handler=".entities._entity_removed" />
 
 	<utility component=".entities" provides=".interfaces.IObjectProcessor" name="entities"/>
 
+	<!-- Created -->
+	<subscriber handler=".created._object_created" />
+	<subscriber handler=".created._object_removed" />
+	<subscriber handler=".created._object_modified" />
+	<subscriber handler=".created._message_posted_to_room" />
+
+	<utility component=".created" provides=".interfaces.IObjectProcessor" name="created"/>
+
 	<!--
 	Adapters 	
 	<adapter factory=".containers._default_container_adapter"
 			 provides=".interfaces.IContainer"
 			 for="nti.base.interfaces.IBasestring" />
-	
-
-		   
+			   
 	<subscriber handler=".connections._dfl_deleted" />
 	
 	<subscriber handler=".connections._friendslist_added" />
@@ -51,12 +57,7 @@
 	
 	<subscriber handler=".flagging._object_flagged" />
 	<subscriber handler=".flagging._object_unflagged" />
-	
-	<subscriber handler=".created._object_created" />
-	<subscriber handler=".created._object_removed" />
-	<subscriber handler=".created._object_modified" />
-	<subscriber handler=".created._message_posted_to_room" />
-	
+
 	<subscriber handler=".ratings._object_rated" />
 			
 	<subscriber handler=".discussions._topic_added" />
@@ -89,7 +90,6 @@
 
 	Utilities
 	<utility component=".ratings" provides=".interfaces.IObjectProcessor" name="ratings"/>
-	<utility component=".created" provides=".interfaces.IObjectProcessor" name="created"/>
 	<utility component=".sharing" provides=".interfaces.IObjectProcessor" name="sharing"/>
 	<utility component=".tagging" provides=".interfaces.IObjectProcessor" name="tagging"/>
 	<utility component=".entities" provides=".interfaces.IObjectProcessor" name="entities"/>
