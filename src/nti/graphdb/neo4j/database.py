@@ -362,6 +362,9 @@ class Neo4jDB(object):
                 result = obj
             elif IGraphNodeNeo4j.providedBy(obj):
                 result = obj.neo
+                if result is None:
+                    query = match_node_by_id_query(obj.id)
+                    result = obj.neo = self.single_value(session.run(query))
             elif obj is not None:
                 if isinstance(obj, (six.string_types, numbers.Number)):
                     query = match_node_by_id_query(obj)
@@ -558,6 +561,9 @@ class Neo4jDB(object):
                 result = obj
             elif IGraphRelationshipNeo4j.providedBy(obj):
                 result = obj.neo
+                if result is None:
+                    query = match_relationship_by_id_query(obj.id)
+                    result = obj.neo = self.single_value(session.run(query))
             elif obj is not None:
                 query = match_relationship_by_id_query(obj)
                 result = self.single_value(session.run(query))

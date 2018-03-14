@@ -1,154 +1,110 @@
-# #!/usr/bin/env python
-# # -*- coding: utf-8 -*-
-# 
-# from __future__ import print_function, unicode_literals, absolute_import, division
-# __docformat__ = "restructuredtext en"
-# 
-# # disable: accessing protected members, too many methods
-# # pylint: disable=W0212,R0904
-# 
-# from hamcrest import is_
-# from hamcrest import is_in
-# from hamcrest import has_length
-# from hamcrest import assert_that
-# 
-# import unittest
-# 
-# from nti.dataserver.users import User
-# from nti.dataserver.users import FriendsList
-# from nti.dataserver.users import DynamicFriendsList
-# 
-# from nti.graphdb.relationships import FriendOf
-# from nti.graphdb.neo4j.database import Neo4jDB
-# 
-# from nti.graphdb.interfaces import ILabelAdapter
-# from nti.graphdb.interfaces import IUniqueAttributeAdapter
-# 
-# from nti.graphdb.connections import _Relationship
-# 
-# from nti.graphdb.connections import zodb_friends
-# from nti.graphdb.connections import graph_friends
-# from nti.graphdb.connections import update_friendships
-# 
-# from nti.graphdb.connections import _do_delete_dfl
-# from nti.graphdb.connections import zodb_memberships
-# from nti.graphdb.connections import graph_memberships
-# from nti.graphdb.connections import update_memberships
-# 
-# from nti.graphdb.connections import zodb_following
-# from nti.graphdb.connections import graph_following
-# from nti.graphdb.connections import update_following
-# 
-# from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
-# 
-# from nti.graphdb.tests import DEFAULT_URI
-# from nti.graphdb.tests import cannot_connect
-# from nti.graphdb.tests import random_username
-# from nti.graphdb.tests import GraphDBTestCase
-# 
-# @unittest.skipIf(cannot_connect(DEFAULT_URI), "Neo4j not available")
-# class TestFriendships(GraphDBTestCase):
-# 
-# 	def setUp(self):
-# 		super(TestFriendships, self).setUp()
-# 		self.db = Neo4jDB(DEFAULT_URI)
-# 
-# 	def _create_user(self, username='nt@nti.com', password='temp001'):
-# 		usr = User.create_user(self.ds, username=username, password=password)
-# 		return usr
-# 
-# 	def _create_random_user(self):
-# 		username = random_username()
-# 		user = self._create_user(username)
-# 		return user
-# 
-# 	def _create_friendslist(self, owner, name="mycontacts", *friends):
-# 		result = FriendsList(username=name)
-# 		result.creator = owner
-# 		for friend in friends:
-# 			result.addFriend(friend)
-# 		owner.addContainedObject(result)
-# 		return result
-# 
-# 	@WithMockDSTrans
-# 	def test_entity_friends(self):
-# 		owner = self._create_random_user()
-# 		user1 = self._create_random_user()
-# 		user2 = self._create_random_user()
-# 		user3 = self._create_random_user()
-# 
-# 		self._create_friendslist(owner, "mycontacts1", user1, user2)
-# 		self._create_friendslist(owner, "mycontacts2", user3)
-# 
-# 		result = zodb_friends(owner)
-# 		assert_that(result, has_length(3))
-# 		for friend in (user1, user2, user3):
-# 			key = _Relationship(owner, friend)
-# 			assert_that(key, is_in(result))
-# 
-# 		result = zodb_friends(user3)
-# 		assert_that(result, has_length(0))
-# 
-# 	@WithMockDSTrans
-# 	def test_graph_friends(self):
-# 		user1 = self._create_random_user()
-# 		user2 = self._create_random_user()
-# 		user3 = self._create_random_user()
-# 		self._create_friendslist(user1, "mycontacts1", user2, user3)
-# 
-# 		# create in graph
-# 		self.db.create_relationship(user1, user2, FriendOf())
-# 		self.db.create_relationship(user1, user3, FriendOf())
-# 
-# 		result = graph_friends(self.db, user1)
-# 		assert_that(result, has_length(2))
-# 
-# 		user4 = self._create_random_user()
-# 		self._create_friendslist(user1, "mycontacts2", user4)
-# 
-# 		result = update_friendships(self.db, user1)
-# 		assert_that(result, has_length(1))
-# 
-# 	@WithMockDSTrans
-# 	def test_memberships(self):
-# 		user1 = self._create_random_user()
-# 		user2 = self._create_random_user()
-# 		user3 = self._create_random_user()
-# 
-# 		dfl = DynamicFriendsList(username='mydfl')
-# 		dfl.creator = user1  # Creator must be set
-# 		user1.addContainedObject(dfl)
-# 		dfl.addFriend(user2)
-# 		dfl.addFriend(user3)
-# 
-# 		m = zodb_memberships(user2)
-# 		assert_that(m, has_length(1))
-# 
-# 		m = update_memberships(self.db, user2)
-# 		assert_that(m, has_length(1))
-# 
-# 		m = graph_memberships(self.db, user2)
-# 		assert_that(m, has_length(1))
-# 
-# 		label = ILabelAdapter(dfl)
-# 		unique = IUniqueAttributeAdapter(dfl)
-# 		m = _do_delete_dfl(self.db, label, unique.key, unique.value)
-# 		assert_that(m, is_(True))
-# 
-# 	@WithMockDSTrans
-# 	def test_following(self):
-# 		user1 = self._create_random_user()
-# 		user2 = self._create_random_user()
-# 		user3 = self._create_random_user()
-# 
-# 		user1.follow(user2)
-# 		user1.follow(user3)
-# 
-# 		m = zodb_following(user1)
-# 		assert_that(m, has_length(2))
-# 
-# 		m = update_following(self.db, user1)
-# 		assert_that(m, has_length(2))
-# 
-# 		m = graph_following(self.db, user1)
-# 		assert_that(m, has_length(2))
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
+# pylint: disable=protected-access,too-many-public-methods,arguments-differ
+
+from hamcrest import has_length
+from hamcrest import assert_that
+
+import unittest
+
+from zope import lifecycleevent
+
+from nti.dataserver.users.friends_lists import FriendsList
+from nti.dataserver.users.friends_lists import DynamicFriendsList
+
+from nti.dataserver.users.users import User
+
+from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
+
+from nti.graphdb import get_graph_db
+
+from nti.graphdb.connections import init
+from nti.graphdb.connections import graph_friends
+
+from nti.graphdb.tests import cannot_connect
+from nti.graphdb.tests import random_username
+from nti.graphdb.tests import GraphDBTestCase
+
+
+@unittest.skipIf(cannot_connect(), "Neo4j not available")
+class TestFriendships(GraphDBTestCase):
+
+    def _create_user(self, username=u'nt@nti.com', password=u'temp001'):
+        usr = User.create_user(username=username, password=password)
+        return usr
+
+    def create_random_user(self):
+        username = random_username()
+        user = self._create_user(username)
+        return user
+
+    def create_friendslist(self, owner, name, *friends):
+        result = FriendsList(username=name)
+        result.creator = owner
+        for friend in friends:
+            result.addFriend(friend)
+        owner.addContainedObject(result)
+        return result
+
+    @WithMockDSTrans
+    def test_entity_friends(self):
+        owner = self.create_random_user()
+        user1 = self.create_random_user()
+        user2 = self.create_random_user()
+        user3 = self.create_random_user()
+
+        # create friends
+        friendList = self.create_friendslist(owner, u"myUserFriends",
+                                             user1, user2, user3)
+        friends = graph_friends(get_graph_db(), owner)
+        assert_that(friends, has_length(3))
+
+        # remove friend
+        friendList.removeFriend(user2)
+        lifecycleevent.modified(friendList)
+        friends = graph_friends(get_graph_db(), owner)
+        assert_that(friends, has_length(2))
+
+        # remove friend list
+        owner.deleteContainedObject(friendList.containerId, friendList.id)
+
+    @WithMockDSTrans
+    def test_memberships(self):
+        user1 = self.create_random_user()
+        user2 = self.create_random_user()
+        user3 = self.create_random_user()
+
+        dfl = DynamicFriendsList(username=u'myFriendsDFL')
+        dfl.creator = user1  # Creator must be set
+        user1.addContainedObject(dfl)
+
+        # start memberships
+        dfl.addFriend(user2)
+        dfl.addFriend(user3)
+
+        # remove membership
+        dfl.removeFriend(user3)
+        lifecycleevent.modified(dfl)
+
+        # delete dfl
+        user1.deleteContainedObject(dfl.containerId, dfl.id)
+
+    @WithMockDSTrans
+    def test_following(self):
+        user1 = self.create_random_user()
+        user2 = self.create_random_user()
+        user3 = self.create_random_user()
+
+        user1.follow(user2)
+        user1.follow(user3)
+        user1.stop_following(user2)
+
+    @WithMockDSTrans
+    def test_init(self):
+        user1 = self.create_random_user()
+        init(get_graph_db(), user1)
