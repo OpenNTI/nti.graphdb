@@ -52,7 +52,7 @@ def remove_flagged_relationship(db, username, oid):
         rels = db.match(author, obj, Flagged())
         if rels:
             db.delete_relationships(*rels)
-            logger.debug("Flagged relationship %s deleted", rels)
+            logger.debug("Flagged relationship(s) %s deleted", rels)
             result = True
     return result
 
@@ -105,5 +105,5 @@ def init(db, obj):
 			}
             for flagger in flaggers:
                 process_flagging_event(db, obj, flagger)
-            result = len(flaggers) > 0
+            result = bool(flaggers)
     return result
