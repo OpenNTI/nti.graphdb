@@ -115,9 +115,11 @@ def _GenericPropertyAdpater(obj):
 @component.adapter(IEntity)
 @interface.implementer(IPropertyAdapter)
 def _EntityPropertyAdpater(entity):
-    result = {USERNAME: entity.username,
-              CREATOR: entity.username,
-              CREATED_TIME: get_createdTime(entity)}
+    result = {
+        USERNAME: entity.username,
+        CREATOR: entity.username,
+        CREATED_TIME: get_createdTime(entity)
+    }
     # check alias and realname
     names = IFriendlyNamed(entity, None)
     alias = getattr(names, 'alias', None)
@@ -154,6 +156,7 @@ def _UserPropertyAdpater(user):
 @component.adapter(IDynamicSharingTargetFriendsList)
 def _DFLPropertyAdpater(dfl):
     result = _EntityPropertyAdpater(dfl)
+    result[CREATOR] = get_creator(dfl)
     result[TYPE] = 'DFL'
     return result
 
