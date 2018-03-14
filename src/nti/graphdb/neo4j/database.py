@@ -364,7 +364,7 @@ class Neo4jDB(object):
                 result = obj.neo
                 if result is None:
                     query = match_node_by_id_query(obj.id)
-                    result = session.run(query)
+                    result = obj.neo = self.single_value(session.run(query))
             elif obj is not None:
                 if isinstance(obj, (six.string_types, numbers.Number)):
                     query = match_node_by_id_query(obj)
