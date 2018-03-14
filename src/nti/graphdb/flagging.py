@@ -4,10 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, unicode_literals, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from zope import component
 
@@ -30,68 +29,77 @@ from nti.graphdb.interfaces import IObjectProcessor
 
 from nti.graphdb.relationships import Flagged
 
+logger = __import__('logging').getLogger(__name__)
+
+
 def _add_flagged_relationship(db, username, oid):
-	result = None
-	author = get_entity(username)
-	obj = find_object_with_ntiid(oid)
-	if 	(	 obj is not None 
-		 and author is not None 
-		 and not db.match(author, obj, Flagged())):
-		result = db.create_relationship(author, obj, Flagged())
-		logger.debug("Flagged relationship %s created", result)
-	return result
+    result = None
+    author = get_entity(username)
+    obj = find_object_with_ntiid(oid)
+    if (	 obj is not None
+          and author is not None
+          and not db.match(author, obj, Flagged())):
+        result = db.create_relationship(author, obj, Flagged())
+        logger.debug("Flagged relationship %s created", result)
+    return result
+
 
 def _remove_flagged_relationship(db, username, oid):
-	result = False
-	author = get_entity(username)
-	obj = find_object_with_ntiid(oid)
-	if obj is not None and author is not None:
-		rels = db.match(author, obj, Flagged())
-		if rels:
-			db.delete_relationships(*rels)
-			logger.debug("Flagged relationship %s deleted", rels)
-			result = True
-	return result
+    result = False
+    author = get_entity(username)
+    obj = find_object_with_ntiid(oid)
+    if obj is not None and author is not None:
+        rels = db.match(author, obj, Flagged())
+        if rels:
+            db.delete_relationships(*rels)
+            logger.debug("Flagged relationship %s deleted", rels)
+            result = True
+    return result
+
 
 def _process_flagging_event(db, flaggable, username=None, is_flagged=True):
-	username = username or get_current_principal_id()
-	if username:
-		oid = get_oid(flaggable)
-		queue = get_job_queue()
-		if is_flagged:
-			job = create_job(_add_flagged_relationship, db=db, username=username,
-							 oid=oid)
-		else:
-			job = create_job(_remove_flagged_relationship, db=db, username=username,
-							 oid=oid)
-		queue.put(job)
+    username = username or get_current_principal_id()
+    if username:
+        oid = get_oid(flaggable)
+        queue = get_job_queue()
+        if is_flagged:
+            job = create_job(_add_flagged_relationship, db=db, username=username,
+                             oid=oid)
+        else:
+            job = create_job(_remove_flagged_relationship, db=db, username=username,
+                             oid=oid)
+        queue.put(job)
+
 
 @component.adapter(IFlaggable, IObjectFlaggedEvent)
 def _object_flagged(flaggable, event):
-	db = get_graph_db()
-	if db is not None:
-		_process_flagging_event(db, flaggable)
+    db = get_graph_db()
+    if db is not None:
+        _process_flagging_event(db, flaggable)
+
 
 @component.adapter(IFlaggable, IObjectUnflaggedEvent)
 def _object_unflagged(flaggable, event):
-	db = get_graph_db()
-	if db is not None:
-		_process_flagging_event(db, flaggable, is_flagged=False)
+    db = get_graph_db()
+    if db is not None:
+        _process_flagging_event(db, flaggable, is_flagged=False)
+
 
 component.moduleProvides(IObjectProcessor)
 
+
 def init(db, obj):
-	result = False
-	if IFlaggable.providedBy(obj):
-		store = IGlobalFlagStorage(obj)
-		if store.is_flagged(obj):
-			creator = getattr(obj, 'creator', None)
-			# asume all sharedWith users have flagged object
-			flaggers = list(getattr(obj, 'sharedWith', None) or ())
-			if not flaggers and creator:
-				flaggers.append(creator)
-			flaggers = { getattr(x, 'username', x) for x in flaggers }
-			for flagger in flaggers:
-				_process_flagging_event(db, obj, flagger)
-			result = len(flaggers) > 0
-	return result
+    result = False
+    if IFlaggable.providedBy(obj):
+        store = IGlobalFlagStorage(obj)
+        if store.is_flagged(obj):
+            creator = getattr(obj, 'creator', None)
+            # asume all sharedWith users have flagged object
+            flaggers = list(getattr(obj, 'sharedWith', None) or ())
+            if not flaggers and creator:
+                flaggers.append(creator)
+            flaggers = {getattr(x, 'username', x) for x in flaggers}
+            for flagger in flaggers:
+                _process_flagging_event(db, obj, flagger)
+            result = len(flaggers) > 0
+    return result
