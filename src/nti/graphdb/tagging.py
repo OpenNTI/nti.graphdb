@@ -25,7 +25,7 @@ from nti.graphdb import get_job_queue
 
 from nti.graphdb.common import get_oid
 from nti.graphdb.common import get_entity
-from nti.graphdb.common import get_node_pk
+from nti.graphdb.common import get_node_primary_key
 
 from nti.graphdb.interfaces import IObjectProcessor
 
@@ -37,110 +37,124 @@ from nti.ntiids.ntiids import find_object_with_ntiid
 
 _ENTITY_TYPES = {TYPE_NAMED_ENTITY, TYPE_NAMED_ENTITY.lower()}
 
+
 def _underlying(oid):
-	obj = find_object_with_ntiid(oid)
-	if IHeadlinePost.providedBy(obj):
-		obj = obj.__parent__
-	return obj
+    obj = find_object_with_ntiid(oid)
+    if IHeadlinePost.providedBy(obj):
+        obj = obj.__parent__
+    return obj
+
 
 def _create_is_tagged_to_rels(db, oid, entities=()):
-	result = []
-	obj = _underlying(oid)
-	if obj is not None:
-		rel_type = TaggedTo()
-		for entity in entities or ():
-			entity = get_entity(entity)
-			if entity is not None and not db.match(obj, entity, rel_type):
-				rel = db.create_relationship(obj, entity, rel_type)
-				logger.debug("isTaggedTo relationship %s created", rel)
-				result.append(rel)
-	return result
+    result = []
+    obj = _underlying(oid)
+    if obj is not None:
+        rel_type = TaggedTo()
+        for entity in entities or ():
+            entity = get_entity(entity)
+            if entity is not None and not db.match(obj, entity, rel_type):
+                rel = db.create_relationship(obj, entity, rel_type)
+                logger.debug("isTaggedTo relationship %s created", rel)
+                result.append(rel)
+    return result
+
 
 def _get_username_tags(obj, tags=()):
-	username_tags = set()
-	tags = tags or getattr(obj, 'tags', ())
-	for raw_tag in tags or ():
-		if is_ntiid_of_types(raw_tag, _ENTITY_TYPES):
-			entity = find_object_with_ntiid(raw_tag)
-			if entity is not None:
-				username_tags.add(entity.username)
-	return username_tags
+    username_tags = set()
+    tags = tags or getattr(obj, 'tags', ())
+    for raw_tag in tags or ():
+        if is_ntiid_of_types(raw_tag, _ENTITY_TYPES):
+            entity = find_object_with_ntiid(raw_tag)
+            if entity is not None:
+                username_tags.add(entity.username)
+    return username_tags
+
 
 def _process_added_event(db, obj, tags=()):
-	username_tags = _get_username_tags(obj, tags)
-	if username_tags:
-		queue = get_job_queue()
-		oid = get_oid(obj)
-		job = create_job(_create_is_tagged_to_rels, db=db, oid=oid,
-						 entities=list(username_tags))
-		queue.put(job)
+    username_tags = _get_username_tags(obj, tags)
+    if username_tags:
+        queue = get_job_queue()
+        oid = get_oid(obj)
+        job = create_job(_create_is_tagged_to_rels, db=db, oid=oid,
+                         entities=list(username_tags))
+        queue.put(job)
+
 
 @component.adapter(IUserTaggedContent, IObjectAddedEvent)
 def _user_tagged_content_added(obj, event):
-	db = get_graph_db()
-	if db is not None:
-		_process_added_event(db, obj)
+    db = get_graph_db()
+    if db is not None:
+        _process_added_event(db, obj)
+
 
 def _delete_is_tagged_to_rels(db, oid):
-	obj = _underlying(oid)
-	if obj is not None:
-		rels = db.match(start=obj, rel_type=TaggedTo(), loose=True)
-		if rels:
-			db.delete_relationships(*rels)
-			logger.debug("%s isTaggedTo relationship(s) deleted", len(rels))
-			return True
-	return False
+    obj = _underlying(oid)
+    if obj is not None:
+        rels = db.match(start=obj, rel_type=TaggedTo(), loose=True)
+        if rels:
+            db.delete_relationships(*rels)
+            logger.debug("%s isTaggedTo relationship(s) deleted", len(rels))
+            return True
+    return False
+
 
 def _process_modify_rels(db, oid):
-	# delete existing
-	_delete_is_tagged_to_rels(db=db, oid=oid)
-	# recreate
-	obj = _underlying(oid)
-	username_tags = _get_username_tags(obj) if obj is not None else None
-	if username_tags:
-		_create_is_tagged_to_rels(db=db, oid=oid,
-								  entities=list(username_tags))
+    # delete existing
+    _delete_is_tagged_to_rels(db=db, oid=oid)
+    # recreate
+    obj = _underlying(oid)
+    username_tags = _get_username_tags(obj) if obj is not None else None
+    if username_tags:
+        _create_is_tagged_to_rels(db=db, oid=oid,
+                                  entities=list(username_tags))
+
 
 def _process_modified_event(db, obj):
-	queue = get_job_queue()
-	oid = get_oid(obj)
-	job = create_job(_process_modify_rels, db=db, oid=oid)
-	queue.put(job)
+    queue = get_job_queue()
+    oid = get_oid(obj)
+    job = create_job(_process_modify_rels, db=db, oid=oid)
+    queue.put(job)
+
 
 @component.adapter(IUserTaggedContent, IObjectModifiedEvent)
 def _user_tagged_content_modified(obj, event):
-	db = get_graph_db()
-	if db is not None:
-		_process_modified_event(db, obj)
+    db = get_graph_db()
+    if db is not None:
+        _process_modified_event(db, obj)
+
 
 def _remove_node(db, label, key, value):
-	node = db.get_indexed_node(label, key, value)
-	if node is not None:
-		db.delete_node(node)
-		logger.debug("node %s deleted", node)
-		return True
-	return False
+    node = db.get_indexed_node(label, key, value)
+    if node is not None:
+        db.delete_node(node)
+        logger.debug("node %s deleted", node)
+        return True
+    return False
+
 
 def _process_removed_event(db, obj):
-	pk = get_node_pk(obj)
-	if pk is not None:
-		queue = get_job_queue()
-		job = create_job(_remove_node,
-						 db=db, label=pk.label,
-						 key=pk.key, value=pk.value)
-		queue.put(job)
+    pk = get_node_primary_key(obj)
+    if pk is not None:
+        queue = get_job_queue()
+        job = create_job(_remove_node,
+                         db=db, label=pk.label,
+                         key=pk.key, value=pk.value)
+        queue.put(job)
+
 
 @component.adapter(IUserTaggedContent, IIntIdRemovedEvent)
 def _user_tagged_content_removed(obj, event):
-	db = get_graph_db()
-	if db is not None:
-		_process_removed_event(db, obj)
+    db = get_graph_db()
+    if db is not None:
+        _process_removed_event(db, obj)
+
 
 component.moduleProvides(IObjectProcessor)
 
+
 def init(db, obj):
-	result = False
-	if IUserTaggedContent.providedBy(obj):
-		_process_added_event(db, obj)
-		result = True
-	return result
+    result = False
+    if IUserTaggedContent.providedBy(obj):
+        _process_added_event(db, obj)
+        result = True
+    return result
