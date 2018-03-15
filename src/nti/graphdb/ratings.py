@@ -109,7 +109,7 @@ def remove_rate_relationship(db, username, oid):
     return result
 
 
-def _add_rate_relationship(db, username, oid, rating, check_existing=False):
+def add_rate_relationship(db, username, oid, rating, check_existing=False):
     if check_existing and get_relationship(db, username, oid, Rate()):
         return
     rating = rating if rating is not None else 0
@@ -124,7 +124,7 @@ def _add_rate_relationship(db, username, oid, rating, check_existing=False):
 def process_rate_event(db, username, oid, rating=None, is_rate=True):
     queue = get_job_queue()
     if is_rate:
-        job = create_job(_add_rate_relationship, db=db, username=username,
+        job = create_job(add_rate_relationship, db=db, username=username,
                          oid=oid, rating=rating)
     else:
         job = create_job(remove_rate_relationship, db=db,
@@ -183,7 +183,7 @@ def record_ratings(db, obj):
     for rating in get_ratings(obj, RATING_CAT_NAME):
         username = rating.userid or u''
         if get_entity(username) is not None:
-            job = create_job(_add_rate_relationship, db=db, username=username,
+            job = create_job(add_rate_relationship, db=db, username=username,
                              oid=oid, rating=rating, check_existing=True)
             queue.put(job)
             result += 1
