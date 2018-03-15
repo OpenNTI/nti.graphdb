@@ -15,7 +15,6 @@ from zope.lifecycleevent.interfaces import IObjectAddedEvent
 from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 
 from nti.dataserver.interfaces import IReadableShared
-from nti.dataserver.interfaces import IShareableModeledContent
 from nti.dataserver.interfaces import IObjectSharingModifiedEvent
 
 from nti.graphdb import create_job
@@ -146,9 +145,9 @@ def _shareable_modified(obj, event):
 component.moduleProvides(IObjectProcessor)
 
 
-def init(db, obj):
+def init(db, obj):  # pragma: no cover
     result = False
-    if IShareableModeledContent.providedBy(obj):
+    if IReadableShared.providedBy(obj):
         process_shareable(db, obj)
         result = True
     return result
