@@ -94,7 +94,7 @@ def delete_isTaggedTo_rels(db, oid):
     result = False
     obj = get_underlying(oid)
     if obj is not None:
-        rels = db.match(start=obj, rel_type=TaggedTo(), loose=True)
+        rels = db.match(obj, type_=TaggedTo())
         if rels:
             db.delete_relationships(*rels)
             logger.debug("%s isTaggedTo relationship(s) deleted", len(rels))
@@ -128,12 +128,13 @@ def _user_tagged_content_modified(obj, unused_event):
 
 
 def remove_node(db, label, key, value):
+    result = False
     node = db.get_indexed_node(label, key, value)
     if node is not None:
         db.delete_node(node)
         logger.debug("node %s deleted", node)
-        return True
-    return False
+        result = True
+    return result
 
 
 def process_removed_event(db, obj):
@@ -156,7 +157,7 @@ def _user_tagged_content_removed(obj, unused_event):
 component.moduleProvides(IObjectProcessor)
 
 
-def init(db, obj):
+def init(db, obj):  # pragma: no cover
     result = False
     if IUserTaggedContent.providedBy(obj):
         process_added_event(db, obj)
