@@ -22,6 +22,8 @@ from nti.dataserver.tests import mock_dataserver
 
 from nti.graphdb import get_graph_db
 
+from nti.graphdb.created import init
+
 from nti.graphdb.relationships import Created
 
 from nti.graphdb.tests import cannot_connect
@@ -60,7 +62,7 @@ class TestCreated(GraphDBTestCase):
         note = self.create_note(u'sample note', user)
         self.transaction.add(note)
         note = user.addContainedObject(note)
-        # create and modified
+        # create and modify
         lifecycleevent.created(note)
         lifecycleevent.modified(note)
         db = get_graph_db()
@@ -68,3 +70,11 @@ class TestCreated(GraphDBTestCase):
                     has_length(1))
         # remove
         user.deleteContainedObject(note.containerId, note.id)
+        
+    @mock_dataserver.WithMockDSTrans
+    def test_init(self):
+        user = self.create_random_user()
+        note = self.create_note(u'another note', user)
+        self.transaction.add(note)
+        note = user.addContainedObject(note)
+        init(get_graph_db(), note)
