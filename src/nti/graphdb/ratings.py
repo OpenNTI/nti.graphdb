@@ -111,15 +111,14 @@ def remove_rate_relationship(db, username, oid):
 
 
 def add_rate_relationship(db, username, oid, rating, check_existing=False):
-    if check_existing and get_relationship(db, username, oid, Rate()):
-        return
-    rating = rating if rating is not None else 0
-    # remove previous if present
-    remove_rate_relationship(db, username, oid)
-    # add relationship
-    result = add_relationship(db, username, oid, Rate(),
-                              properties={"rating": int(rating)})
-    return result
+    if not check_existing or not get_relationship(db, username, oid, Rate()):
+        rating = rating if rating is not None else 0
+        # remove previous if present
+        remove_rate_relationship(db, username, oid)
+        # add relationship
+        result = add_relationship(db, username, oid, Rate(),
+                                  properties={"rating": rating})
+        return result
 
 
 def process_rate_event(db, username, oid, rating=None, is_rate=True):
@@ -144,8 +143,8 @@ def _object_rated(event):
         if event.category == LIKE_CAT_NAME:
             process_like_event(db, username, oid, is_rated)
         elif event.category == RATING_CAT_NAME:
-            from IPython.terminal.debugger import set_trace;set_trace()
-            rating = getattr(event, 'rating', None)
+            rating = event.rating
+            rating = getattr(rating, '_rating', rating)
             process_rate_event(db, username, oid, rating, is_rated)
 
        
