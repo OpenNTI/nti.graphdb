@@ -68,12 +68,13 @@ def add_relationship(db, username, oid, rel_type, properties=None):
 
 
 def remove_relationship(db, username, oid, rel_type):
+    result = False
     rels = get_relationship(db, username, oid, rel_type)
     if rels:
         db.delete_relationships(*rels)
         logger.debug("%s relationship deleted", rel_type)
-        return True
-    return False
+        result = True
+    return result
 
 
 # like
@@ -117,7 +118,7 @@ def add_rate_relationship(db, username, oid, rating, check_existing=False):
     remove_rate_relationship(db, username, oid)
     # add relationship
     result = add_relationship(db, username, oid, Rate(),
-                               properties={"rating": int(rating)})
+                              properties={"rating": int(rating)})
     return result
 
 
@@ -139,15 +140,15 @@ def _object_rated(event):
     username = get_current_principal_id()
     if username and db is not None:
         oid = get_oid(modeled)
+        is_rated = not IObjectUnratedEvent.providedBy(event)
         if event.category == LIKE_CAT_NAME:
-            is_like = bool(event.rating != 0)
-            process_like_event(db, username, oid, is_like)
+            process_like_event(db, username, oid, is_rated)
         elif event.category == RATING_CAT_NAME:
+            from IPython.terminal.debugger import set_trace;set_trace()
             rating = getattr(event, 'rating', None)
-            is_rate = not IObjectUnratedEvent.providedBy(event)
-            process_rate_event(db, username, oid, rating, is_rate)
+            process_rate_event(db, username, oid, rating, is_rated)
 
-
+       
 # utils
 
 
