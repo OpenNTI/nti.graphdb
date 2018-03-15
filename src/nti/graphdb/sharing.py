@@ -14,7 +14,6 @@ from zope.lifecycleevent.interfaces import IObjectAddedEvent
 
 from nti.dataserver.contenttypes.forums.interfaces import IHeadlinePost
 
-from nti.dataserver.interfaces import IContained
 from nti.dataserver.interfaces import IReadableShared
 from nti.dataserver.interfaces import IShareableModeledContent
 from nti.dataserver.interfaces import IObjectSharingModifiedEvent
@@ -56,7 +55,7 @@ def delete_isSharedWith_rels(db, oid, sharedWith=()):
             if rels:
                 db.delete_relationships(*rels)
                 logger.debug("%s IsSharedWith relationshi(s) deleted",
-							 len(rels))
+                             len(rels))
                 result += 1
     return result
 
@@ -105,6 +104,11 @@ def process_shareable(db, obj, sharedWith=()):
         job = create_job(create_sharable_rels, db=db,
                          oid=oid, sharedWith=sharedWith)
         queue.put(job)
+    else:
+        creator = get_entity(get_creator(obj))
+        rels = db.match(creator, obj, Shared()) if creator else None
+        if rels:
+            db.delete_relationships(*rels)
 
 
 @component.adapter(IReadableShared, IObjectAddedEvent)
@@ -115,7 +119,9 @@ def _shareable_added(obj, unused_event):
 
 
 def process_delete_rels(db, obj, oldSharingTargets=()):
-    oldSharingTargets = [getattr(x, 'username', x) for x in oldSharingTargets or ()]
+    oldSharingTargets = [
+        getattr(x, 'username', x) for x in oldSharingTargets or ()
+    ]
     if oldSharingTargets:
         queue = get_job_queue()
         oid = get_oid(obj)
@@ -130,7 +136,7 @@ def process_modified_event(db, obj, oldSharingTargets=()):
     process_shareable(db, obj, sharingTargets)  # create new
 
 
-@component.adapter(IContained, IObjectSharingModifiedEvent)
+@component.adapter(IReadableShared, IObjectSharingModifiedEvent)
 def _shareable_modified(obj, event):
     db = get_graph_db()
     if db is not None:
