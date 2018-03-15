@@ -73,15 +73,15 @@ def create_isSharedWith_rels(db, oid, sharedWith=()):
 
 
 def create_shared_rel(db, oid, entity=None):
+    result = None
     obj = get_underlying(oid)
     if obj is not None:
         creator = entity or get_creator(obj)
         creator = get_entity(creator)
         if not db.match(creator, obj, Shared()):
-            rel = db.create_relationship(creator, obj, Shared())
-            logger.debug("Shared relationship %s created", rel)
-            return rel
-    return None
+            result = db.create_relationship(creator, obj, Shared())
+            logger.debug("Shared relationship %s created", result)
+    return result
 
 
 def get_sharedWith(obj, sharedWith=()):
