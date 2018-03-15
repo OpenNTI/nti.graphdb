@@ -143,8 +143,7 @@ def _object_rated(event):
         if event.category == LIKE_CAT_NAME:
             process_like_event(db, username, oid, is_rated)
         elif event.category == RATING_CAT_NAME:
-            rating = event.rating
-            rating = getattr(rating, '_rating', rating)
+            rating = float(event.rating)
             process_rate_event(db, username, oid, rating, is_rated)
 
        
@@ -184,7 +183,7 @@ def record_ratings(db, obj):
         username = rating.userid or u''
         if get_entity(username) is not None:
             job = create_job(add_rate_relationship, db=db, username=username,
-                             oid=oid, rating=rating, check_existing=True)
+                             oid=oid, rating=float(rating), check_existing=True)
             queue.put(job)
             result += 1
     return result
