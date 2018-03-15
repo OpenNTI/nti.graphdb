@@ -12,9 +12,9 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import component
 
+from zope.intid.interfaces import IIntIdAddedEvent
 from zope.intid.interfaces import IIntIdRemovedEvent
 
-from zope.lifecycleevent.interfaces import IObjectCreatedEvent
 from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 
 from nti.chatserver.interfaces import IMessageInfo
@@ -61,7 +61,7 @@ def process_created_event(db, created):
         queue.put(job)
 
 
-@component.adapter(ICreated, IObjectCreatedEvent)
+@component.adapter(ICreated, IIntIdAddedEvent)
 def _object_created(created, unused_event=None):
     db = get_graph_db()
     if db is not None:
