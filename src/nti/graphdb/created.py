@@ -8,8 +8,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-logger = __import__('logging').getLogger(__name__)
-
 from zope import component
 
 from zope.intid.interfaces import IIntIdAddedEvent
@@ -41,6 +39,8 @@ from nti.graphdb.interfaces import IPropertyAdapter
 from nti.graphdb.relationships import Created
 
 from nti.ntiids.ntiids import find_object_with_ntiid
+
+logger = __import__('logging').getLogger(__name__)
 
 
 def add_created_relationship(db, creator, oid):
