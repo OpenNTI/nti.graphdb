@@ -59,6 +59,13 @@
 
 	<utility component=".ratings" provides=".interfaces.IObjectProcessor" name="ratings"/>
 
+
+	<!-- Sharing -->
+	<subscriber handler=".sharing._shareable_added" />
+	<subscriber handler=".sharing._shareable_modified" />
+
+	<utility component=".sharing" provides=".interfaces.IObjectProcessor" name="sharing"/>
+
 	<!--
 	Adapters 	
 	<adapter factory=".containers._default_container_adapter"
@@ -87,16 +94,13 @@
 	<subscriber handler=".containers._contained_added" />
 	<subscriber handler=".containers._contained_removed" />
 	<subscriber handler=".containers._contained_modified" />
-	
-	<subscriber handler=".sharing._shareable_added" />
-	<subscriber handler=".sharing._shareable_modified" />
-	
+
 	<subscriber handler=".threadables._threadable_added" />
 	<subscriber handler=".threadables._threadable_removed" />
 	<subscriber handler=".threadables._threadable_modified" />
 
 	Utilities
-	<utility component=".sharing" provides=".interfaces.IObjectProcessor" name="sharing"/>
+
 	<utility component=".tagging" provides=".interfaces.IObjectProcessor" name="tagging"/>
 	<utility component=".entities" provides=".interfaces.IObjectProcessor" name="entities"/>
 
