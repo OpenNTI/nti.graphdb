@@ -59,12 +59,18 @@
 
 	<utility component=".ratings" provides=".interfaces.IObjectProcessor" name="ratings"/>
 
-
 	<!-- Sharing -->
 	<subscriber handler=".sharing._shareable_added" />
 	<subscriber handler=".sharing._shareable_modified" />
 
 	<utility component=".sharing" provides=".interfaces.IObjectProcessor" name="sharing"/>
+
+	<!-- Tagging -->
+	<subscriber handler=".tagging._user_tagged_content_added" />
+	<subscriber handler=".tagging._user_tagged_content_removed" />
+	<subscriber handler=".tagging._user_tagged_content_modified" />	
+
+	<utility component=".tagging" provides=".interfaces.IObjectProcessor" name="tagging"/>
 
 	<!--
 	Adapters 	
@@ -87,10 +93,6 @@
 	<subscriber handler=".discussions._modify_general_forum_comment" />
 	<subscriber handler=".discussions._modify_personal_blog_comment" />
 	
-	<subscriber handler=".tagging._user_tagged_content_added" />
-	<subscriber handler=".tagging._user_tagged_content_removed" />
-	<subscriber handler=".tagging._user_tagged_content_modified" />	
-	
 	<subscriber handler=".containers._contained_added" />
 	<subscriber handler=".containers._contained_removed" />
 	<subscriber handler=".containers._contained_modified" />
@@ -101,7 +103,6 @@
 
 	Utilities
 
-	<utility component=".tagging" provides=".interfaces.IObjectProcessor" name="tagging"/>
 	<utility component=".entities" provides=".interfaces.IObjectProcessor" name="entities"/>
 
 	<utility component=".containers" provides=".interfaces.IObjectProcessor" name="containers"/>
