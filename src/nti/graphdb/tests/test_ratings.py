@@ -26,6 +26,10 @@ from nti.dataserver.tests import mock_dataserver
 
 from nti.dataserver.users.users import User
 
+from nti.graphdb import get_graph_db
+
+from nti.graphdb.ratings import init
+
 from nti.graphdb.tests import cannot_connect
 from nti.graphdb.tests import random_username
 from nti.graphdb.tests import GraphDBTestCase
@@ -81,3 +85,13 @@ class TestRatings(GraphDBTestCase):
             unrate_object(note, user.username)
         finally:
             endInteraction()
+
+    @mock_dataserver.WithMockDSTrans
+    def test_init(self):
+        user = self.create_random_user()
+        note = self.create_note(u'sample note', user)
+        self.current_transaction.add(note)
+        note = user.addContainedObject(note)
+        like_object(note, user.username)
+        rate_object(note, user.username, 1)
+        init(get_graph_db(), note)
