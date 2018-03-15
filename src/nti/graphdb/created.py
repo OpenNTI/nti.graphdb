@@ -20,6 +20,9 @@ from zope.lifecycleevent.interfaces import IObjectModifiedEvent
 from nti.chatserver.interfaces import IMessageInfo
 from nti.chatserver.interfaces import IMessageInfoPostedToRoomEvent
 
+from nti.contenttypes.presentation.interfaces import IPresentationAsset
+from nti.contenttypes.presentation.interfaces import IContentBackedPresentationAsset
+
 from nti.dataserver.interfaces import ICreated
 
 from nti.graphdb import create_job
@@ -30,6 +33,7 @@ from nti.graphdb.common import get_oid
 from nti.graphdb.common import get_entity
 from nti.graphdb.common import get_creator
 from nti.graphdb.common import get_node_primary_key
+from nti.graphdb.common import get_current_principal
 
 from nti.graphdb.interfaces import IObjectProcessor
 from nti.graphdb.interfaces import IPropertyAdapter
@@ -123,10 +127,16 @@ def process_created_removed(db, created):
         queue.put(job)
 
 
+def can_remove(created):
+    return not IPresentationAsset.providedBy(created) \
+        or get_current_principal() is not None \
+        or not IContentBackedPresentationAsset.providedBy(created)
+
+
 @component.adapter(ICreated, IIntIdRemovedEvent)
 def _object_removed(created, unused_event=None):
     db = get_graph_db()
-    if db is not None:
+    if db is not None and can_remove(created):
         process_created_removed(db, created)
 
 
