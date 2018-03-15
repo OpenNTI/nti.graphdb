@@ -37,16 +37,16 @@ from nti.ntiids.ntiids import find_object_with_ntiid
 logger = __import__('logging').getLogger(__name__)
 
 
-def _underlying(oid):
+def get_underlying(oid):
     obj = find_object_with_ntiid(oid)
     if IHeadlinePost.providedBy(obj):
         obj = obj.__parent__
     return obj
 
 
-def _delete_is_shared_with_rels(db, oid, sharedWith=()):
+def delete_isSharedWith_rels(db, oid, sharedWith=()):
     result = 0
-    obj = _underlying(oid)
+    obj = get_underlying(oid)
     if obj is not None and sharedWith:
         for entity in sharedWith:
             entity = get_entity(entity)
@@ -61,9 +61,9 @@ def _delete_is_shared_with_rels(db, oid, sharedWith=()):
     return result
 
 
-def _create_is_shared_with_rels(db, oid, sharedWith=()):
+def create_isSharedWith_rels(db, oid, sharedWith=()):
     result = []
-    obj = _underlying(oid)
+    obj = get_underlying(oid)
     if obj is not None and sharedWith:
         for entity in sharedWith:
             entity = get_entity(entity)
@@ -74,8 +74,8 @@ def _create_is_shared_with_rels(db, oid, sharedWith=()):
     return result
 
 
-def _create_shared_rel(db, oid, entity=None):
-    obj = _underlying(oid)
+def create_shared_rel(db, oid, entity=None):
+    obj = get_underlying(oid)
     if obj is not None:
         creator = entity or get_creator(obj)
         creator = get_entity(creator)
@@ -86,55 +86,55 @@ def _create_shared_rel(db, oid, entity=None):
     return None
 
 
-def _get_sharedWith(obj, sharedWith=()):
+def get_sharedWith(obj, sharedWith=()):
     result = sharedWith or getattr(obj, 'sharedWith', ())
     return result
 
 
-def _create_sharable_rels(db, oid, sharedWith):
-    _create_is_shared_with_rels(db=db, oid=oid, sharedWith=sharedWith)
-    _create_shared_rel(db=db, oid=oid)
+def create_sharable_rels(db, oid, sharedWith):
+    create_isSharedWith_rels(db=db, oid=oid, sharedWith=sharedWith)
+    create_shared_rel(db=db, oid=oid)
 
 
-def _process_shareable(db, obj, sharedWith=()):
-    sharedWith = _get_sharedWith(obj, sharedWith)
+def process_shareable(db, obj, sharedWith=()):
+    sharedWith = get_sharedWith(obj, sharedWith)
     if sharedWith:
         oid = get_oid(obj)
         queue = get_job_queue()
         sharedWith = [getattr(x, 'username', x) for x in sharedWith]
-        job = create_job(_create_sharable_rels, db=db,
+        job = create_job(create_sharable_rels, db=db,
                          oid=oid, sharedWith=sharedWith)
         queue.put(job)
 
 
 @component.adapter(IReadableShared, IObjectAddedEvent)
-def _shareable_added(obj, event):
+def _shareable_added(obj, unused_event):
     db = get_graph_db()
     if db is not None:
-        _process_shareable(db, obj)
+        process_shareable(db, obj)
 
 
-def _process_delete_rels(db, obj, oldSharingTargets=()):
-    oldSharingTargets = [getattr(x, 'username', x) for x in oldSharingTargets]
+def process_delete_rels(db, obj, oldSharingTargets=()):
+    oldSharingTargets = [getattr(x, 'username', x) for x in oldSharingTargets or ()]
     if oldSharingTargets:
         queue = get_job_queue()
         oid = get_oid(obj)
-        job = create_job(_delete_is_shared_with_rels, db=db, oid=oid,
+        job = create_job(delete_isSharedWith_rels, db=db, oid=oid,
                          sharedWith=oldSharingTargets)
         queue.put(job)
 
 
-def _process_modified_event(db, obj, oldSharingTargets=()):
+def process_modified_event(db, obj, oldSharingTargets=()):
     sharingTargets = getattr(obj, 'sharingTargets', ())
-    _process_delete_rels(db, obj, oldSharingTargets)  # delete old
-    _process_shareable(db, obj, sharingTargets)  # create new
+    process_delete_rels(db, obj, oldSharingTargets)  # delete old
+    process_shareable(db, obj, sharingTargets)  # create new
 
 
 @component.adapter(IContained, IObjectSharingModifiedEvent)
 def _shareable_modified(obj, event):
     db = get_graph_db()
     if db is not None:
-        _process_modified_event(db, obj, event.oldSharingTargets)
+        process_modified_event(db, obj, event.oldSharingTargets)
 
 
 component.moduleProvides(IObjectProcessor)
@@ -143,6 +143,6 @@ component.moduleProvides(IObjectProcessor)
 def init(db, obj):
     result = False
     if IShareableModeledContent.providedBy(obj):
-        _process_shareable(db, obj)
+        process_shareable(db, obj)
         result = True
     return result
