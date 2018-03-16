@@ -38,20 +38,25 @@ logger = __import__('logging').getLogger(__name__)
 
 
 def remove_node(db, label, key, value):
+    result = False
     node = db.get_indexed_node(label, key, value)
     if node is not None:
         db.delete_node(node)
         logger.debug("Node %s deleted", node)
-        return True
-    return False
+        result = True
+    return result
 
 
-def remove_threadable(db, label, key, value):
+def remove_reply_relationship(db, key, value):
     rel_type = str(Reply())
     for rel in db.get_indexed_relationships(key, value):
         if str(rel.type) == rel_type:
             db.delete_relationship(rel)
             logger.debug("ReplyTo relationship %s deleted", rel)
+
+
+def remove_threadable(db, label, key, value):
+    remove_reply_relationship(db, key, value)
     remove_node(db, label, key, value)
 
 
@@ -73,40 +78,33 @@ def _threadable_removed(threadable, unused_event):
         proces_threadable_removed(db, threadable)
 
 
-@component.adapter(IThreadable, IObjectModifiedEvent)
-def _threadable_modified(thread, unused_event):
-    db = get_graph_db()
-    if db is not None and IDeletedObjectPlaceholder.providedBy(thread):
-        proces_threadable_removed(db, thread)
+def delete_inReplyTo_relationship(db, oid):
+    threadable = find_object_with_ntiid(oid)
+    for rel in db.match(threadable, type_=IsReplyOf()) or ():
+        db.delete_relationship(rel)
 
 
 def add_inReplyTo_relationship(db, oid):
+    result = False
     threadable = find_object_with_ntiid(oid)
     in_replyTo = threadable.inReplyTo if threadable is not None else None
     if in_replyTo is not None and not db.match(threadable, in_replyTo, IsReplyOf()):
         # create parent/child relationship
         rel = db.create_relationship(threadable, in_replyTo, IsReplyOf())
         logger.debug("IsReplyOf Relationship %s created", rel)
-
-        t_author = get_creator(threadable)
-        i_author = get_creator(in_replyTo)
-        if not i_author or not t_author:
-            return
-
-        # create a relationship between author and the author being replied to
-        properties = component.getMultiAdapter((t_author, threadable, Reply()),
-                                               IPropertyAdapter)
-
-        rel = db.create_relationship(t_author, i_author, Reply(),
-                                     properties=properties)
-        logger.debug("ReplyTo relationship %s retreived/created", rel)
-
-        pk = get_node_primary_key(threadable)
-        if pk is not None:
-            db.index_relationship(rel, pk.key, pk.value)
-
-        return True
-    return False
+        # create author reply relationship
+        from_author = get_creator(threadable)
+        to_author = get_creator(in_replyTo)
+        if to_author is not None and from_author is not None:
+            # create a relationship between author and
+            # the author being replied to
+            properties = component.getMultiAdapter((from_author, threadable, Reply()),
+                                                   IPropertyAdapter)
+            rel = db.create_relationship(from_author, to_author, Reply(),
+                                         properties=properties)
+            logger.debug("ReplyTo relationship %s retreived/created", rel)
+            result = True
+    return result
 
 
 def process_threadable_inReplyTo(db, threadable):
@@ -123,10 +121,38 @@ def _threadable_added(threadable, unused_event):
         process_threadable_inReplyTo(db, threadable)
 
 
+def modify_threadable(db, oid):
+    threadable = find_object_with_ntiid(oid)
+    if threadable is not None:
+        pk = get_node_primary_key(threadable)
+        if pk is not None:
+            remove_reply_relationship(db, pk.key, pk.value)
+        delete_inReplyTo_relationship(db, oid)
+        add_inReplyTo_relationship(db, oid)
+
+
+def proces_threadable_modified(db, threadable):
+    oid = get_oid(threadable)
+    if oid is not None:
+        queue = get_job_queue()
+        job = create_job(modify_threadable, db=db, oid=oid)
+        queue.put(job)
+
+
+@component.adapter(IThreadable, IObjectModifiedEvent)
+def _threadable_modified(thread, unused_event):
+    db = get_graph_db()
+    if db is not None:
+        if IDeletedObjectPlaceholder.providedBy(thread):
+            proces_threadable_removed(db, thread)
+        else:
+            proces_threadable_modified(db, thread)
+
+
 component.moduleProvides(IObjectProcessor)
 
 
-def init(db, obj):
+def init(db, obj):  # pragma: no cover
     result = False
     if IThreadable.providedBy(obj) and obj.inReplyTo:
         process_threadable_inReplyTo(db, obj)
