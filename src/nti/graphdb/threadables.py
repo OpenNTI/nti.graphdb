@@ -8,7 +8,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-
 from zope import component
 
 from zope.intid.interfaces import IIntIdRemovedEvent
@@ -68,14 +67,14 @@ def _proces_threadable_removed(db, threadable):
 
 
 @component.adapter(IThreadable, IIntIdRemovedEvent)
-def _threadable_removed(threadable, event):
+def _threadable_removed(threadable, unused_event):
     db = get_graph_db()
     if db is not None:
         _proces_threadable_removed(db, threadable)
 
 
 @component.adapter(IThreadable, IObjectModifiedEvent)
-def _threadable_modified(thread, event):
+def _threadable_modified(thread, unused_event):
     db = get_graph_db()
     if db is not None and IDeletedObjectPlaceholder.providedBy(thread):
         _proces_threadable_removed(db, thread)
@@ -118,7 +117,7 @@ def _process_threadable_in_reply_to(db, threadable):
 
 
 @component.adapter(IThreadable, IObjectAddedEvent)
-def _threadable_added(threadable, event):
+def _threadable_added(threadable, unused_event):
     db = get_graph_db()
     if db is not None and threadable.inReplyTo:
         _process_threadable_in_reply_to(db, threadable)
