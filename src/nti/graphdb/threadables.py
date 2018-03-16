@@ -37,7 +37,7 @@ from nti.ntiids.ntiids import find_object_with_ntiid
 logger = __import__('logging').getLogger(__name__)
 
 
-def _remove_node(db, label, key, value):
+def remove_node(db, label, key, value):
     node = db.get_indexed_node(label, key, value)
     if node is not None:
         db.delete_node(node)
@@ -46,20 +46,20 @@ def _remove_node(db, label, key, value):
     return False
 
 
-def _remove_threadable(db, label, key, value):
+def remove_threadable(db, label, key, value):
     rel_type = str(Reply())
     for rel in db.get_indexed_relationships(key, value):
         if str(rel.type) == rel_type:
             db.delete_relationship(rel)
             logger.debug("ReplyTo relationship %s deleted", rel)
-    _remove_node(db, label, key, value)
+    remove_node(db, label, key, value)
 
 
-def _proces_threadable_removed(db, threadable):
+def proces_threadable_removed(db, threadable):
     pk = get_node_primary_key(threadable) if threadable is not None else None
     if pk is not None:
         queue = get_job_queue()
-        job = create_job(_remove_threadable, db=db,
+        job = create_job(remove_threadable, db=db,
                          label=pk.label,
                          key=pk.key,
                          value=pk.value)
@@ -70,17 +70,17 @@ def _proces_threadable_removed(db, threadable):
 def _threadable_removed(threadable, unused_event):
     db = get_graph_db()
     if db is not None:
-        _proces_threadable_removed(db, threadable)
+        proces_threadable_removed(db, threadable)
 
 
 @component.adapter(IThreadable, IObjectModifiedEvent)
 def _threadable_modified(thread, unused_event):
     db = get_graph_db()
     if db is not None and IDeletedObjectPlaceholder.providedBy(thread):
-        _proces_threadable_removed(db, thread)
+        proces_threadable_removed(db, thread)
 
 
-def _add_in_reply_to_relationship(db, oid):
+def add_inReplyTo_relationship(db, oid):
     threadable = find_object_with_ntiid(oid)
     in_replyTo = threadable.inReplyTo if threadable is not None else None
     if in_replyTo is not None and not db.match(threadable, in_replyTo, IsReplyOf()):
@@ -109,10 +109,10 @@ def _add_in_reply_to_relationship(db, oid):
     return False
 
 
-def _process_threadable_in_reply_to(db, threadable):
+def process_threadable_inReplyTo(db, threadable):
     oid = get_oid(threadable)
     queue = get_job_queue()
-    job = create_job(_add_in_reply_to_relationship, db=db, oid=oid)
+    job = create_job(add_inReplyTo_relationship, db=db, oid=oid)
     queue.put(job)
 
 
@@ -120,7 +120,7 @@ def _process_threadable_in_reply_to(db, threadable):
 def _threadable_added(threadable, unused_event):
     db = get_graph_db()
     if db is not None and threadable.inReplyTo:
-        _process_threadable_in_reply_to(db, threadable)
+        process_threadable_inReplyTo(db, threadable)
 
 
 component.moduleProvides(IObjectProcessor)
@@ -129,6 +129,6 @@ component.moduleProvides(IObjectProcessor)
 def init(db, obj):
     result = False
     if IThreadable.providedBy(obj) and obj.inReplyTo:
-        _process_threadable_in_reply_to(db, obj)
+        process_threadable_inReplyTo(db, obj)
         result = True
     return result
