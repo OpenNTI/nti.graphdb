@@ -54,8 +54,8 @@ def add_node(db, oid, label, key, value):
     obj = find_object_with_ntiid(oid)
     node = db.get_indexed_node(label, key, value)
     if obj is not None and node is None:
-        node = db.create_node(obj)
         created = True
+        node = db.create_node(obj)
         logger.debug("Node %s created", node)
     return node, obj, created
 
@@ -101,9 +101,11 @@ def update_forum_node(db, oid, label, key, value):
 
 
 def add_topic_node(db, oid, label, key, value):
-    node, topic, created = add_node(db, oid, label, key, value)
-    if created is not None:
-        creator = get_creator(topic)
+    node, topic, _ = add_node(db, oid, label, key, value)
+    creator = get_creator(topic)
+    if      topic is not None \
+        and creator is not None \
+        and not db.match(creator, topic, Author()):
         rel = db.create_relationship(creator, topic, Author())
         logger.debug("Authorship relationship %s created", rel)
     return node, topic
@@ -116,9 +118,16 @@ def update_topic_node(db, oid, label, key, value):
     return node, topic
 
 
+def find_object(obj):
+    result = obj
+    if isinstance(obj, string_types):
+        result = find_object_with_ntiid(obj)
+    return result
+
+
 def add_membership_relationship(db, child, parent):
-    child = find_object_with_ntiid(child) if isinstance(child, string_types) else child
-    parent = find_object_with_ntiid(parent) if isinstance(parent, string_types) else parent
+    child = find_object(child)
+    parent = find_object(parent)
     if child is not None and parent is not None:
         result = db.create_relationship(child, parent, MemberOf())
         logger.debug("Membership relationship %s created", result)
@@ -128,13 +137,13 @@ def add_membership_relationship(db, child, parent):
 def process_add_topic_event(db, oid, label, key, value, parent):
     # create topic node
     add_topic_node(db=db, oid=oid,
-                    label=label,
-                    key=key,
-                    value=value)
+                   label=label,
+                   key=key,
+                   value=value)
     # membership
     add_membership_relationship(db=db,
-                                 child=oid,
-                                 parent=parent)
+                                child=oid,
+                                parent=parent)
 
 
 def process_topic_event(db, topic, event):
@@ -213,8 +222,8 @@ def get_comment_relationship(db, comment):
 
 def comment_properties(comment):
     creator = get_creator(comment)
-    result = component.queryMultiAdapter(
-        (creator, comment, CommentOn()), IPropertyAdapter)
+    result = component.queryMultiAdapter((creator, comment, CommentOn()),
+                                         IPropertyAdapter)
     return result
 
 
