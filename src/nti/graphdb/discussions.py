@@ -339,7 +339,7 @@ def _forum_removed(forum, unused_event):
 component.moduleProvides(IObjectProcessor)
 
 
-def init(db, obj):
+def init(db, obj):  # pragma: no cover
     result = True
     if IForum.providedBy(obj):
         process_forum_event(db, obj, ADD_EVENT)
