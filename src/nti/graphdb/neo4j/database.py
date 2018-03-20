@@ -461,7 +461,7 @@ class Neo4jDB(object):
         result = 0
         with self.session() as session:
             for obj in objects:
-                if self.do_delete_node_session(session, obj):
+                if obj is not None and self.do_delete_node_session(session, obj):
                     result += 1
         return result
 
