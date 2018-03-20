@@ -1,140 +1,144 @@
-# #!/usr/bin/env python
-# # -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
+# pylint: disable=protected-access,too-many-public-methods,arguments-differ
+
+from hamcrest import is_
+from hamcrest import none
+from hamcrest import is_not
+from hamcrest import has_entry
+from hamcrest import has_length
+from hamcrest import assert_that
+from hamcrest import has_property
+
+import time
+import unittest
+
+from zope import lifecycleevent
+
+from nti.dataserver.contenttypes.forums.interfaces import IPersonalBlog
+
+from nti.dataserver.contenttypes.forums.post import PersonalBlogComment
+
+from nti.dataserver.contenttypes.forums.topic import PersonalBlogEntry
+
+from nti.dataserver.users.users import User
+
+from nti.graphdb.relationships import MemberOf
+from nti.graphdb.relationships import CommentOn
+
+from nti.dataserver.tests import mock_dataserver
+
+from nti.graphdb import get_graph_db
+
+from nti.graphdb.tests import cannot_connect
+from nti.graphdb.tests import random_username
+from nti.graphdb.tests import GraphDBTestCase
+
+
+@unittest.skipIf(cannot_connect(), "Neo4j not available")
+class TestDiscussions(GraphDBTestCase):
+
+    def _create_user(self, username=u'nt@nti.com', password=u'temp001'):
+        usr = User.create_user(username=username, password=password)
+        return usr
+
+    def create_random_user(self):
+        username = random_username()
+        user = self._create_user(username)
+        return user
+
+    @mock_dataserver.WithMockDSTrans
+    def test_user_blog(self):
+        user = self.create_random_user()
+        blog = IPersonalBlog(user)
+        entry = PersonalBlogEntry()
+        entry.creator = user
+        blog['bleach'] = entry
+
+        db = get_graph_db()
+        rels = db.match(entry, blog, MemberOf())
+        assert_that(rels, has_length(1))
+
+        entry.lastModified = time.time()
+        lifecycleevent.modified(entry)
+
+        comment = PersonalBlogComment()
+        comment.creator = user
+        entry['comment316072059'] = comment
+
+        rels = db.match(user, entry, CommentOn())
+        assert_that(rels, has_length(1))
+        
+#         oid = get_oid(entry)
+#         pk = get_node_pk(entry)
 # 
-# from __future__ import print_function, unicode_literals, absolute_import, division
-# __docformat__ = "restructuredtext en"
+#         node, topic = _add_topic_node(self.db, oid, pk.label, pk.key, pk.value)
+#         assert_that(node, is_not(none()))
+#         assert_that(topic, is_(entry))
 # 
-# # disable: accessing protected members, too many methods
-# # pylint: disable=W0212,R0904
+#         node = self.db.get_indexed_node(pk.label, pk.key, pk.value)
+#         assert_that(node, is_not(none()))
 # 
-# from hamcrest import is_
-# from hamcrest import none
-# from hamcrest import is_not
-# from hamcrest import has_entry
-# from hamcrest import has_length
-# from hamcrest import assert_that
-# from hamcrest import has_property
+#         rels = self.db.match(user, topic, Author())
+#         assert_that(rels, has_length(1))
 # 
-# import unittest
+#         _update_topic_node(self.db, oid, pk.label, pk.key, pk.value)
 # 
-# from nti.dataserver.users import User
+#         node = self.db.get_indexed_node(pk.label, pk.key, pk.value)
+#         assert_that(node, has_property(
+#             'properties', has_entry('type', 'Topic')))
+#         assert_that(node, has_property(
+#             'properties', has_entry('ntiid', is_not(none()))))
+#         assert_that(node, has_property(
+#             'properties', has_entry('creator', user.username)))
 # 
-# from nti.dataserver.contenttypes.forums.topic import PersonalBlogEntry
-# from nti.dataserver.contenttypes.forums.post import PersonalBlogComment
-# from nti.dataserver.contenttypes.forums.interfaces import IPersonalBlog
+#         _add_membership_relationship(self.db, entry, blog)
+#         rels = self.db.match(entry, blog, MemberOf())
+#         assert_that(rels, has_length(1))
 # 
-# from nti.graphdb.neo4j.database import Neo4jDB
+#         res = _delete_node(self.db, pk.label, pk.key, pk.value)
+#         assert_that(res, is_(True))
 # 
-# from nti.graphdb.common import get_oid
-# from nti.graphdb.common import get_node_pk
+#         res = _delete_node(self.db, pk.label, pk.key, pk.value)
+#         assert_that(res, is_(False))
+
+#     @WithMockDSTrans
+#     def test_user_blog_comment(self):
+#         user = self.create_random_user()
+#         blog = IPersonalBlog(user)
+#         entry = PersonalBlogEntry()
+#         entry.creator = user
+#         blog['bleach'] = entry
+#         entry.__parent__ = blog
+#         entry.createdTime = entry.lastModified = 42
+#         mock_dataserver.current_transaction.add(entry)
 # 
-# from nti.graphdb.discussions import _delete_node
-# from nti.graphdb.discussions import _add_topic_node
-# from nti.graphdb.discussions import _delete_comment
-# from nti.graphdb.discussions import _update_topic_node
-# from nti.graphdb.discussions import _add_comment_relationship
-# from nti.graphdb.discussions import _get_comment_relationship
-# from nti.graphdb.discussions import _add_membership_relationship
+#         comment = PersonalBlogComment()
+#         comment.creator = user
+#         entry['comment316072059'] = comment
+#         comment.__parent__ = entry
+#         comment.createdTime = comment.lastModified = 43
+#         mock_dataserver.current_transaction.add(comment)
 # 
-# from nti.graphdb.relationships import Author
-# from nti.graphdb.relationships import MemberOf
-# from nti.graphdb.relationships import CommentOn
+#         oid = get_oid(comment)
+#         res = _add_comment_relationship(self.db, oid)
+#         assert_that(res, is_not(none()))
+#         assert_that(res, has_property(
+#             'properties', has_entry('oid', is_not(none()))))
 # 
-# import nti.dataserver.tests.mock_dataserver as mock_dataserver
-# from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
+#         res = _get_comment_relationship(self.db, comment)
+#         assert_that(res, is_not(none()))
+#         assert_that(res, has_property(
+#             'properties', has_entry('oid', is_not(none()))))
 # 
-# from nti.graphdb.tests import DEFAULT_URI
-# from nti.graphdb.tests import cannot_connect
-# from nti.graphdb.tests import random_username
-# from nti.graphdb.tests import GraphDBTestCase
+#         pk = get_node_pk(comment)
+#         res = _delete_comment(self.db, oid, pk.label, pk.key, pk.value)
+#         assert_that(res, is_(True))
 # 
-# @unittest.skipIf(cannot_connect(DEFAULT_URI), "Neo4j not available")
-# class TestDiscussions(GraphDBTestCase):
-# 
-# 	def setUp(self):
-# 		super(TestDiscussions, self).setUp()
-# 		self.db = Neo4jDB(DEFAULT_URI)
-# 
-# 	def _create_user(self, username='nt@nti.com', password='temp001'):
-# 		usr = User.create_user(self.ds, username=username, password=password)
-# 		return usr
-# 
-# 	def _create_random_user(self):
-# 		username = random_username()
-# 		user = self._create_user(username)
-# 		return user
-# 
-# 	@WithMockDSTrans
-# 	def test_user_blog_node(self):
-# 		user = self._create_random_user()
-# 		blog = IPersonalBlog(user)
-# 		entry = PersonalBlogEntry()
-# 		entry.creator = user
-# 		blog['bleach'] = entry
-# 		entry.__parent__ = blog
-# 		entry.lastModified = 42
-# 		entry.createdTime = 24
-# 
-# 		oid = get_oid(entry)
-# 		pk = get_node_pk(entry)
-# 
-# 		node, topic = _add_topic_node(self.db, oid, pk.label, pk.key, pk.value)
-# 		assert_that(node, is_not(none()))
-# 		assert_that(topic, is_(entry))
-# 
-# 		node = self.db.get_indexed_node(pk.label, pk.key, pk.value)
-# 		assert_that(node, is_not(none()))
-# 		
-# 		rels = self.db.match(user, topic, Author())
-# 		assert_that(rels, has_length(1))
-# 		
-# 		_update_topic_node(self.db, oid, pk.label, pk.key, pk.value)
-# 		
-# 		node = self.db.get_indexed_node(pk.label, pk.key, pk.value)
-# 		assert_that(node, has_property('properties', has_entry('type', 'Topic')))
-# 		assert_that(node, has_property('properties', has_entry('ntiid', is_not(none()))))
-# 		assert_that(node, has_property('properties', has_entry('creator', user.username)))
-# 
-# 		_add_membership_relationship(self.db, entry, blog)
-# 		rels = self.db.match(entry, blog, MemberOf())
-# 		assert_that(rels, has_length(1))
-# 		
-# 		res = _delete_node(self.db, pk.label, pk.key, pk.value)
-# 		assert_that(res, is_(True))
-# 
-# 		res = _delete_node(self.db, pk.label, pk.key, pk.value)
-# 		assert_that(res, is_(False))
-# 
-# 	@WithMockDSTrans
-# 	def test_user_blog_comment(self):
-# 		user = self._create_random_user()
-# 		blog = IPersonalBlog(user)
-# 		entry = PersonalBlogEntry()
-# 		entry.creator = user
-# 		blog['bleach'] = entry
-# 		entry.__parent__ = blog
-# 		entry.createdTime = entry.lastModified = 42
-# 		mock_dataserver.current_transaction.add(entry)
-# 
-# 		comment = PersonalBlogComment()
-# 		comment.creator = user
-# 		entry['comment316072059'] = comment
-# 		comment.__parent__ = entry
-# 		comment.createdTime = comment.lastModified = 43
-# 		mock_dataserver.current_transaction.add(comment)
-# 
-# 		oid = get_oid(comment)
-# 		res = _add_comment_relationship(self.db, oid)
-# 		assert_that(res, is_not(none()))
-# 		assert_that(res, has_property('properties', has_entry('oid', is_not(none()))))
-# 		
-# 		res = _get_comment_relationship(self.db, comment)
-# 		assert_that(res, is_not(none()))
-# 		assert_that(res, has_property('properties', has_entry('oid', is_not(none()))))
-# 
-# 		pk = get_node_pk(comment)
-# 		res = _delete_comment(self.db, oid, pk.label, pk.key, pk.value)
-# 		assert_that(res, is_(True))
-# 		
-# 		rels = self.db.match(entry, blog, CommentOn())
-# 		assert_that(rels, has_length(0))
+#         rels = self.db.match(entry, blog, CommentOn())
+#         assert_that(rels, has_length(0))
