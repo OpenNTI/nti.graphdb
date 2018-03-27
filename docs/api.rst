@@ -27,11 +27,6 @@ Discussions
 
 .. automodule:: nti.graphdb.discussions
 
-Enrollment
-==========
-
-.. automodule:: nti.graphdb.enrollment
-
 Entities
 ========
 
