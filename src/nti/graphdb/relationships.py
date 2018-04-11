@@ -16,7 +16,6 @@ from nti.graphdb.interfaces import IReply
 from nti.graphdb.interfaces import IAuthor
 from nti.graphdb.interfaces import IBelong
 from nti.graphdb.interfaces import IBought
-from nti.graphdb.interfaces import IEnroll
 from nti.graphdb.interfaces import IFollow
 from nti.graphdb.interfaces import IShared
 from nti.graphdb.interfaces import IViewed
@@ -27,7 +26,6 @@ from nti.graphdb.interfaces import IFriendOf
 from nti.graphdb.interfaces import IMemberOf
 from nti.graphdb.interfaces import IParentOf
 from nti.graphdb.interfaces import ITaggedTo
-from nti.graphdb.interfaces import IUnenroll
 from nti.graphdb.interfaces import ICommentOn
 from nti.graphdb.interfaces import IContained
 from nti.graphdb.interfaces import IIsReplyOf
@@ -213,22 +211,6 @@ class Reply(Singleton):
 
     def __str__(self):
         return "HAS_REPLIED_TO"
-    __repr__ = __str__
-
-
-@interface.implementer(IEnroll)
-class Enroll(Singleton):
-
-    def __str__(self):
-        return "HAS_ENROLLED"
-    __repr__ = __str__
-
-
-@interface.implementer(IUnenroll)
-class Unenroll(Singleton):
-
-    def __str__(self):
-        return "HAS_UNENROLLED"
     __repr__ = __str__
 
 
