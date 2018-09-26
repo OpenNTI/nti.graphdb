@@ -18,7 +18,7 @@ from zope import interface
 
 from zope.component.zcml import utility
 
-from zope.configuration import fields
+from zope.schema import TextLine
 
 from nti.asynchronous import get_job_queue as async_queue
 
@@ -43,9 +43,9 @@ class IRegisterGraphDB(interface.Interface):
     """
     The arguments needed for registering an graph db
     """
-    url = fields.TextLine(title=u"db url", required=False,
-                          default=DEFAULT_URI)
-    username = fields.TextLine(title=u"db username", required=False)
+    url = TextLine(title=u"db url", required=False,
+                   default=DEFAULT_URI)
+    username = TextLine(title=u"db username", required=False)
     password = schema.Password(title=u"db password", required=False)
 
 
